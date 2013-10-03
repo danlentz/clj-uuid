@@ -41,13 +41,13 @@ the UUID situation as an ideal means to explore working with Clojure's
 much vaunted "protocol" and "type" abstractions.
 
 To a large extent, the design of the API and algorithmic
-implementation is inspired by the Common-Lisp library 
+implementation is inspired by the Common-Lisp library
 [_UNICLY_](http://github.com/mon-key/unicly) which is a painstakingly
-optimized, encyclopaedic implementation of RFC-4122 the author of which
-has devoted years to researching, refining, and improving.
-To my knowledge there is no more performant, capable, and precise
-implementation of the RFC-4122 specification available anywhere,
-in any language, on any platform.
+optimized, encyclopaedic implementation of RFC-4122 the author of
+which, Stan Pearman, has devoted years to researching, refining, and
+improving.  To my knowledge there is no more performant, capable, and
+precise implementation of the RFC-4122 specification available
+anywhere, in any language, on any platform.
 
 That having been said, Common-Lisp, as a platform for implementing a
 facility of this nature, differs significantly from that of the JVM
