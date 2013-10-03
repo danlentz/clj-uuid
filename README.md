@@ -2,11 +2,11 @@
 
 A Clojure library for generation and utilization of UUIDs (Universally Unique
 Identifiers) as described by RFC-4122.  The essential nature of the
-service it provides is an enormous _namespace_ and a mathematical
-model by means of which one interacts with it.
+service it provides is that of an enormous _namespace_ and a
+deterministic mathematical model by means of which one navigates it.
 
 The provided namespace represents an _inexhaustable_ resource and as
-suc can be used in a variety of ways not feasible using traditional
+such can be used in a variety of ways not feasible using traditional
 techniques rooted in the notions imposed by finite resources.  When I
 say "inexhaustable" this of course is slight hyperbolie, but not by
 much.  The upper bound on the representation implemented by this
@@ -17,7 +17,7 @@ library limits the number of unique identifiers to a mere...
 *septillion four hundred sixty-three sextillion four hundred sixty-three*
 *quintillion three hundred seventy-four quadrillion six hundred seven trillion*
 *four hundred thirty-one billion seven hundred sixty-eight million two hundred*
-*eleven thousand four hundred and fifty-five*
+*eleven thousand four hundred and fifty-five.*
 
 If you think you might be starting to run low, let me know when you get down
 to your last few undecillion or so and I'll see what I can do to help out.
