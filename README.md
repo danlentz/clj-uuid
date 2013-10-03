@@ -26,7 +26,7 @@ to your last few undecillion or so and I'll see what I can do to help out.
 ## Motivation
 
 UUIDs represent an extremely powerful and versatile computation
-technique that is often overlooked, and under-utilized. In my opinion,
+technique that is often overlooked, and underutilized. In my opinion,
 this, in part, is due to the generally poor quality, performance, and
 capability of available libraries and, in part, due to a general
 misunderstanding in the popular consiousness of their proper use and
@@ -43,13 +43,15 @@ much vaunted "protocol" and "type" abstractions.
 To a large extent, the design of the API and algorithmic
 implementation is inspired by the Common-Lisp library 
 [_UNICLY_](http://github.com/mon-key/unicly) which is a painstakingly
-optimized, encyclopaedic implementation of RFC-4122 that the author,
-has spent years refining.  To my knowledge there is no more
-performant, capable, and precise implementation of the RFC-4122
-specification available anywhere, on any platform.  That having been
-said, Common-Lisp, as a platform for implementing a facility of this
-nature, differs significantly from that of the JVM and has an
-extremely extensive collection of functionality, representations,
+optimized, encyclopaedic implementation of RFC-4122 the author of which
+has devoted years to researching, refining, and improving.
+To my knowledge there is no more performant, capable, and precise
+implementation of the RFC-4122 specification available anywhere,
+in any language, on any platform.
+
+That having been said, Common-Lisp, as a platform for implementing a
+facility of this nature, differs significantly from that of the JVM
+and has an extremely extensive collection of functionality, representations,
 and optimization techniques as part of its built-in standard library
 that are specifically geared for projects of this nature.  Java, and
 by extension, Clojure, on the other hand, are extremely limited in
