@@ -1,0 +1,440 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Java and unsigned int, unsigned short, unsigned byte, unsigned long, etc. (Or rather, the lack thereof)</title>
+  </head>
+
+  <body>
+
+   <h1>Java and unsigned int, unsigned short, unsigned byte, unsigned long, etc. (Or rather, the lack thereof)</h1>
+
+Written by Sean R. Owens, sean at guild dot net, released to the
+public domain.  Share and enjoy.  Since some people argue that it is
+impossible to release software to the public domain, you are also free
+to use this code under any version of the GPL, LPGL, or BSD licenses,
+or contact me for use of another license.
+<p>
+
+If you are wondering if this means that you are allowed to use this in
+a class about java and/or unsigned types, <b>you are allowed to use
+this in a class</b>
+<p>
+
+<a href=http://darksleep.com/player>http://darksleep.com/player</a>
+<br>
+<p>
+For other fine writings on Java and other subjects, check out <a href=http://darksleep.com/notablog>notablog at http://darksleep.com/notablog</a>
+<p>
+( Evangelos Haleplidis has been so kind as to write this up as a set
+of classes that may be easily used to read unsigned types.  You can
+download a <a
+href=http://darksleep.com/player/ehalep/Unsigned.jar>pre-compiled
+jar,</a> <a href=http://darksleep.com/player/ehalep/unsigned.zip>a zip
+of the source,</a> and <a
+href=http://darksleep.com/player/ehalep/javadoc.zip>a zip of the API
+docs</a> from this website. )
+
+<h2> Note: java.nio.ByteBuffer / java.nio.ByteOrder </h2>
+
+If all you want to know is how to read a stream of bytes where you
+<strong>know</strong> the endianness, then take a close look at
+java.nio.ByteOrder and java.nio.ByteBuffer and it's order() methods,
+as well as it's get and put methods.  If you want to roll your own
+and/or want to know how it works, read on.
+
+<h2> So what's up with unsigned types in Java? </h2>
+
+    In languages like C and C++, there exist a variety of sizes of
+    integers, char, short, int, long.  (char isn't really an integer,
+    but you can use it like an integer and most people use it in C for
+    really small integers.)  On most 32 bit systems, these correspond
+    to 1 byte, 2 byte, 4 byte, and 8 byte numbers.  But note, do not
+    make the mistake of assuming this is true everywhere.  On the
+    other hand, Java, since it is designed to be a portable platform,
+    guarantees that no matter what platform you are running on, a
+    'byte' is 1 byte, a 'short' is 2 bytes, an 'int' is 4 bytes, and a
+    'long' is 8 bytes.  However, C also provides 'unsigned' types of
+    each of its integers, which <a href=#why_no_unsigned_types>Java
+    does not</a>.  I find it incredibly annoying that Java doesn't
+    deal with unsigned types, considering the huge number of hardware
+    interfaces, network protocols, and file formats that use them.
+
+
+<p>
+
+    (The only exception is that Java does provide the 'char' type,
+    which is a 2 byte representation of unicode, instead of the C
+    'char' type, which is 1 byte ASCII.  Java's 'char' also can be
+    used as an unsigned short, i.e. it represents numbers from 0 up to
+    2^16.  The only gotchas are, weird things will happen if you try
+    to assign it to a short, and if you try to print it, you'll get
+    the unicode character it represents, instead of the integer value.
+    If you need to print the value of a char, cast it to int first.)
+
+<h2> So how do we work around this lack of unsigned types? </h2>
+
+    Well, you're probably not going to like this... 
+<p>
+
+    The answer is, you use the signed types that are larger than the
+    original unsigned type.  I.e. use a short to hold an unsigned
+    byte, use a long to hold an unsigned int.  (And use a char to hold
+    an unsigned short.)  Yeah, this kinda sucks because now you're
+    using twice as much memory, but there really is no other solution.
+    (Also bear in mind, access to longs is not guaranteed to be atomic
+    - although if you're using multiple threads, you really should be
+    using synchronization anyway.)
+
+<h2> So... </h2>
+<h3> Have you noticed that you seem to have this bad habit of starting your headings with "So"?</h3>
+Hmm, good point.  So let's stop doing that.
+
+<h2> How do we get the values into and out of 'unsigned' form? </h2>
+<p>
+
+    If someone sends you a bunch of bytes over the network (or you
+    read them from a file on the disk, or whatever) that include some
+    unsigned numbers, you need to do a few gymnastics to convert them
+    into the larger java types. 
+
+
+<p> 
+      
+    One issue that I really need to go into here is <a
+    href=#whats_all_this_about_byte_order_or_endianness>byte order aka
+    endianness</a>, but for the moment we're going to assume (or hope)
+    that whatever you're trying to read is in what is referred to as
+    'network byte order' aka 'big endian' aka Java's standard
+    endianness.
+      
+
+<h3>Reading from network byte order</h3>
+
+    Let us assume we're starting with a byte array, just to keep
+    things simple, and we want to read an unsigned byte, then an
+    unsigned short, then an unsigned int.
+
+      <pre> 
+	short anUnsignedByte = 0;
+	char anUnsignedShort = 0;
+	long anUnsignedInt = 0;
+
+        int firstByte = 0;
+        int secondByte = 0;
+        int thirdByte = 0;
+        int fourthByte = 0;
+
+	byte buf[] = getMeSomeData();
+	// Check to make sure we have enough bytes
+	if(buf.length < (1 + 2 + 4)) 
+	  doSomeErrorHandling();
+	int index = 0;
+	
+        firstByte = (0x000000FF & ((int)buf[index]));
+	index++;
+	anUnsignedByte = (short)firstByte;
+
+        firstByte = (0x000000FF & ((int)buf[index]));
+        secondByte = (0x000000FF & ((int)buf[index+1]));
+	index = index+2;
+	anUnsignedShort  = (char) (firstByte << 8 | secondByte);
+
+        firstByte = (0x000000FF & ((int)buf[index]));
+        secondByte = (0x000000FF & ((int)buf[index+1]));
+        thirdByte = (0x000000FF & ((int)buf[index+2]));
+        fourthByte = (0x000000FF & ((int)buf[index+3]));
+        index = index+4;
+	anUnsignedInt  = ((long) (firstByte << 24
+	                | secondByte << 16
+                        | thirdByte << 8
+                        | fourthByte))
+                       & 0xFFFFFFFFL;
+      </pre>
+
+<p>
+
+    OK, now that all looks a little complicated.  But really it is
+    straightforward.  First off, you see a lot of 
+<p>
+<pre>
+	0x000000FF & (int)buf[index]
+</pre>
+<p>
+    What is going on there is that we are promoting a (signed) byte to
+    int, and then doing a bitwise AND operation on it to wipe out
+    everything but the first 8 bits.  Because Java treats the byte as
+    signed, if its unsigned value is above > 127, the sign bit will be
+    set (strictly speaking it is not "the sign bit" since numbers are
+    encoded in <a
+    href="http://en.wikipedia.org/wiki/Two%27s_complement">two's
+    complement</a>) and it will appear to java to be negative.  When
+    it gets promoted to int, bits 0 through 7 will be the same as the
+    byte, and bits 8 through 31 will be set to 1.  So the bitwise AND
+    with 0x000000FF clears out all of those bits.  Note that this
+    could have been written more compactly as;
+<p>
+<pre>
+	0xFF & buf[index]
+</pre>
+    Java assumes the leading zeros for 0xFF, and the bitwise &
+    operator automatically promotes the byte to int.  But I wanted to
+    be a tad more explicit about it.
+<p>
+    The next thing you'll see a lot of is the <<, or bitwise shift
+    left operator.  It's shifting the bit patterns of the left int
+    operand left by as many bits as you specify in the right operand
+    So, if you have some int foo = 0x000000FF, then (foo << 8) ==
+    0x0000FF00, and (foo << 16) == 0x00FF0000.
+<p>
+    The last piece of the puzzle is |, the bitwise OR operator.
+    Assume you've loaded both bytes of an unsigned short into separate
+    integers, so you have 0x00000012 and 0x00000034.  Now you shift
+    one of the bytes by 8 bits to the left, so you have 0x00001200 and
+    0x00000034, but you still need to stick them together.  So you
+    bitwise OR them, and you have 0x00001200 | 0x00000034 =
+    0x00001234.  This is then stored into Java's 'char' type.  
+<p>
+    That's basically it, except that in the case of the unsigned int,
+    you have to now store it into the long, and you're back up against
+    that sign extension problem we started with.  No problem, just
+    cast your int to long, then do the bitwise AND with 0xFFFFFFFFL.
+    (Note the trailing L to tell Java this is a literal of type 'long'
+    integer.)
+
+
+<h3>Writing to network byte order</h3>
+
+    Lets assume now that we want to write the values we read above
+    back into the same buffer, but whereas we read an unsigned byte,
+    then an unsigned short, then an unsigned int, now we instead (for
+    some arcane reason) want to write it out as unsigned int, unsigned
+    short, unsigned byte.
+
+      <pre>
+	buf[0] = (anUnsignedInt & 0xFF000000L) >> 24;
+	buf[1] = (anUnsignedInt & 0x00FF0000L) >> 16;
+	buf[2] = (anUnsignedInt & 0x0000FF00L) >> 8;
+	buf[3] = (anUnsignedInt & 0x000000FFL);
+
+	buf[4] = (anUnsignedShort & 0xFF00) >> 8;
+	buf[5] = (anUnsignedShort & 0x00FF);
+
+	buf[6] = (anUnsignedByte & 0xFF);
+      </pre>
+
+    
+<h2><a name=whats_all_this_about_byte_order_or_endianness>Whats all this about Byte Order? (or Endianness?)</a></h2>
+<h3> What does it mean?  Why do I care? (And what about Network Order?)</h3>
+
+For the record, Java is 'big endian' also known as 'network byte
+order'.  Intel x86 processors are 'little endian'.  (Unless it's a
+Java program running on an Intel chip.)  A data file created by an x86
+system is <b>likely</b> but <b>not required</b> to be little endian.
+A data file created by a Java program is <b>likely</b> but <b>not
+required</b> to be big endian.  Any system can output data in whatever
+format it wants and it's entirely possible the one you are dealing
+with is being careful to write data in 'network byte order' aka 'big
+endian'.
+
+<h3> What does Byte Order / Endianness mean? </h3>
+
+"Byte order" or "Endianness" refers to how a particular computer
+architecture stores numbers in memory.  Typically a particular
+computer is either "big endian" or "little endian".  (By the way,
+according to Wikipedia, <a
+href=http://en.wikipedia.org/wiki/Endianness>these terms derive from a
+story in Gullivers Travels.</a>)
+
+<p>
+
+You care about this because if you assume data is written in say, 'big
+endian' format, and write your code accordingly, and it turns out the
+data is in 'little endian' format, you're going to get garbage.  And
+vice versa for assuming 'little endian' for data written in 'big
+endian'.
+
+
+
+<p>
+
+Every number, whether expressed as digits, i.e. the number
+500,000,007 or as bytes, i.e. the four byte integer (as hexadecimal)
+0x1DCD6507, can be thought of as a string of digits.
+And this string of digits can be thought of as having a starting, or
+left, 'end', and a finishing, or 'right' end.  In English, the first
+digit in a number is always the biggest (or most significant) digit -
+i.e. the 5 in 500,000,007 actually represents the value 500,000,000.
+The last digit in a number is always the littlest (or least
+significant) digit - i.e. the 7 in 500,000,007 represents the value 7.
+
+<p>
+
+When we talk about Endianness, or byte order, we are talking about the
+order in which we write down the digits.  Do we write the biggest
+(most significant) digit first, and then the next biggest, etc etc,
+until we reach the littlest (least significant) digit?  Or do we start
+with the littlest digit first?  In English we always write the biggest
+one first, hence English could be described as "big endian".  (There
+<em>are</em> human languages where they do it the other way around.
+My friend Raichle suggests Hebrew as an example of one such language,
+but she's not really sure.)
+
+<p> 
+
+In the example above, the value 50,0000,007, in hexadecimal, is
+0x1DCD6507.  And if we break it up into four separate bytes, the byte
+values are 0x1D, 0xCD, 0x65, and 0x07.  In decimal those four bytes
+are (respectively) 29, 205, 101, and 7.  The biggest byte is the first
+one, 29, which represents the value 29 * 256 * 256 * 256 = 486539264.
+The second biggest is the second byte, 205, which represents the value
+205 * 256 * 256 = 13434880.  The third biggest byte is 101, which
+represents the value 101 * 256 = 25856, and the littlest byte is 7,
+which represents the value 7 * 1 = 7.  The values 486539264 + 13434880
++ 25856 + 7 = 500,000,007.
+
+<p>
+
+When the computer stores those four bytes into four locations in
+memory, let's say into memory addresses 2056, 2057, 2058, and 2059,
+the question is, what order does it store them in?  It might put 29 in
+2056, 205 in 2057, 101 in 2058, and 7 in 2059, just like you'd write
+down the number in English.  If it did, then we would say that
+computer is "big endian".  However, a different computer architecture
+might just as easily store those bytes by putting 7 in 2056, 101 in
+2057, 205 in 2058, and 29 in 2059.  If the computer stored the bytes
+in that manner then we would say that it was "little endian".
+
+<p>
+
+Note that this also applies to how the computer stores 2 byte shorts
+and 8 byte longs.  Also note that the "biggest" byte is also referred
+to as the "Most Significant Byte" (MSB) and the "littlest" byte is
+also referred to as the "Least Significant Byte" (LSB), so you will
+often times see those two phrases or acronyms popping up.
+
+<h3> Ok, fine, so why do I care about Byte Order? </h3>
+
+Well, it depends.  A lot of the time you don't have to.  In pure Java,
+byte order is always the same no matter what platform you're on, so no
+big deal, you can forget about it, as long as you're dealing with pure
+Java.  
+
+<p>
+
+But what happens when you're dealing with data generated by other
+languages?  Well, now you have to pay attention to things a bit.  You
+have to make sure that you decode the bytes in the same order as they
+were originally encoded in, and likewise make sure that you encode the
+bytes in the same order as they will be decoded in.  If you're lucky
+this will be specified somewhere in the spec or API for whatever
+protocol or file format you're dealing with.  If you're
+unlucky... well.  Good luck.
+
+<p>
+
+The biggest problem is simply remembering what your byte order is, and
+knowing what the byte order of the data you are reading in is.  If
+they're not the same, you need to make sure you re-order them
+correctly, or in the case of dealing with unsigned numbers like above,
+you need to make sure you put the correct bytes into the correct parts
+of the integer/short/long.
+
+
+<h3> What the heck is Network Order? </h3> 
+
+When the Internet Protocol (IP) was designed, "big endian" byte order
+was designated as "network order".  All numeric values in IP packet
+headers are stored in "network order".  The byte order of the computer
+creating the packets is referred to as "host order", although it may
+in fact be the same as "network order" if your host is a "big endian"
+machine.  So that's why you'll some times see Java endianness/byte
+order referred to as "network order", since both Java byte order and
+network byte order are "big endian"
+
+<p>
+
+
+
+<h2><a name=why_no_unsigned_types>Why no unsigned types?</a></h2>
+
+    Why doesn't Java provide unsigned types?  Good question.  I always
+    thought it was kind of strange, especially since there are lots of
+    network protocols out there that use unsigned types.  I first ran into
+    this back in 1999.  At the time I did a lot of digging on the web
+    (google wasn't as good then as it is now) because I had a hard
+    time believing this was true, but eventually I ran across an
+    interview with one of the inventers of Java (was it Gosling?  I
+    can't remember.  I wish I'd saved a copy of that web page). where
+    the designer came right out and said something like "Hey, unsigned
+    types make everything more complicated and nobody really needs
+    them anyway, so we left them out."  Here's another web page with
+    an interview with James Gosling that might give you an idea of
+    where he's coming from:
+
+<p>
+
+<a href="http://www.gotw.ca/publications/c_family_interview.htm">http://www.gotw.ca/publications/c_family_interview.htm</a>
+
+<p>
+<pre>
+> Q: Programmers often talk about the advantages and disadvantages of
+> programming in a "simple language."  What does that phrase mean to
+> you, and is [C/C++/Java] a simple language in your view?
+> 
+> Ritchie: [deleted for brevity]
+> 
+> Stroustrup: [deleted for brevity]
+> 
+> Gosling: For me as a language designer, which I don't really count
+> myself as these days, what "simple" really ended up meaning was could
+> I expect J. Random Developer to hold the spec in his head. That
+> definition says that, for instance, Java isn't -- and in fact a lot of
+> these languages end up with a lot of corner cases, things that nobody
+> really understands. Quiz any C developer about unsigned, and pretty
+> soon you discover that almost no C developers actually understand what
+> goes on with unsigned, what unsigned arithmetic is. Things like that
+> made C complex. The language part of Java is, I think, pretty
+> simple. The libraries you have to look up.
+</pre>
+
+<p>
+On the other hand.... 
+
+According to <a href="http://www.artima.com/weblogs/viewpost.jsp?thread=7555">http://www.artima.com/weblogs/viewpost.jsp?thread=7555</a>
+
+<pre>
+> Once Upon an Oak ...
+> by Heinz Kabutz
+> July 15, 2003
+>
+...
+> Trying to fill my gaps of Java's history, I started digging around on
+> Sun's website, and eventually stumbled across the Oak Language
+> Specification for Oak version 0.2. Oak was the original name of what
+> is now commonly known as Java, and this manual is the oldest manual
+> available for Oak (i.e. Java).
+...
+> Unsigned integer values (Section 3.1)
+> 
+> The specification says: "The four integer types of widths of 8, 16, 32
+> and 64 bits, and are signed unless prefixed by the unsigned modifier.
+> 
+> In the sidebar it says: "unsigned isn't implemented yet; it might
+> never be." How right you were.
+</pre>
+
+The Oak Language Specification for Oak version 0.2 can be downloaded in as 
+postscript from <a href=https://duke.dev.java.net/green/OakSpec0.2.ps>https://duke.dev.java.net/green/OakSpec0.2.ps</a> or zipped PDF from <a href=http://www.me.umn.edu/~shivane/blogs/cafefeed/resources/14-jun-2007/OakSpec0.2.zip>http://www.me.umn.edu/~shivane/blogs/cafefeed/resources/14-jun-2007/OakSpec0.2.zip</a> (assuming these links haven't broken...)
+
+    <hr>
+    Thanks goes to Derrick Coetzee (dc at moonflare dot com) for his
+    advice and support.
+
+    <hr>
+
+<!-- Created: Fri Sep 17 19:13:27 EDT 2004 -->
+<!-- hhmts start -->
+Last modified: Sat Apr  7 01:48:45 UTC 2012
+<!-- hhmts end -->
+  </body>
+</html>
