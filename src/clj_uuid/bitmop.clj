@@ -55,25 +55,22 @@
 ;; as Vector of Unboxed Shorts 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 (defn svec [coll]
   (apply (partial vector-of :short) coll))
 
 (defn svector [& args]
-  (svec args))
+  (svec (map short args)))
 
-(defn- make-vector [length initial-element]
+(defn make-svector [length initial-element]
   (svec (loop [len length v []]
          (if (<= len 0)
            v
-           (recur (- len 1) (cons initial-element v))))))
+           (recur (- len 1) (cons (short initial-element) v))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
+;; Octet Vector Creator and Conversion
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
 
 
 (defn octets [num]
@@ -89,28 +86,27 @@
           (svec v))
         (recur (bit-shift-right n 8) (cons (short (ub8 n)) v))))))
 
-
 (defn word
   ([num]
     (word num 8))
   ([num size]
     (cond
       (number? num) (word (octets num) size)
-      (coll? num)   (let [pad (make-vector (- size (count num)) 0)]
+      (coll? num)   (let [pad (make-svector (- size (count num)) 0)]
                       (svec (concat pad num))))))
-
-
 
 (defn words [& nums]
   (svec (apply concat (map word nums))))
 
 
-(defn- octet-hex [num]
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Hexadecimal String Representation 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn octet-hex [num]
   (str
-    (nth hex-chars (ub4 (bit-shift-right num 4)))
-    (nth hex-chars (ub4 num))))
-
-
+    (nth +hex-chars+ (ub4 (bit-shift-right num 4)))
+    (nth +hex-chars+ (ub4 num))))
 
 (defn hex [thing]
   (cond

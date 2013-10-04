@@ -17,21 +17,29 @@
   (java.security.MessageDigest/getInstance designator))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; SHA1 
+;; SHA1 Digest
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmulti sha1 type)
 
 (defmethod sha1 String [s]
   (svec
-    (map ub8  (-> (make-digest +sha1+)
-                (.digest (.getBytes s))))))
+    (map ub8
+      (-> (make-digest +sha1+)
+        (.digest (.getBytes s))))))
+
+(defmethod sha1 clojure.lang.PersistentVector [coll]
+  (svec
+    (map ub8 
+      (-> (make-digest +sha1+)
+        (.digest (byte-array (apply concat (map #(.getBytes %) coll))))))))
 
 (defmethod sha1 Object [o]
   (sha1 (.toString o)))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; MD5
+;; MD5 Digest
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmulti md5 type)
@@ -41,11 +49,18 @@
     (map ub8  (-> (make-digest +md5+)
                 (.digest (.getBytes s))))))
 
+(defmethod md5 clojure.lang.PersistentVector [coll]
+  (svec
+    (map ub8 
+      (-> (make-digest +md5+)
+        (.digest (byte-array (apply concat (map #(.getBytes %) coll))))))))
+
 (defmethod md5 Object [o]
   (md5 (.toString o)))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; MD5/SHA1 Performance Metrics / Comparative Timings
+;; MD5/SHA1 Performance Experimentation / Comparative Timings
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (comment
