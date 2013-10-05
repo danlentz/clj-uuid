@@ -58,6 +58,12 @@
 (defmethod md5 Object [o]
   (md5 (.toString o)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Digest Namespaced Identifiers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn digest-uuid [digest uuid & namestring-parts]
+  (subvec (digest (vec (cons (.toString uuid) namestring-parts))) 0 16))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; MD5/SHA1 Performance Experimentation / Comparative Timings
