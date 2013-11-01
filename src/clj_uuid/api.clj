@@ -1,8 +1,11 @@
-(ns clj-uuid.bitmop
+(ns clj-uuid.api
+  (:refer-clojure :exclude [==])
   (:use [clojure.core])
   (:use [clojure.pprint])
   (:use [clojure.repl :only [doc find-doc apropos]])
+  (:use [clojure.repl :as repl])
   (:use [clj-uuid.constants])
+  (:use [clj-uuid.util])
   (:use [clj-uuid.bitmop :as bitmop])
   (:use [clj-uuid.digest :as digest])
   (:use [clj-uuid.clock  :as clock])
@@ -17,22 +20,22 @@
 (defprotocol UniqueIdentifier
   (null?           [uuid])
   (uuid=           [x y]) 
-  (get-word-high       [uuid])
-  (get-word-low        [uuid])
+  (get-word-high   [uuid])
+  (get-word-low    [uuid])
   (hash-code       [uuid])
-  (get-version         [uuid])
+  (get-version     [uuid])
   (to-string       [uuid])
   (to-hex-string   [uuid])
   (to-urn-string   [uuid])
   (to-octet-vector [uuid])
-  (get-time-low        [uuid])
-  (get-time-mid        [uuid])
-  (get-time-high       [uuid])
-  (get-clk-low         [uuid])
-  (get-clk-high        [uuid])
-  (get-node-id            [uuid])
-  (get-timestamp       [uuid])
-  (get-namespace-bytes [uuid]))
+  (to-byte-vector  [uuid])
+  (get-time-low    [uuid])
+  (get-time-mid    [uuid])
+  (get-time-high   [uuid])
+  (get-clk-low     [uuid])
+  (get-clk-high    [uuid])
+  (get-node-id     [uuid])
+  (get-timestamp   [uuid]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -48,8 +51,14 @@
     (.getLeastSignificantBits uuid))  
   (null? [uuid]
     (= 0 (get-word-low uuid)))
+  (to-byte-vector [uuid]
+    (bitmop/sbvec (concat
+                    (bitmop/sbvec (get-word-high uuid))
+                    (bitmop/sbvec (get-word-low uuid)))))
   (to-octet-vector [uuid]
-    (bitmop/words (get-word-high uuid) (get-word-low uuid)))
+    (bitmop/ubvec (concat
+                    (bitmop/ubvec (get-word-high uuid))
+                    (bitmop/ubvec (get-word-low uuid)))))
   (hash-code [uuid]
     (.hashCode uuid))
   (get-version [uuid]
@@ -57,107 +66,198 @@
   (to-string [uuid]
     (.toString uuid))
   (to-hex-string [uuid]
-    (bitmop/hex (bitmop/to-octet-vector uuid)))
+    (str
+      (bitmop/hex (get-word-high uuid))
+      (bitmop/hex (get-word-low uuid))))
   (to-urn-string [uuid]
     (str "urn:uuid:" (to-string uuid)))
-  (get-time-low [uuid]    
-    (bitmop/svec (take 4 (bitmop/word (get-word-high uuid)))))
+  (get-time-low [uuid]
+    (ldb (mask 32 0) (bit-shift-right (get-word-high uuid) 32)))
   (get-time-mid [uuid]
-    (bitmop/svec (take 2 (drop 4 (bitmop/word (get-word-high uuid))))))
+    (ldb (mask 16 16) (get-word-high uuid))) 
   (get-time-high [uuid]
-    (bitmop/svec (take 2 (drop 6 (bitmop/word (get-word-high uuid))))))
+    (ldb (mask 16 0) (get-word-high uuid)))
   (get-clk-low [uuid]
-    (bitmop/svec (take 1 (bitmop/word (get-word-low uuid)))))
+    (ldb (mask 8 0) (bit-shift-right (get-word-low uuid) 56)))
   (get-clk-high [uuid]
-    (bitmop/svec (take 1 (rest (bitmop/word (get-word-low uuid))))))    
+    (ldb (mask 8 48) (get-word-low uuid)))
   (get-node-id [uuid]
-    (bitmop/svec (take 6 (drop 2 (bitmop/word (get-word-low uuid))))))
+    (ldb (mask 48 0) (get-word-low uuid)))
   (get-timestamp [uuid]
     (when (= 1 (get-version uuid))
-      (.timestamp uuid)))
-  (get-namespace-bytes [uuid]
-    :nyi))
+      (.timestamp uuid))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; General Representation Of UUID Constituent Values
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; The string representation of A UUID has the format:
+;;
+;;                                          clock-seq-and-reserved
+;;                                time-mid  | clock-seq-low
+;;                                |         | |
+;;                       6ba7b810-9dad-11d1-80b4-00c04fd430c8
+;;                       |             |         |
+;;                       ` time-low    |         ` node
+;;                                     ` time-high-and-version
+;;
+;;
+;; Each field is treated as an integer and has its value printed as a zero-filled
+;; hexadecimal digit string with the most significant digit first.
+;;
+;; 0                   1                   2                   3    
+;;  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
+;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+;; |                        %uuid_time-low                         |
+;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+;; |       %uuid_time-mid          |  %uuid_time-high-and-version  |
+;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+;; |clk-seq-hi-res | clock-seq-low |         %uuid_node (0-1)      |
+;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+;; |                         %uuid_node (2-5)                      |
+;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+;;
+;;
+;;  The following table enumerates a slot/type/value correspondence:
+;;
+;;   SLOT       SIZE   TYPE        BYTE-ARRAY
+;;  ----------------------------------------------------------------------
+;;  time-low       4   ub32     #(<BYTE> <BYTE> <BYTE> <BYTE>)
+;;  time-mid       2   ub16     #(<BYTE> <BYTE>)
+;;  time-high      2   ub16     #(<BYTE> <BYTE>)
+;;  clk-high       1    ub8     #(<BYTE>)
+;;  clock-low      1    ub8     #(<BYTE>)
+;;  node           6   ub48     #(<BYTE> <BYTE> <BYTE> <BYTE> <BYTE> <BYTE>)
+;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 8-bit Bytes mapping into 128-bit unsigned integer values
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;
+;;  ((0 7)   (8 15)  (16 23) (24 31) ;; time-low
+;;  (32 39) (40 47)                  ;; time-mid
+;;  (48 55) (56 63)                  ;; time-high-and-version
+;;
+;;  (64 71)                          ;; clock-seq-and-reserved
+;;  (72 79)                          ;; clock-seq-low
+;;  (80 87)   (88 95)   (96 103)     ;;
+;;  (104 111) (112 119) (120 127))   ;; node
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; UUID Constituent Data Map 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; NOTE: at least in its present form this is probably too fragile and
+;; not all that useful anyway.  So most likely it should go away, I think.
+;; It does come in handy for use in the repl during development sometimes...
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn get-uuid-data [uuid]
+    (let [fns '[get-version get-time-low get-time-mid get-time-high
+                 get-clk-low get-clk-high get-node-id]]
+      (zipmap
+        (map (comp keyword name) fns) 
+        (map #((ns-resolve *ns* %) uuid) fns))))
+
+(=
+  (get-uuid-data +null+)
+  {:get-node-id 0,
+    :get-clk-high 0,
+    :get-clk-low 0,
+    :get-time-high 0,
+    :get-time-mid 0,
+    :get-time-low 0
+    :get-version 0})
+(=
+  (get-uuid-data #uuid "0edf17a3-436d-4354-8969-79033e1a0607")
+  {:get-node-id 133054833755655,
+    :get-clk-high 105,
+    :get-clk-low 137,
+    :get-time-high 17236,
+    :get-time-mid 17261,
+    :get-time-low 249501603
+    :get-version 4})
+(=
+  (get-uuid-data +namespace-oid+)
+  {:get-node-id 825973027016,
+    :get-clk-high 180,
+    :get-clk-low 128,
+    :get-time-high 4561,
+    :get-time-mid 40365,
+    :get-time-low 1806153746
+    :get-version 1})
+(=
+  (get-uuid-data +namespace-dns+)
+  (get-uuid-data +namespace-dns+))
+       
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; V0 UUID Constructor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn make-null-uuid []
+(defn null [] 
   +null+)
 
-(defn make-v0-uuid []
+(defn v0 []
   +null+)
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; V4 UUID Constructor
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  
-(defn make-v4-uuid []
-  (UUID/randomUUID))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; V1 UUID Constructor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn make-v1-uuid []
-  (let [ts (clock/make-timestamp) v (bitmop/octets ts)]
-    (UUID/fromString
-      (str 
-        (bitmop/hex (drop 4 v))
-        "-"
-        (bitmop/hex  (take 2 (drop 2 v)))
-        "-"
-        (bitmop/hex (bitmop/svector (bit-or 0x10
-                                      (bitmop/ub4 (first v))) (second v)))
-        "-"
-        (bitmop/hex (bitmop/svector (bit-or 64
-                                      (bit-and 63
-                                        (bit-shift-right @clock/clock-seq 8)))))
-        (bitmop/hex (bitmop/svector (bitmop/ub8 @clock/clock-seq)))
-        "-"
-        (bitmop/hex +node-id+)))))
+(defn v1 []
+  (let [ts (clock/make-timestamp)
+        time-low  (ldb (mask 32  0) ts)
+        time-mid  (ldb (mask 16 32) ts)
+        time-high (dpb (mask 4 12) (ldb (mask 12 48) ts) 0x1)
+        msb       (bit-or
+                   (bit-shift-left time-low 32)
+                   (bit-shift-left time-mid 16)
+                   time-high)
+        clk-high  (bitmop/dpb (bitmop/mask 2 6) (bitmop/ldb (bitmop/mask 6 8) @clock/clock-seq) 0x2)
+        clk-low   (bitmop/ldb (bitmop/mask 8 0) @clock/clock-seq)
+        lsb       (bitmop/assemble-bytes (concat [clk-high clk-low] (clock/make-node-id)))]
+    (UUID. msb lsb)))
+
+;; (v1)
+;; (get-timestamp #uuid "50c9cfb0-c87f-1194-8392-001d4f4b1779")     ;; 113936339732910000
+;; (get-timestamp #uuid "46e109a0-c87f-1194-8392-001d4f4b1779")     ;; 113936339566660000
+;; (= 1 (get-version #uuid "407adaa0-c87f-1194-8392-001d4f4b1779"))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; V4 UUID Constructor
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  
+(defn v4 []
+  (UUID/randomUUID))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Namespaced UUIDs
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- format-digested-uuid [version octv]
+(defn fmt-digested-uuid [version bytes]
   (assert (or (= version 3) (= version 5)))
-  (str
-    (bitmop/hex (subvec octv 0 4))
-    "-"
-    (bitmop/hex (subvec octv 4 6))
-    "-"
-    (bitmop/hex (svector
-                  (bit-or
-                    (bit-shift-left (bitmop/ub4 version) 4)
-                    (bitmop/ub4 (nth octv 6)))
-                  (nth octv 7)))
-    "-"
-    (bitmop/hex (subvec octv 8 10))
-    "-"
-    (bitmop/hex (subvec octv 10 16))))
+  (let [msb (bitmop/assemble-bytes (take 8 bytes))
+        lsb (bitmop/assemble-bytes (drop 8 bytes))]
+    (UUID.
+     (bitmop/dpb (bitmop/mask 4 12) msb version)
+     (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
+  
+(defn v5 [context namestring]
+  (fmt-digested-uuid 5
+    (digest/digest-uuid-bytes digest/sha1 (to-byte-vector context) namestring)))
 
-(defn make-v3-uuid [context namestring]
-  (assert (= (type context) UUID))
-  (->> 
-    (digest/digest-uuid digest/md5 context namestring)
-    (format-digested-uuid 3)
-    UUID/fromString))
-
-(defn make-v5-uuid [context namestring]
-  (assert (= (type context) UUID))
-  (->> 
-    (digest/digest-uuid digest/sha1 context namestring)
-    (format-digested-uuid 5)
-    UUID/fromString))
+(defn v3 [context namestring]
+  (fmt-digested-uuid 3
+    (digest/digest-uuid-bytes digest/md5 (to-byte-vector context) namestring)))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Predicates
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -172,11 +272,5 @@
 
 (defn uuid-urn-string? [str]
   (not (nil? (re-matches &uuid-urn-string str))))
-
-(defn uuid-octet-vector? [v]
-  (and
-    (= 16   (count v))
-    (every? #(=  %  java.lang.Short) (map type v))
-    (every? #(<= %  0xff) v)))
 
 
