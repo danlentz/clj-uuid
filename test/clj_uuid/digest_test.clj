@@ -4,7 +4,7 @@
     [clj-uuid.bitmop :refer :all]
     [clj-uuid.digest :refer :all]))
 
-
+(comment
 (deftest check-md5-digest
   (testing "md5..."    
     (is (=
@@ -72,3 +72,4 @@
 [95 64 157 36 8 165 179 255 91 252 46 81 229 3 129 157]
 [95 64 157 36 8 165 179 255 91 252 46 81 229 3 129 157]
 
+)

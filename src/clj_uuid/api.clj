@@ -272,5 +272,3 @@
 
 (defn uuid-urn-string? [str]
   (not (nil? (re-matches &uuid-urn-string str))))
-
-
