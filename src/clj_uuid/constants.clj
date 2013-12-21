@@ -12,11 +12,6 @@
 (defonce &uuid-hex-string #"[0-9A-Fa-f]{32}")
 (defonce &uuid-urn-string #"urn:uuid:[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}")
 
-(defonce +namespace-dns+  #uuid"6ba7b810-9dad-11d1-80b4-00c04fd430c8")
-(defonce +namespace-url+  #uuid"6ba7b811-9dad-11d1-80b4-00c04fd430c8")
-(defonce +namespace-oid+  #uuid"6ba7b812-9dad-11d1-80b4-00c04fd430c8")
-(defonce +namespace-x500+ #uuid"6ba7b814-9dad-11d1-80b4-00c04fd430c8")
-(defonce +null+           #uuid"00000000-0000-0000-0000-000000000000")
 
 (defonce +ub63-mask+ 0x7fffffffffffffff)
 (defonce +ub60-mask+ 0x0fffffffffffffff)
