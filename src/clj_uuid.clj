@@ -1,4 +1,4 @@
-(ns clj-uuid.api
+(ns clj-uuid
   (:refer-clojure :exclude [==])
   (:use [clojure.core])
   (:use [clojure.pprint])
@@ -6,11 +6,22 @@
   (:use [clojure.repl :as repl])
   (:use [clj-uuid.constants])
   (:use [clj-uuid.util])
-  (:use [clj-uuid.bitmop :as bitmop])
-  (:use [clj-uuid.digest :as digest])
-  (:use [clj-uuid.clock  :as clock])
+  (:require [clj-uuid.bitmop :as bitmop])
+  (:require [clj-uuid.digest :as digest])
+  (:require [clj-uuid.clock  :as clock])
   (:import (java.net  URI URL))
   (:import (java.util UUID)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Well-Known UUIDs
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defonce +namespace-dns+  #uuid"6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+(defonce +namespace-url+  #uuid"6ba7b811-9dad-11d1-80b4-00c04fd430c8")
+(defonce +namespace-oid+  #uuid"6ba7b812-9dad-11d1-80b4-00c04fd430c8")
+(defonce +namespace-x500+ #uuid"6ba7b814-9dad-11d1-80b4-00c04fd430c8")
+(defonce +null+           #uuid"00000000-0000-0000-0000-000000000000")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -29,6 +40,7 @@
   (to-urn-string   [uuid])
   (to-octet-vector [uuid])
   (to-byte-vector  [uuid])
+  (to-uri          [uuid])
   (get-time-low    [uuid])
   (get-time-mid    [uuid])
   (get-time-high   [uuid])
@@ -71,18 +83,20 @@
       (bitmop/hex (get-word-low uuid))))
   (to-urn-string [uuid]
     (str "urn:uuid:" (to-string uuid)))
+  (to-uri [uuid]
+    (URI/create (to-urn-string uuid)))
   (get-time-low [uuid]
-    (ldb (mask 32 0) (bit-shift-right (get-word-high uuid) 32)))
+    (bitmop/ldb (bitmop/mask 32 0) (bit-shift-right (get-word-high uuid) 32)))
   (get-time-mid [uuid]
-    (ldb (mask 16 16) (get-word-high uuid))) 
+    (bitmop/ldb (bitmop/mask 16 16) (get-word-high uuid))) 
   (get-time-high [uuid]
-    (ldb (mask 16 0) (get-word-high uuid)))
+    (bitmop/ldb (bitmop/mask 16 0) (get-word-high uuid)))
   (get-clk-low [uuid]
-    (ldb (mask 8 0) (bit-shift-right (get-word-low uuid) 56)))
+    (bitmop/ldb (bitmop/mask 8 0) (bit-shift-right (get-word-low uuid) 56)))
   (get-clk-high [uuid]
-    (ldb (mask 8 48) (get-word-low uuid)))
+    (bitmop/ldb (bitmop/mask 8 48) (get-word-low uuid)))
   (get-node-id [uuid]
-    (ldb (mask 48 0) (get-word-low uuid)))
+    (bitmop/ldb (bitmop/mask 48 0) (get-word-low uuid)))
   (get-timestamp [uuid]
     (when (= 1 (get-version uuid))
       (.timestamp uuid))))
@@ -155,11 +169,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn get-uuid-data [uuid]
-    (let [fns '[get-version get-time-low get-time-mid get-time-high
-                 get-clk-low get-clk-high get-node-id]]
-      (zipmap
-        (map (comp keyword name) fns) 
-        (map #((ns-resolve *ns* %) uuid) fns))))
+  (let [fns '[get-version get-time-low get-time-mid get-time-high
+              get-clk-low get-clk-high get-node-id]]
+    (zipmap
+     (map (comp keyword name) fns) 
+     (map #((ns-resolve *ns* %) uuid) fns))))
 
 (=
   (get-uuid-data +null+)
@@ -210,14 +224,15 @@
 
 (defn v1 []
   (let [ts (clock/make-timestamp)
-        time-low  (ldb (mask 32  0) ts)
-        time-mid  (ldb (mask 16 32) ts)
-        time-high (dpb (mask 4 12) (ldb (mask 12 48) ts) 0x1)
+        time-low  (bitmop/ldb (bitmop/mask 32  0) ts)
+        time-mid  (bitmop/ldb (bitmop/mask 16 32) ts)
+        time-high (bitmop/dpb (bitmop/mask 4 12) (bitmop/ldb (bitmop/mask 12 48) ts) 0x1)
         msb       (bit-or
                    (bit-shift-left time-low 32)
                    (bit-shift-left time-mid 16)
                    time-high)
-        clk-high  (bitmop/dpb (bitmop/mask 2 6) (bitmop/ldb (bitmop/mask 6 8) @clock/clock-seq) 0x2)
+        clk-high  (bitmop/dpb (bitmop/mask 2 6)
+                              (bitmop/ldb (bitmop/mask 6 8) @clock/clock-seq) 0x2)
         clk-low   (bitmop/ldb (bitmop/mask 8 0) @clock/clock-seq)
         lsb       (bitmop/assemble-bytes (concat [clk-high clk-low] (clock/make-node-id)))]
     (UUID. msb lsb)))
@@ -261,8 +276,6 @@
 ;; Predicates
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn uuid? [thing]
-  (= (type thing) UUID))
 
 (defn uuid-string? [str]
   (not (nil? (re-matches &uuid-string str))))
@@ -272,3 +285,57 @@
 
 (defn uuid-urn-string? [str]
   (not (nil? (re-matches &uuid-urn-string str))))
+
+
+(defmulti uuid? type)
+
+(defmethod uuid? UUID [thing]
+  true)
+
+(defmethod uuid? String [s]
+  (or
+   (uuid-string?     s)
+   (uuid-hex-string? s)
+   (uuid-urn-string? s)))
+
+(defmethod uuid? clojure.lang.PersistentVector [v]
+  (and
+   (every? #(and
+             (integer? %)
+             (>= -128  %)
+             (<=  127  %))
+           v)
+   (= (count v) 16)))
+
+(defmethod uuid? clojure.core.Vec [v]
+  (and
+   (every? #(and
+             (integer? %)
+             (>= -128  %)
+             (<=  127  %))
+           v)
+   (= (count v) 16)))
+
+(defmethod uuid? URI [u]
+  (uuid-urn-string? (.toString u)))
+
+(defmethod uuid? Object [thing]
+  false)
+
+
+(defmulti the-uuid type)
+
+(defmethod the-uuid UUID [thing]
+  thing)
+
+(defmethod the-uuid String [s]
+  (cond
+   (uuid-string?     s) (UUID/fromString s)
+   (uuid-hex-string? s) (UUID. (bitmop/unhex (subs s 0 16)) (bitmop/unhex (subs s 16 32)))
+   (uuid-urn-string? s) (UUID/fromString (subs s 9))
+   :else                (exception "invalid UUID")))
+
+(defmethod the-uuid URI [u]
+  (the-uuid (.toString u)))
+
+
