@@ -167,8 +167,10 @@
 
 (defn sbvec [thing]
   (cond
-    (= (type thing) Long) (into (vector-of :byte) (map unchecked-byte (long-to-octets thing)))
-    (coll? thing)         (into (vector-of :byte) (map unchecked-byte thing))))
+   (= (type thing) Long) (into (vector-of :byte)
+                               (map unchecked-byte (long-to-octets thing)))
+   (coll? thing)         (into (vector-of :byte)
+                               (map unchecked-byte thing))))
 
 (defn sbvector [& args]
   (sbvec args))
@@ -191,8 +193,10 @@
     
 (defn ubvec [thing]
   (cond
-    (= (type thing) Long) (into (vector-of :short)(map unchecked-short (long-to-octets thing)))
-    (coll? thing)         (into (vector-of :short) (map unchecked-short thing))))
+   (= (type thing) Long) (into (vector-of :short)
+                               (map unchecked-short (long-to-octets thing)))
+   (coll? thing)         (into (vector-of :short)
+                               (map unchecked-short thing))))
 
 (defn ubvector [& args]
   (ubvec args))
@@ -211,7 +215,7 @@
 
 (defn octet-hex [num]
   (str
-    (+hex-chars+ (bit-shift-right num 4))  ;; (bit-and 0xFFFF0000 num) 4))
+    (+hex-chars+ (bit-shift-right num 4))  
     (+hex-chars+ (bit-and 0x0F num))))
  
 (defn hex [thing]
