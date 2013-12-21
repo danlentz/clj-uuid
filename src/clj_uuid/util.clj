@@ -252,3 +252,61 @@
 ;; (-> (with-out-str 
 ;;       (print-table (:members (reflect/reflect"foo"))))
 ;;   #(subs % 0 79))
+(defmacro aif
+  ([test-form then-form]
+     `(let [~'it ~test-form]
+        (if ~'it ~then-form)))
+  ([test-form then-form else-form]
+     `(let [~'it ~test-form]
+        (if ~'it ~then-form ~else-form))))
+
+(defmacro anil?
+  ([test-form then-form]
+     `(let [~'it ~test-form]
+        (if-not (nil? ~'it) ~then-form)))
+  ([test-form then-form else-form]
+     `(let [~'it ~test-form]
+        (if-not (nil? ~'it) ~then-form ~else-form))))
+
+(defmacro awhen [test-form & body]
+  `(aif ~test-form (do ~@body)))
+
+(defmacro awhile [test-expr & body]
+  `(while (let [~'it ~test-expr]
+            (do ~@body)
+            ~'it)))
+
+(defmacro aand [& tests]
+  (if (empty? tests)
+    true
+    (if (empty? (rest tests))
+      (first tests)
+      (let [first-test (first tests)]
+        `(aif ~first-test
+              (aand ~@(rest tests)))))))
+
+(defmacro it-> [& [first-expr & rest-expr]]
+  (if (empty? rest-expr)
+    first-expr
+    `(if-let [~'it ~first-expr]
+       (it-> ~@rest-expr))))
+
+(defmacro run-and-measure-timing [expr]
+  `(let [start-time# (System/currentTimeMillis)
+         response# ~expr
+         end-time# (System/currentTimeMillis)]
+     {:time-taken (- end-time# start-time#)
+      :response response#
+      :start-time start-time#
+      :end-time end-time#}))
+
+(defn lines-of-file [file-name]
+ (line-seq
+  (java.io.BufferedReader.
+   (java.io.InputStreamReader.
+    (java.io.FileInputStream. file-name)))))
+
+(defmacro exception [& [param & more :as params]] 
+  (if (class? param) 
+    `(throw (new ~param (str ~@(interpose " " more)))) 
+    `(throw (Exception. (str ~@(interpose " " params))))))
