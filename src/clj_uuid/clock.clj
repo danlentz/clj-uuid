@@ -17,7 +17,7 @@
 (def +tick-resolution+  9999)
 (def +startup-nanotime+ (System/nanoTime))
 
-(def uuids-this-tick (atom 0))
+(def stamps-this-tick (atom 0))
 (def last-time       (atom 0))
 (def clock-seq       (atom (+ (rand-int 9999) 1)))
 
@@ -60,11 +60,11 @@
     (loop [time-now (ts)]
       (if (not (= @last-time time-now))
         (do
-          (swap! uuids-this-tick (constantly 0))
+          (swap! stamps-this-tick (constantly 0))
           (swap! last-time (constantly time-now))
           time-now)
-        (if (< @uuids-this-tick +tick-resolution+)
-          (+ time-now (swap! uuids-this-tick inc))
+        (if (< @stamps-this-tick +tick-resolution+)
+          (+ time-now (swap! stamps-this-tick inc))
           (recur (ts)))))))
 
 
