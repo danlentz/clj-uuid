@@ -32,43 +32,99 @@
       <section>
         <div id="title">
           <h1>clj-uuid</h1>
-          <p>A fClojure Library Extending Full Support  for RFC-4122  Universal Identifiers </p>
+          <p>A Clojure library that extends the java.util.UUID class with true v1 (time based) and v3/v5 (namespace based) identifiers</p>
           <hr>
           <span class="credits left">Project maintained by <a href="https://github.com/danlentz">danlentz</a></span>
           <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
         </div>
 
-        <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+        <h1>
+<a name="clj-uuid" class="anchor" href="#clj-uuid"><span class="octicon octicon-link"></span></a>clj-uuid</h1>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+<p>A Clojure library for generation and utilization of UUIDs (Universally
+Unique Identifiers) as described by RFC-4122. This library extends the
+standard Java UUID class to provide true v1 (time based) and v3/v5
+(namespace based) identifier generation. Additionally, a number of
+useful supporting utilities are provided to support serialization and
+manipulation of these UUIDs in a simple, efficient manner.</p>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
+<p>The essential nature of the value RFC4122 UUIDs provide is that of an
+enormous namespace and a deterministic mathematical model by means of
+which one navigates it. UUIDs represent an extremely powerful and
+versatile computation technique that is often overlooked, and
+underutilized. In my opinion, this, in part, is due to the generally
+poor quality, performance, and capability of available libraries and,
+in part, due to a general misunderstanding in the popular consiousness
+of their proper use and benefit. It is my hope that this library will
+serve to expand awareness, make available, and simplify use of RFC4122
+identifiers to a wider audience.</p>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+<h2>
+<a name="how-big" class="anchor" href="#how-big"><span class="octicon octicon-link"></span></a>How Big?</h2>
+
+<p>The provided namespace represents an <em>inexhaustable</em> resource and as
+such can be used in a variety of ways not feasible using traditional
+techniques rooted in the notions imposed by finite resources.  When I
+say "inexhaustable" this of course is slight hyperbolie, but not by
+much.  The upper bound on the representation implemented by this
+library limits the number of unique identifiers to a mere...</p>
+
+<p><em>three hundred forty undecillion two hundred eighty-two decillion three</em>
+<em>hundred sixty-six nonillion nine hundred twenty octillion nine hundred</em> 
+<em>thirty-eight septillion four hundred sixty-three sextillion four hundred</em>
+<em>sixty-three quintillion three hundred seventy-four quadrillion six hundred</em>
+<em>seven trillion four hundred thirty-one billion seven hundred sixty-eight</em>
+<em>million two hundred eleven thousand four hundred and fifty-five.</em></p>
+
+<p>If you think you might be starting to run low, let me know when you get down
+to your last few undecillion or so and I'll see what I can do to help out.</p>
+
+<h2>
+<a name="motivation" class="anchor" href="#motivation"><span class="octicon octicon-link"></span></a>Motivation</h2>
+
+<p>To a large extent, the design of the algorithmic
+implementation is inspired by the Common-Lisp library
+<a href="http://github.com/mon-key/unicly"><em>UNICLY</em></a> which is a painstakingly
+optimized, encyclopaedic implementation of RFC-4122 the author of
+which, Stan Pearman, has devoted considerable effort to research, refine, and
+improve.  To my knowledge there is no more performant  and
+precise implementation of the RFC-4122 specification available
+anywhere, in any language, on any platform.</p>
+
+<p>That having been said, this library intends to present a slightly more
+comfortable public interface that places slightly more priority on
+convenient DWIM semantics at the cost of somewhat less emphasis on
+low level performance optimizations.  Since this library is built as
+an extension to the standard java.util.UUID class whose implementation
+largely dominates its performance characteristics anyway, this seems to
+be a reasonable philosophy.</p>
+
+<h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>Copyright © 2013 Dan Lentz</p>
+
+<p>Distributed under the Eclipse Public License either version 1.0 </p>
+
+<h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
 
 <h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+<a name="the-most-recent-release" class="anchor" href="#the-most-recent-release"><span class="octicon octicon-link"></span></a>The Most Recent Release</h3>
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+<p>With Leiningen:</p>
 
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
+<div class="highlight highlight-clj"><pre><span class="p">[</span><span class="nv">danlentz/clj-uuid</span> <span class="s">"0.0.6-SNAPSHOT"</span><span class="p">]</span>
+</pre></div>
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<p>With Maven:</p>
 
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
-
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
-
-<h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
+<div class="highlight highlight-xml"><pre><span class="nt">&lt;dependency&gt;</span>
+  <span class="nt">&lt;groupId&gt;</span>danlentz<span class="nt">&lt;/groupId&gt;</span>
+  <span class="nt">&lt;artifactId&gt;</span>clj-uuid<span class="nt">&lt;/artifactId&gt;</span>
+  <span class="nt">&lt;version&gt;</span>0.0.6-SNAPSHOT<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+</pre></div>
       </section>
 
     </div>
