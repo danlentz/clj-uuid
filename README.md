@@ -50,7 +50,7 @@ precise implementation of the RFC-4122 specification available
 anywhere, in any language, on any platform.
 
 That having been said, this library intends to present a slightly more
-comfortable public interface that places slightly more priority on
+comfortable public interface that places a little more priority on
 convenient DWIM semantics at the cost of somewhat less emphasis on
 low level performance optimizations.  Since this library is built as
 an extension to the standard java.util.UUID class whose implementation
