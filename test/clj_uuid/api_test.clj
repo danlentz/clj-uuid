@@ -1,6 +1,6 @@
 (ns clj-uuid.api-test
   (:require [clojure.test :refer :all]
-            [clj-uuid.api :refer :all]))
+            [clj-uuid :refer :all]))
 
 (comment
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
