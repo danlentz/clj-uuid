@@ -79,7 +79,7 @@ With Maven:
 <dependency>
   <groupId>danlentz</groupId>
   <artifactId>clj-uuid</artifactId>
-  <version>0.0.6-SNAPSHOT</version>
+  <version>0.0.7-SNAPSHOT</version>
 </dependency>
 ```
 
