@@ -70,7 +70,7 @@ Distributed under the Eclipse Public License either version 1.0
 With Leiningen:
 
 ```clj
-[danlentz/clj-uuid "0.0.6-SNAPSHOT"]
+[danlentz/clj-uuid "0.0.7-SNAPSHOT"]
 ```
 
 With Maven:
