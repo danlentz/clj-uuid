@@ -14,7 +14,7 @@
           (java.net.InetAddress/getLocalHost))))))
 
 (def +node-id+          (make-node-id))
-(def +tick-resolution+  9999)
+(def ^:const +tick-resolution+  9999)
 (def +startup-nanotime+ (System/nanoTime))
 
 (def stamps-this-tick (atom 0))
@@ -36,7 +36,7 @@
 (defn now []
   (timestamp))
 
-(defn timestamp-since-epoch-millis [ts]
+(defn timestamp-since-epoch-millis [^java.sql.Timestamp ts]
   (.getTime ts))
 
 (defn get-epoch-time []
