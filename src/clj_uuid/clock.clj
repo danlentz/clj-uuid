@@ -1,17 +1,38 @@
 (ns clj-uuid.clock
-  (:use [clojure.core])
-  (:use [clojure.pprint])
-  (:use [clojure.repl :only [doc find-doc apropos]])
-  (:use [clj-uuid.constants])
-  (:use [clj-uuid.bitmop]))
+  (:require [clj-uuid.constants :refer :all]
+            [clj-uuid.bitmop :refer :all])
+  (:import [java.net InetAddress NetworkInterface]
+           [java.sql Timestamp]
+           [java.security MessageDigest]
+           [java.util Properties Date]
+           [java.nio.charset StandardCharsets]))
 
+(defn all-local-addresses []
+  (let [^InetAddress local-host (InetAddress/getLocalHost)
+        host-name (.getCanonicalHostName local-host)
+        base-addresses #{(str local-host) host-name}
+        network-interfaces (reduce (fn [acc ^NetworkInterface ni]
+                                     (apply conj acc (map str (enumeration-seq (.getInetAddresses ni)))))
+                                   base-addresses
+                                   (enumeration-seq (NetworkInterface/getNetworkInterfaces)))]
+    (reduce conj network-interfaces (map str (InetAddress/getAllByName host-name)))))
 
-(defn make-node-id []
-  (ubvec
-    (map ub8
-      (.getHardwareAddress
-        (java.net.NetworkInterface/getByInetAddress 
-          (java.net.InetAddress/getLocalHost))))))
+(def make-node-id
+  (memoize
+   (fn []
+     (let [addresses (all-local-addresses)
+           ^MessageDigest digest (MessageDigest/getInstance "MD5")
+           ^Properties props (System/getProperties)
+           to-digest (reduce (fn [acc key]
+                               (conj acc (.getProperty props key)))
+                             addresses
+                             ["java.vendor" "java.vendor.url" "java.version" "os.arch" "os.name" "os.version"])]
+       (doseq [^String d to-digest]
+         (.update digest (.getBytes d StandardCharsets/UTF_8)))
+       (->> (.digest digest)
+            (map ub8)
+            ubvec
+            (#(subvec % 0 6)))))))
 
 (def +node-id+          (make-node-id))
 (def +tick-resolution+  9999)
@@ -29,10 +50,10 @@
 
 (defn timestamp
   ([]
-    (java.sql.Timestamp. (.getTime (java.util.Date.))))
+   (Timestamp. (.getTime (Date.))))
   ([epoch-millis]
-    (java.sql.Timestamp epoch-millis)))
-  
+   (Timestamp. epoch-millis)))
+
 (defn now []
   (timestamp))
 
@@ -80,9 +101,8 @@
 
 (defmacro with-timing-and-result
   "Same as clojure.core/time but returns a vector of a the result of
-   the code and the milliseconds rather than printing a string. Runs
-   the code in an implicit do."
+  the code and the milliseconds rather than printing a string. Runs
+  the code in an implicit do."
   [& body]
   `(let [start# (System/nanoTime)  ret# ~(cons 'do body)]
      [ret# (/ (double (- (System/nanoTime) start#)) 1000000.0)]))
-

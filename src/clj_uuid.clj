@@ -234,7 +234,7 @@
         clk-high  (bitmop/dpb (bitmop/mask 2 6)
                               (bitmop/ldb (bitmop/mask 6 8) @clock/clock-seq) 0x2)
         clk-low   (bitmop/ldb (bitmop/mask 8 0) @clock/clock-seq)
-        lsb       (bitmop/assemble-bytes (concat [clk-high clk-low] (clock/make-node-id)))]
+        lsb       (bitmop/assemble-bytes (concat [clk-high clk-low] clock/+node-id+))]
     (UUID. msb lsb)))
 
 ;; (v1)
