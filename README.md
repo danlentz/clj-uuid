@@ -18,7 +18,7 @@ of their proper use and benefit. It is my hope that this library will
 serve to expand awareness, make available, and simplify use of RFC4122
 identifiers to a wider audience.
 
-## How is it better than JVM implementation?
+## How is it better?
 
 The JVM version only provides an automatic builder for random (v4)
 and (non-namespaced) pseudo-v3 UUID's and, where appropriate, this library
