@@ -30,7 +30,7 @@
 
 (defprotocol UniqueIdentifier
   (null?           [uuid])
-  (uuid=           [x y]) 
+  (uuid=           [x y])
   (get-word-high   [uuid])
   (get-word-low    [uuid])
   (hash-code       [uuid])
@@ -60,7 +60,7 @@
   (get-word-high [uuid]
     (.getMostSignificantBits uuid))
   (get-word-low [uuid]
-    (.getLeastSignificantBits uuid))  
+    (.getLeastSignificantBits uuid))
   (null? [uuid]
     (= 0 (get-word-low uuid)))
   (to-byte-vector [uuid]
@@ -88,7 +88,7 @@
   (get-time-low [uuid]
     (bitmop/ldb (bitmop/mask 32 0) (bit-shift-right (get-word-high uuid) 32)))
   (get-time-mid [uuid]
-    (bitmop/ldb (bitmop/mask 16 16) (get-word-high uuid))) 
+    (bitmop/ldb (bitmop/mask 16 16) (get-word-high uuid)))
   (get-time-high [uuid]
     (bitmop/ldb (bitmop/mask 16 0) (get-word-high uuid)))
   (get-clk-low [uuid]
@@ -120,8 +120,8 @@
 ;; Each field is treated as an integer and has its value printed as a zero-filled
 ;; hexadecimal digit string with the most significant digit first.
 ;;
-;; 0                   1                   2                   3    
-;;  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
+;; 0                   1                   2                   3
+;;  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 ;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ;; |                        %uuid_time-low                         |
 ;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -161,7 +161,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; UUID Constituent Data Map 
+;; UUID Constituent Data Map
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; NOTE: at least in its present form this is probably too fragile and
 ;; not all that useful anyway.  So most likely it should go away, I think.
@@ -172,7 +172,7 @@
   (let [fns '[get-version get-time-low get-time-mid get-time-high
               get-clk-low get-clk-high get-node-id]]
     (zipmap
-     (map (comp keyword name) fns) 
+     (map (comp keyword name) fns)
      (map #((ns-resolve *ns* %) uuid) fns))))
 
 (=
@@ -205,13 +205,13 @@
 (=
   (get-uuid-data +namespace-dns+)
   (get-uuid-data +namespace-dns+))
-       
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; V0 UUID Constructor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn null [] 
+(defn null []
   +null+)
 
 (defn v0 []
@@ -246,7 +246,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; V4 UUID Constructor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  
+
 (defn v4 []
   (UUID/randomUUID))
 
@@ -262,7 +262,7 @@
     (UUID.
      (bitmop/dpb (bitmop/mask 4 12) msb version)
      (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
-  
+
 (defn v5 [context namestring]
   (fmt-digested-uuid 5
     (digest/digest-uuid-bytes digest/sha1 (to-byte-vector context) namestring)))
@@ -300,21 +300,21 @@
 
 (defmethod uuid? clojure.lang.PersistentVector [v]
   (and
+   (= (count v) 16)
    (every? #(and
              (integer? %)
              (>= -128  %)
              (<=  127  %))
-           v)
-   (= (count v) 16)))
+           v)))
 
 (defmethod uuid? clojure.core.Vec [v]
   (and
+   (= (count v) 16)
    (every? #(and
              (integer? %)
              (>= -128  %)
              (<=  127  %))
-           v)
-   (= (count v) 16)))
+           v)))
 
 (defmethod uuid? URI [u]
   (uuid-urn-string? (.toString u)))
@@ -337,5 +337,3 @@
 
 (defmethod the-uuid URI [u]
   (the-uuid (.toString u)))
-
-
