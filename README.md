@@ -21,13 +21,13 @@ identifiers to a wider audience.
 ## How is it better?
 
 The JVM version only provides an automatic builder for random (v4)
-and (non-namespaced) pseudo-v3 UUID's and, where appropriate, this library
-uses the internal JVM UUID implementation.  The big benefit here is that
-clj-uuid provides an easy way to get v1 and true namespaced v3 and v5 UUIDs.
-v3/v5 UUID's are necessary because many of the interesting things that you can
-do with UUID's require namespaced identifiers. v1 UUIDs are really useful
-because they can be generated faster than v4's as they don't need to call
-a cryptographic random number generator.
+and (non-namespaced) pseudo-v3 UUID's.  Where appropriate, this library
+does use the internal JVM UUID implementation.  The benefit with this library
+is that clj-uuid provides an easy way to get v1 and true namespaced v3 and
+v5 UUIDs.  v3/v5 UUID's are necessary because many of the interesting things
+that you can do with UUID's require namespaced identifiers. v1 UUIDs are
+really useful because they can be generated faster than v4's as they don't
+need to call a cryptographic random number generator.
 
 ## How Big?
 
