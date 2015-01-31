@@ -6,12 +6,14 @@
 
 (def ^:const +tick-resolution+  9999)
 
-(defn- pair ^MapEntry [k v]
-  (MapEntry. ^short k ^long v))
+(deftype Pair [^short k ^long v])
+
+(defn- pair ^Pair [k v]
+  (Pair. k v))
 
 
-(def state              (atom ^MapEntry (pair 0 0)))
-(def clock-seq          (atom ^short (+ (rand-int 9999) 1)))
+(def state              (atom (pair 0 0)))
+(def clock-seq          (atom (+ (rand-int 9999) 1)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -26,17 +28,17 @@
 (defn monotonic-time []
   (letfn [(timestamp []
             (+ (* (System/currentTimeMillis) 10000)  100103040000000000))]
-    (let [^MapEntry new-state
+    (let [^Pair new-state
           (swap! state
-            (fn ^MapEntry [^MapEntry current-state]
+            (fn ^Pair [^Pair current-state]
               (loop [^long time-now (timestamp)]
-                (if-not (= (.val current-state) time-now)
+                (if-not (= (.v current-state) time-now)
                   (pair 0 time-now)
-                  (let [tt (.key current-state)]
+                  (let [tt (.k current-state)]
                     (if (< tt +tick-resolution+)
                       (pair (inc tt) time-now)
                       (recur (timestamp))))))))]
-      (+ (.key new-state) (.val new-state)))))
+      (+ (.k new-state) (.v new-state)))))
 
 
 (set! *warn-on-reflection* false)
