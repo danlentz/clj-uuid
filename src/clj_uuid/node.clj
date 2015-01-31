@@ -24,7 +24,7 @@
       (map str (InetAddress/getAllByName host-name)))))
 
 
-(def make-node-id
+(def node-id
   (memoize
    (fn []
      (let [addresses (all-local-addresses)
@@ -46,5 +46,5 @@
          (map ub8) ubvec (#(subvec % 0 6)))))))
 
 
-(def +node-id+          (make-node-id))
+(def +node-id+          (node-id))
 
