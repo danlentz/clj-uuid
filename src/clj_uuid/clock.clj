@@ -4,7 +4,7 @@
 
 (def ^:const +tick-resolution+  9999)
 
-(defn pair ^clojure.lang.MapEntry [k v]
+(defn- pair ^clojure.lang.MapEntry [k v]
   (clojure.lang.MapEntry. ^short k ^long v))
 
 
