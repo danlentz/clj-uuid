@@ -1,14 +1,12 @@
 (ns clj-uuid
   (:refer-clojure :exclude [==])
   (:use [clojure.core])
-  (:use [clojure.pprint])
-  (:use [clojure.repl :only [doc find-doc apropos]])
-  (:use [clojure.repl :as repl])
   (:use [clj-uuid.constants])
   (:use [clj-uuid.util])
   (:require [clj-uuid.bitmop :as bitmop])
   (:require [clj-uuid.digest :as digest])
   (:require [clj-uuid.clock  :as clock])
+  (:require [clj-uuid.node   :as node])  
   (:import (java.net  URI URL))
   (:import (java.util UUID)))
 
@@ -22,6 +20,7 @@
 (defonce +namespace-oid+  #uuid"6ba7b812-9dad-11d1-80b4-00c04fd430c8")
 (defonce +namespace-x500+ #uuid"6ba7b814-9dad-11d1-80b4-00c04fd430c8")
 (defonce +null+           #uuid"00000000-0000-0000-0000-000000000000")
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -48,6 +47,7 @@
   (get-clk-high    [uuid])
   (get-node-id     [uuid])
   (get-timestamp   [uuid]))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -223,10 +223,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn v1 []
-  (let [ts (clock/make-timestamp)
+  (let [ts (clock/monotonic-time)
         time-low  (bitmop/ldb (bitmop/mask 32  0) ts)
         time-mid  (bitmop/ldb (bitmop/mask 16 32) ts)
-        time-high (bitmop/dpb (bitmop/mask 4 12) (bitmop/ldb (bitmop/mask 12 48) ts) 0x1)
+        time-high (bitmop/dpb (bitmop/mask 4 12)
+                    (bitmop/ldb (bitmop/mask 12 48) ts) 0x1)
         msb       (bit-or
                    (bit-shift-left time-low 32)
                    (bit-shift-left time-mid 16)
@@ -234,13 +235,10 @@
         clk-high  (bitmop/dpb (bitmop/mask 2 6)
                               (bitmop/ldb (bitmop/mask 6 8) @clock/clock-seq) 0x2)
         clk-low   (bitmop/ldb (bitmop/mask 8 0) @clock/clock-seq)
-        lsb       (bitmop/assemble-bytes (concat [clk-high clk-low] clock/+node-id+))]
+        lsb       (bitmop/assemble-bytes
+                    (concat [clk-high clk-low] node/+node-id+))]
     (UUID. msb lsb)))
 
-;; (v1)
-;; (get-timestamp #uuid "50c9cfb0-c87f-1194-8392-001d4f4b1779")     ;; 113936339732910000
-;; (get-timestamp #uuid "46e109a0-c87f-1194-8392-001d4f4b1779")     ;; 113936339566660000
-;; (= 1 (get-version #uuid "407adaa0-c87f-1194-8392-001d4f4b1779"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
