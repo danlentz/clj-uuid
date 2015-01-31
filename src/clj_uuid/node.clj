@@ -1,11 +1,12 @@
 (ns clj-uuid.node
-  (:import [java.net         InetAddress
-                             NetworkInterface]
-           [java.sql         Timestamp]
-           [java.security    MessageDigest]
-           [java.util        Properties
+  (:require [clj-uuid.bitmop :only [ubvec ub8]])
+  (:import  [java.net         InetAddress
+                              NetworkInterface]
+            [java.sql         Timestamp]
+            [java.security    MessageDigest]
+            [java.util        Properties
                              Date]
-           [java.nio.charset StandardCharsets]))
+            [java.nio.charset StandardCharsets]))
 
 
 
@@ -43,7 +44,9 @@
          (.update digest
            (.getBytes d StandardCharsets/UTF_8)))
        (->> (.digest digest)
-         (map ub8) ubvec (#(subvec % 0 6)))))))
+         (map clj-uuid.bitmop/ub8)
+         clj-uuid.bitmop/ubvec
+         (#(subvec % 0 6)))))))
 
 
 (def +node-id+          (node-id))
