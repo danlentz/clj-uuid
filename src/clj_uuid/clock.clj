@@ -1,10 +1,15 @@
 (ns clj-uuid.clock)
 
+(set! *warn-on-reflection* true)
 
 (def ^:const +tick-resolution+  9999)
 
-(def state              (atom {:this-tick 0 :last-time 0}))
-(def clock-seq          (atom (+ (rand-int 9999) 1)))
+(defn pair ^clojure.lang.MapEntry [k v]
+  (clojure.lang.MapEntry. ^short k ^long v))
+
+
+(def state              (atom ^clojure.lang.MapEntry (pair 0 0)))
+(def clock-seq          (atom ^short (+ (rand-int 9999) 1)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -16,20 +21,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-
 (defn monotonic-time []
   (letfn [(timestamp []
             (+ (* (System/currentTimeMillis) 10000)  100103040000000000))]
-      (apply + ((juxt :last-time :this-tick)
-                (swap! state
-                  #(loop [time-now (timestamp)]
-                     (if-not (= (:last-time %1) time-now)
-                       {:this-tick 0
-                        :last-time time-now}
-                       (let [tt (:this-tick %1)] 
-                         (if (< tt +tick-resolution+)
-                           {:this-tick (inc tt)
-                            :last-time time-now}
-                           (recur (timestamp)))))))))))
+    (apply +
+      (swap! state
+        (fn ^clojure.lang.MapEntry [^clojure.lang.MapEntry current-state]
+          (loop [^long time-now (timestamp)]
+            (if-not (= (.val current-state) time-now)
+              (pair 0 time-now)
+              (let [tt (.key current-state)]
+                (if (< tt +tick-resolution+)
+                  (pair (inc tt) time-now)
+                  (recur (timestamp)))))))))))
 
 
+(set! *warn-on-reflection* false)
