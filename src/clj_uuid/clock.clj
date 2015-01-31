@@ -1,5 +1,4 @@
-(ns clj-uuid.clock
-  (:import [clojure.lang MapEntry]))
+(ns clj-uuid.clock)
   
 
 (set! *warn-on-reflection* true)
