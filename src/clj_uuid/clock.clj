@@ -7,15 +7,21 @@
            [java.util Properties Date]
            [java.nio.charset StandardCharsets]))
 
+
+
 (defn all-local-addresses []
   (let [^InetAddress local-host (InetAddress/getLocalHost)
         host-name (.getCanonicalHostName local-host)
         base-addresses #{(str local-host) host-name}
-        network-interfaces (reduce (fn [acc ^NetworkInterface ni]
-                                     (apply conj acc (map str (enumeration-seq (.getInetAddresses ni)))))
+        network-interfaces (reduce
+                             (fn [acc ^NetworkInterface ni]
+                               (apply conj acc (map str (enumeration-seq
+                                                          (.getInetAddresses ni)))))
                                    base-addresses
-                                   (enumeration-seq (NetworkInterface/getNetworkInterfaces)))]
+                                   (enumeration-seq
+                                     (NetworkInterface/getNetworkInterfaces)))]
     (reduce conj network-interfaces (map str (InetAddress/getAllByName host-name)))))
+
 
 (def make-node-id
   (memoize
@@ -26,7 +32,12 @@
            to-digest (reduce (fn [acc key]
                                (conj acc (.getProperty props key)))
                              addresses
-                             ["java.vendor" "java.vendor.url" "java.version" "os.arch" "os.name" "os.version"])]
+                             ["java.vendor"
+                              "java.vendor.url"
+                              "java.version"
+                              "os.arch"
+                              "os.name"
+                              "os.version"])]
        (doseq [^String d to-digest]
          (.update digest (.getBytes d StandardCharsets/UTF_8)))
        (->> (.digest digest)
@@ -34,13 +45,14 @@
             ubvec
             (#(subvec % 0 6)))))))
 
+
 (def +node-id+          (make-node-id))
 (def ^:const +tick-resolution+  9999)
-(def +startup-nanotime+ (System/nanoTime))
 
-(def stamps-this-tick (atom 0))
-(def last-time       (atom 0))
-(def clock-seq       (atom (+ (rand-int 9999) 1)))
+(def +startup-nanotime+ (System/nanoTime))
+(def stamps-this-tick   (atom 0))
+(def last-time          (atom 0))
+(def clock-seq          (atom (+ (rand-int 9999) 1)))
 
 (defn get-internal-real-time []
   (/ (- (System/nanoTime) +startup-nanotime+) 1000))
@@ -61,7 +73,8 @@
   (.getTime ts))
 
 (defn get-epoch-time []
-  (timestamp-since-epoch-millis (now)))
+  (System/currentTimeMillis))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; epoch vs universal time: epoch stamp is 1000x higher resolution (milliseconds)
