@@ -29,7 +29,7 @@
             (+ (* (System/currentTimeMillis) 10000)  100103040000000000))]
     (let [^Pair new-state
           (swap! state
-            (fn ^Pair [^Pair current-state]
+            (fn [^Pair current-state]
               (loop [^long time-now (timestamp)]
                 (if-not (= (.v current-state) time-now)
                   (pair 0 time-now)
