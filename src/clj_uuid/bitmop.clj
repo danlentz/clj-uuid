@@ -1,17 +1,15 @@
 (ns clj-uuid.bitmop
   (:refer-clojure
-    :exclude [* + - / < > <= >= == rem bit-or bit-and bit-xor bit-not bit-shift-left bit-shift-right 
-              byte short int float long double inc dec 
-              zero? min max 
+    :exclude [* + - / < > <= >= == rem bit-or bit-and bit-xor bit-not bit-shift-left bit-shift-right
+              byte short int float long double inc dec
+              zero? min max
               true? false?
-              map mapcat filter reduce take-while drop take remove flatten
-              ])
-  (:use 
-    [clojure.pprint]
-    [primitive-math]
-    [clojure.core.reducers]
-    [clj-uuid.constants]
-    [clj-uuid.util]) 
+              map mapcat filter reduce take-while drop take remove flatten])
+  (:require [primitive-math :refer :all]
+            [clojure.pprint :refer :all]
+            [clojure.core.reducers :refer :all]
+            [clj-uuid.constants :refer :all]
+            [clj-uuid.util :refer :all])
   (:import [java.net  URI URL]
            [java.util UUID]))
 
@@ -20,7 +18,7 @@
 ;;-----------------------------------------------------------------------
 ;; boolean         |1?8 bits |   false   |     true       |  Boolean
 ;; char            | 16 bits | Unicode 0 | Unicode 2^16-1 |  Character
-;; byte            |  8 bits |  -128     |     +127       |  Byte  
+;; byte            |  8 bits |  -128     |     +127       |  Byte
 ;; short           | 16 bits |  -2^15    |     +2^15-1    |  Short
 ;; int             | 32 bits |  -2^31    |     +2^31-1    |  Integer
 ;; long            | 64 bits |  -2^63    |     +2^63-1    |  Long
@@ -34,14 +32,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn expt [num pow]
-  (assert (>= pow 0))
+  {:pre [(not (neg? pow))]}
   (loop [acc 1 p pow]
     (if (= 0 p) acc
       (recur (* acc num) (- p 1)))))
 
 (defn expt2 [pow]
-  (assert (not (neg? pow)))
-  (assert (< pow 64))
+  {:pre [(not (neg? pow))
+         (< pow 64)]}
   (bit-shift-left 0x1 pow))
 
 (defn pphex [x]
@@ -56,10 +54,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn mask [width offset]
-  (assert (not (neg? width)))
-  (assert (not (neg? offset)))
-  (assert (<= width 64))
-  (assert (< offset 64))
+  {:pre [(not (neg? width))
+         (not (neg? offset))
+         (<= width 64)
+         (< offset 64)]}
   (if (<= (+ width offset) 63)
     (-> 1
       (bit-shift-left width)
@@ -71,7 +69,7 @@
 (declare mask-offset mask-width)
 
 (defn mask-offset [m]
-  (cond 
+  (cond
     (zero? m) 0
     (neg?  m) (- 64 (mask-width m))
     :else     (loop [c 0]
@@ -112,7 +110,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Byte Casting 
+;; Byte Casting
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ub4 [num]
@@ -195,7 +193,7 @@
     (indexed (reverse v))))
 
 
-    
+
 (defn ubvec [thing]
   (cond
    (= (type thing) Long) (into (vector-of :short)
@@ -215,14 +213,14 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Hexadecimal String Representation 
+;; Hexadecimal String Representation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn octet-hex [num]
   (str
-    (+hex-chars+ (bit-shift-right num 4))  
+    (+hex-chars+ (bit-shift-right num 4))
     (+hex-chars+ (bit-and 0x0F num))))
- 
+
 (defn hex [thing]
   (cond
     (and (number? thing) (<  thing 0))     (hex (ubvec thing))
