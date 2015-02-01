@@ -24,7 +24,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defn monotonic-time []
+(defn monotonic-time ^long []
   (letfn [(timestamp []
             (+ (* (System/currentTimeMillis) 10000)  100103040000000000))]
     (let [^Pair new-state
