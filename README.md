@@ -80,9 +80,8 @@ Distributed under the Eclipse Public License either version 1.0
 
 With Leiningen:
 
-```clj
-[danlentz/clj-uuid "0.0.7-SNAPSHOT"]
-```
+[![Clojars Project](http://clojars.org/danlentz/clj-uuid/latest-version.svg)]
+
 
 With Maven:
 
