@@ -213,10 +213,10 @@
 ;; V0 UUID Constructor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn null []
+(defn null ^UUID []
   +null+)
 
-(defn v0 []
+(defn v0 ^UUID []
   +null+)
 
 
@@ -226,7 +226,7 @@
 
 (defn v1
   "Generate a v1 (time-based) unique identifier."
-  []
+  ^UUID []
   (let [ts (clock/monotonic-time)
         time-low  (bitmop/ldb (bitmop/mask 32  0) ts)
         time-mid  (bitmop/ldb (bitmop/mask 16 32) ts)
@@ -251,7 +251,7 @@
 ;; V4 UUID Constructor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn v4 []
+(defn v4 ^UUID []
   (UUID/randomUUID))
 
 
@@ -267,11 +267,11 @@
      (bitmop/dpb (bitmop/mask 4 12) msb version)
      (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
 
-(defn v5 [context namestring]
+(defn v5 ^UUID [context namestring]
   (fmt-digested-uuid 5
     (digest/digest-uuid-bytes digest/sha1 (to-byte-vector context) namestring)))
 
-(defn v3 [context namestring]
+(defn v3 ^UUID [context namestring]
   (fmt-digested-uuid 3
     (digest/digest-uuid-bytes digest/md5 (to-byte-vector context) namestring)))
 
