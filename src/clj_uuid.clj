@@ -1,14 +1,14 @@
 (ns clj-uuid
   (:refer-clojure :exclude [==])
-  (:use [clojure.core])
-  (:use [clj-uuid.constants])
-  (:use [clj-uuid.util])
-  (:require [clj-uuid.bitmop :as bitmop])
-  (:require [clj-uuid.digest :as digest])
-  (:require [clj-uuid.clock  :as clock])
-  (:require [clj-uuid.node   :as node])  
-  (:import (java.net  URI URL))
-  (:import (java.util UUID)))
+  (:require [clj-uuid
+             [constants :refer :all]
+             [util      :refer :all]
+             [bitmop    :as bitmop]
+             [digest    :as digest]
+             [clock     :as clock]
+             [node      :as node]])
+  (:import [java.net  URI URL]
+           [java.util UUID]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -28,6 +28,8 @@
 
 (defprotocol UniqueIdentifier
   (null?           [uuid])
+  (uuid?           [uuid])
+  (uuid            [uuid])
   (uuid=           [x y])
   (get-word-high   [uuid])
   (get-word-low    [uuid])
@@ -53,7 +55,10 @@
 ;; UniqueIdentifier extended UUID
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(extend-type UUID UniqueIdentifier
+(extend-type UUID
+  UniqueIdentifier
+  (uuid [u] u)
+  (uuid? [_] true)
   (uuid= [x y]
     (.equals x y))
   (get-word-high [uuid]
@@ -290,19 +295,7 @@
 (defn uuid-urn-string? [str]
   (not (nil? (re-matches &uuid-urn-string str))))
 
-
-(defmulti uuid? type)
-
-(defmethod uuid? UUID [thing]
-  true)
-
-(defmethod uuid? String [s]
-  (or
-   (uuid-string?     s)
-   (uuid-hex-string? s)
-   (uuid-urn-string? s)))
-
-(defmethod uuid? clojure.lang.PersistentVector [v]
+(defn uuid-vec? [v]
   (and
    (= (count v) 16)
    (every? #(and
@@ -311,35 +304,28 @@
              (<=  127  %))
            v)))
 
-(defmethod uuid? clojure.core.Vec [v]
-  (and
-   (= (count v) 16)
-   (every? #(and
-             (integer? %)
-             (>= -128  %)
-             (<=  127  %))
-           v)))
-
-(defmethod uuid? URI [u]
-  (uuid-urn-string? (.toString u)))
-
-(defmethod uuid? Object [thing]
-  false)
-
-
-(defmulti the-uuid type)
-
-(defmethod the-uuid UUID [thing]
-  thing)
-
-(defmethod the-uuid String [s]
+(defn str->uuid [s]
   (cond
-   (uuid-string?     s) (UUID/fromString s)
-   (uuid-hex-string? s) (UUID.
-                          (bitmop/unhex (subs s 0 16))
-                          (bitmop/unhex (subs s 16 32)))
-   (uuid-urn-string? s) (UUID/fromString (subs s 9))
-   :else                (exception "invalid UUID")))
+    (uuid-string?     s) (UUID/fromString s)
+    (uuid-hex-string? s) (UUID. (bitmop/unhex (subs s 0 16)) (bitmop/unhex (subs s 16 32)))
+    (uuid-urn-string? s) (UUID/fromString (subs s 9))
+    :else                (exception "invalid UUID")))
 
-(defmethod the-uuid URI [u]
-  (the-uuid (.toString u)))
+(extend-protocol UniqueIdentifier
+  String
+  (uuid? [s]
+    (or
+     (uuid-string?     s)
+     (uuid-hex-string? s)
+     (uuid-urn-string? s)))
+  (uuid [s] (str->uuid s))
+  clojure.lang.PersistentVector
+  (uuid? [v] (uuid-vec? v))
+  clojure.core.Vec
+  (uuid? [v] (uuid-vec? v))
+  URI
+  (uuid? [u]
+    (uuid-urn-string? (str u)))
+  (uuid [u] (str->uuid (str u)))
+  Object
+  (uuid? [_] false))
