@@ -7,15 +7,16 @@
 (set! *warn-on-reflection* true)
 
 (def ^:const +tick-resolution+  9999)
+(def ^:const +clock-seq+        (+ (rand-int 9999) 1))
+
 
 (deftype Pair [^short k ^long v])
 
 (defn- pair ^Pair [k v]
   (Pair. k v))
 
-
 (def state              (atom (pair 0 0)))
-(def clock-seq          (atom (+ (rand-int 9999) 1)))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

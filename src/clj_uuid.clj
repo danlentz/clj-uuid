@@ -15,12 +15,11 @@
 ;; Well-Known UUIDs
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defonce +namespace-dns+  #uuid"6ba7b810-9dad-11d1-80b4-00c04fd430c8")
-(defonce +namespace-url+  #uuid"6ba7b811-9dad-11d1-80b4-00c04fd430c8")
-(defonce +namespace-oid+  #uuid"6ba7b812-9dad-11d1-80b4-00c04fd430c8")
-(defonce +namespace-x500+ #uuid"6ba7b814-9dad-11d1-80b4-00c04fd430c8")
-(defonce +null+           #uuid"00000000-0000-0000-0000-000000000000")
-
+(def ^:const +namespace-dns+  #uuid "6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+(def ^:const +namespace-url+  #uuid "6ba7b811-9dad-11d1-80b4-00c04fd430c8")
+(def ^:const +namespace-oid+  #uuid "6ba7b812-9dad-11d1-80b4-00c04fd430c8")
+(def ^:const +namespace-x500+ #uuid "6ba7b814-9dad-11d1-80b4-00c04fd430c8")
+(def ^:const +null+           #uuid "00000000-0000-0000-0000-000000000000")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -168,43 +167,46 @@
 ;; It does come in handy for use in the repl during development sometimes...
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn get-uuid-data [uuid]
+(defn- get-uuid-data [uuid]
   (let [fns '[get-version get-time-low get-time-mid get-time-high
               get-clk-low get-clk-high get-node-id]]
     (zipmap
      (map (comp keyword name) fns)
      (map #((ns-resolve *ns* %) uuid) fns))))
 
-(=
-  (get-uuid-data +null+)
-  {:get-node-id 0,
-    :get-clk-high 0,
-    :get-clk-low 0,
-    :get-time-high 0,
-    :get-time-mid 0,
-    :get-time-low 0
-    :get-version 0})
-(=
-  (get-uuid-data #uuid "0edf17a3-436d-4354-8969-79033e1a0607")
-  {:get-node-id 133054833755655,
-    :get-clk-high 105,
-    :get-clk-low 137,
-    :get-time-high 17236,
-    :get-time-mid 17261,
-    :get-time-low 249501603
-    :get-version 4})
-(=
-  (get-uuid-data +namespace-oid+)
-  {:get-node-id 825973027016,
-    :get-clk-high 180,
-    :get-clk-low 128,
-    :get-time-high 4561,
-    :get-time-mid 40365,
-    :get-time-low 1806153746
-    :get-version 1})
-(=
-  (get-uuid-data +namespace-dns+)
-  (get-uuid-data +namespace-dns+))
+;; (=
+;;   (get-uuid-data +null+)
+;;   {:get-node-id 0,
+;;     :get-clk-high 0,
+;;     :get-clk-low 0,
+;;     :get-time-high 0,
+;;     :get-time-mid 0,
+;;     :get-time-low 0
+;;    :get-version 0})
+
+;; (=
+;;   (get-uuid-data #uuid "0edf17a3-436d-4354-8969-79033e1a0607")
+;;   {:get-node-id 133054833755655,
+;;     :get-clk-high 105,
+;;     :get-clk-low 137,
+;;     :get-time-high 17236,
+;;     :get-time-mid 17261,
+;;     :get-time-low 249501603
+;;     :get-version 4})
+
+;; (=
+;;   (get-uuid-data +namespace-oid+)
+;;   {:get-node-id 825973027016,
+;;     :get-clk-high 180,
+;;     :get-clk-low 128,
+;;     :get-time-high 4561,
+;;     :get-time-mid 40365,
+;;     :get-time-low 1806153746
+;;     :get-version 1})
+
+;; (=
+;;   (get-uuid-data +namespace-dns+)
+;;   (get-uuid-data +namespace-dns+))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -222,7 +224,9 @@
 ;; V1 UUID Constructor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn v1 []
+(defn v1
+  "Generate a v1 (time-based) unique identifier."
+  []
   (let [ts (clock/monotonic-time)
         time-low  (bitmop/ldb (bitmop/mask 32  0) ts)
         time-mid  (bitmop/ldb (bitmop/mask 16 32) ts)
@@ -235,8 +239,8 @@
         clk-high  (bitmop/dpb (bitmop/mask 2 6)
                     (bitmop/ldb
                       (bitmop/mask 6 8)
-                      @clock/clock-seq) 0x2)
-        clk-low   (bitmop/ldb (bitmop/mask 8 0) @clock/clock-seq)
+                      clock/+clock-seq+) 0x2)
+        clk-low   (bitmop/ldb (bitmop/mask 8 0) clock/+clock-seq+)
         lsb       (bitmop/assemble-bytes
                     (concat [clk-high clk-low] node/+node-id+))]
     (UUID. msb lsb)))
