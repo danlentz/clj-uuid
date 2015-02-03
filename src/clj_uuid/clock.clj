@@ -29,19 +29,17 @@
 
 
 (defn monotonic-time ^long []
-  (letfn [(timestamp []
-            (+ (* (System/currentTimeMillis) 10000)  100103040000000000))]
-    (let [^Pair new-state
-          (swap! state
-            (fn [^Pair current-state]
-              (loop [^long time-now (timestamp)]
-                (if-not (= (.v current-state) time-now)
-                  (pair 0 time-now)
-                  (let [tt (.k current-state)]
-                    (if (< tt +tick-resolution+)
-                      (pair (inc tt) time-now)
-                      (recur (timestamp))))))))]
-      (+ (.k new-state) (.v new-state)))))
+  (let [^Pair new-state
+        (swap! state
+          (fn [^Pair current-state]
+            (loop [time-now (System/currentTimeMillis)]
+              (if-not (= (.v current-state) time-now)
+                (pair 0 time-now)
+                (let [tt (.k current-state)]
+                  (if (< tt +tick-resolution+)
+                    (pair (inc tt) time-now)
+                    (recur (System/currentTimeMillis))))))))]
+    (+ (.k new-state) (+ (* (.v new-state) 10000) 100103040000000000))))
 
 
 (set! *warn-on-reflection* false)
