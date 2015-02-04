@@ -3,6 +3,10 @@
 [![Build Status](https://travis-ci.org/danlentz/clj-uuid.svg?branch=master)]
 (https://travis-ci.org/danlentz/clj-uuid)
 
+[![Dependency Status](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.0.7-SNAPSHOT/badge.svg)](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.0.7-SNAPSHOT)
+
+[![Reference Status](https://www.versioneye.com/clojure/danlentz:clj-uuid/reference_badge.svg?style=flat)](https://www.versioneye.com/clojure/danlentz:clj-uuid/references)
+
 A Clojure library for generation and utilization of UUIDs (Universally
 Unique Identifiers) as described by RFC-4122. This library extends the
 standard Java UUID class to provide true v1 (time based) and v3/v5
