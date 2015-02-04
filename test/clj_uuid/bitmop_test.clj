@@ -3,7 +3,8 @@
     [clojure.test    :refer :all]
     [clj-uuid.bitmop :refer :all]))
 
-
+(comment
+  
 (deftest check-bit-mask-operators
   (testing "bit-mask construction..."
     (is (= (mask 0 0)                       0))
@@ -281,3 +282,4 @@
     (is (= (unhex "F000000000000001") (inc (mask 4 60))))))
 
 
+)
