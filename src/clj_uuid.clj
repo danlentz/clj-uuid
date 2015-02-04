@@ -310,13 +310,13 @@
 
 
 (defn uuid-string? [str]
-  (not (nil? (re-matches &uuid-string str))))
+  (not (nil? (re-matches uuid-regex str))))
 
 (defn uuid-hex-string? [str]
-  (not (nil? (re-matches &uuid-hex-string str))))
+  (not (nil? (re-matches hex-regex str))))
 
 (defn uuid-urn-string? [str]
-  (not (nil? (re-matches &uuid-urn-string str))))
+  (not (nil? (re-matches urn-regex str))))
 
 (defn uuid-vec? [v]
   (and
