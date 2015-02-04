@@ -80,18 +80,8 @@ Distributed under the Eclipse Public License either version 1.0
 
 With Leiningen:
 
-[![Clojars Project](http://clojars.org/danlentz/clj-uuid/latest-version.svg)]
+![Clojars Project](http://clojars.org/danlentz/clj-uuid/latest-version.svg)
 
-
-With Maven:
-
-```xml
-<dependency>
-  <groupId>danlentz</groupId>
-  <artifactId>clj-uuid</artifactId>
-  <version>0.0.7-SNAPSHOT</version>
-</dependency>
-```
 
 
 
