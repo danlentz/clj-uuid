@@ -253,11 +253,34 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; V4 UUID Constructor
+;; V4 (random) UUID Constructor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn v4 ^UUID []
   (UUID/randomUUID))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SQUUID (sequential) UUID Constructor
+;; 
+;; splits and reassembles a random UUID using bit-or to merge the current time
+;; with the most significant 32 bits of the UUID.  The two halves of the UUID
+;; are reassembled using the UUID. constructor, yielding UUIDs that increase
+;; sequentially over time.  credit: cognitect/datomic; clojure-cookbook
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; TODO: see about a version that eliminates call to random number generator
+
+(defn squuid ^UUID []
+  (let [uuid (UUID/randomUUID)
+        time (System/currentTimeMillis)
+        secs (quot time 1000)
+        lsb (.getLeastSignificantBits uuid)
+        msb (.getMostSignificantBits uuid)
+        timed-msb (bit-or (bit-shift-left secs 32)
+                    (bit-and 0x00000000ffffffff msb))]
+    (UUID. timed-msb lsb)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
