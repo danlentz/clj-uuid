@@ -14,9 +14,9 @@
 ;; Java time is represented as the difference, measured in milliseconds,
 ;; between the current time and midnight, January 1, 1970 UTC
 
-;; UUID Epoch is 00:00 October 15, 1582 UTC
+;; UUIDs use Gregorian epoch, 12am Friday October 15, 1582 UTC
 
-;; Difference between UUID Epoch and Java Epoch = 141427 days =
+;; Difference between Gregorian epoch and Java Epoch = 141427 days =
 ;; 12219292800 seconds
 
 ;; we pad to achieve the rfc4122 compat and support atomic incremental
@@ -32,8 +32,8 @@
 
 (set! *warn-on-reflection* true)
 
-(def ^:const +subcounter-resolution+  9999)
-(def ^:const +clock-seq+        (+ (rand-int 9999) 1))
+(def ^:const +subcounter-resolution+    9999)
+(def ^:const +clock-seq+ (inc (rand-int 9999)))
 
 (deftype State [^short seqid ^long millis])
 
