@@ -143,12 +143,12 @@
 ;;
 ;;   SLOT       SIZE   TYPE        BYTE-ARRAY
 ;;  ----------------------------------------------------------------------
-;;  time-low       4   ub32     #(<BYTE> <BYTE> <BYTE> <BYTE>)
-;;  time-mid       2   ub16     #(<BYTE> <BYTE>)
-;;  time-high      2   ub16     #(<BYTE> <BYTE>)
-;;  clk-high       1    ub8     #(<BYTE>)
-;;  clock-low      1    ub8     #(<BYTE>)
-;;  node           6   ub48     #(<BYTE> <BYTE> <BYTE> <BYTE> <BYTE> <BYTE>)
+;;  time-low       4   ub32     [<BYTE> <BYTE> <BYTE> <BYTE>]
+;;  time-mid       2   ub16     [<BYTE> <BYTE>]
+;;  time-high      2   ub16     [<BYTE> <BYTE>]
+;;  clock-high     1    ub8     [<BYTE>]
+;;  clock-low      1    ub8     [<BYTE>]
+;;  node           6   ub48     [<BYTE> <BYTE> <BYTE> <BYTE> <BYTE> <BYTE>]
 ;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -156,15 +156,36 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;
-;;  ((0 7)   (8 15)  (16 23) (24 31) ;; time-low
+;;  (0 7)   (8 15)  (16 23) (24 31)  ;; time-low
 ;;  (32 39) (40 47)                  ;; time-mid
 ;;  (48 55) (56 63)                  ;; time-high-and-version
 ;;
 ;;  (64 71)                          ;; clock-seq-and-reserved
 ;;  (72 79)                          ;; clock-seq-low
 ;;  (80 87)   (88 95)   (96 103)     ;;
-;;  (104 111) (112 119) (120 127))   ;; node
+;;  (104 111) (112 119) (120 127)    ;; node
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; UUID Version and Variant
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; The variant indicates the layout of the UUID. The UUID specification
+;; covers one particular variant. Other variants are reserved or exist
+;; for backward compatibility reasons (e.g., for values assigned before
+;; the UUID specification was produced). An example of a UUID that is a
+;; different variant is the null UUID, which is a UUID that has all 128
+;; bits set to zero.
+;;
+;; In the canonical representation, xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx,
+;; the most significant bits of N indicates the variant (depending on the
+;; variant one, two, or three bits are used). The variant covered by the
+;; UUID specification is indicated by the two most significant bits of N
+;; being 1 0 (i.e., the hexadecimal N will always be 8, 9, A, or B).
+;;
+;; The variant covered by the UUID specification has five versions. For this
+;; variant, the four bits of M indicates the UUID version (i.e., the
+;; hexadecimal M will be either 1, 2, 3, 4, or 5).
+;; <http://en.wikipedia.org/wiki/Universally_unique_identifier>
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; UUID Constituent Data Map
