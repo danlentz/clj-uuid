@@ -3,8 +3,7 @@
   (:require [clj-uuid.bitmop :only  [ubvec ub8]])
   (:import  [java.net         InetAddress NetworkInterface]
             [java.security    MessageDigest]
-            [java.util        Properties]
-            [java.nio.charset StandardCharsets]))
+            [java.util        Properties]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -46,7 +45,7 @@
                                  "os.name" "os.version"])]
       (doseq [^String d to-digest]
         (.update digest
-          (.getBytes d StandardCharsets/UTF_8)))
+          (.getBytes d java.nio.charset.StandardCharsets/UTF_8)))
       (->> (.digest digest)
         (map clj-uuid.bitmop/ub8)
         clj-uuid.bitmop/ubvec
