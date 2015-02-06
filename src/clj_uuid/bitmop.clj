@@ -83,7 +83,7 @@
     (bit-and bitmask
       (bit-shift-left value (mask-offset bitmask)))))
 
-(defn bit-count [x]
+(defn bit-count ^long [^long x]
   (let [n (ldb (mask 63 0) x) s (if (neg? x) 1 0)]
     (loop [c s i 0]
       (if (zero? (bit-shift-right n i))
@@ -130,7 +130,9 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; "Byte Vectors" implement a collection of primitive signed and unsigned byte
+;; "Byte Vectors"
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; implement a collection of primitive signed and unsigned byte
 ;; values cast appropriately from the JVM native (signed) two's complement
 ;; representation.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -141,47 +143,43 @@
   ([^long lng]
     (long-to-octets lng 8))
   ([^long lng pad-count]
-    (let [pad (repeat pad-count (byte 0))
-           raw-bytes (for [i (range 8)] (ldb (mask 8 (* i 8)) lng))
-           value-bytes (drop-while clojure.core/zero? (reverse raw-bytes))]
+    (let [pad         (repeat pad-count (byte 0))
+          raw-bytes   (for [i (range 8)] (ldb (mask 8 (* i 8)) lng))
+          value-bytes (drop-while clojure.core/zero? (reverse raw-bytes))]
       (vec (concat
              (into [] (drop (count value-bytes) pad))
              value-bytes)))))
 
-
-
 (defn sbvec [thing]
-  (cond
-   (= (type thing) Long) (into (vector-of :byte)
-                               (map unchecked-byte (long-to-octets thing)))
-   (coll? thing)         (into (vector-of :byte)
-                               (map unchecked-byte thing))))
+  (cond 
+    (= (class thing) Long) (into (vector-of :byte)
+                             (map unchecked-byte (long-to-octets thing)))
+    (coll? thing)          (into (vector-of :byte)
+                             (map unchecked-byte thing))))
 
 (defn sbvector [& args]
   (sbvec args))
 
 (defn make-sbvector [length initial-element]
   (sbvec (loop [len length v []]
-         (if (<= len 0)
-           v
-           (recur (- len 1) (cons (unchecked-byte initial-element) v))))))
-
-
+           (if (<= len 0)
+             v
+             (recur (- len 1)
+               (cons (unchecked-byte initial-element) v))))))
 
 (defn assemble-bytes [v]
   (r/reduce (fn
-            ([] 0)
-            ([tot pair] (dpb (mask 8 (* (first pair) 8))  tot (second pair))))
+              ([] 0)
+              ([tot pair]
+               (dpb (mask 8 (* (first pair) 8))  tot (second pair))))
     (indexed (reverse v))))
-
-
 
 (defn ubvec [thing]
   (cond
-   (= (type thing) Long) (into (vector-of :short)
-                               (map unchecked-short (long-to-octets thing)))
-   (coll? thing)         (into (vector-of :short)
-                               (map unchecked-short thing))))
+   (= (class thing) Long) (into (vector-of :short)
+                            (map unchecked-short (long-to-octets thing)))
+   (coll? thing)          (into (vector-of :short)
+                            (map unchecked-short thing))))
 
 (defn ubvector [& args]
   (ubvec args))
@@ -190,8 +188,8 @@
   (ubvec (loop [len length v []]
            (if (<= len 0)
              v
-             (recur (- len 1) (cons (short initial-element) v))))))
-
+             (recur (- len 1)
+               (cons (short initial-element) v))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
