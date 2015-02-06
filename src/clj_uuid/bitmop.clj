@@ -1,17 +1,13 @@
 (ns clj-uuid.bitmop
-  (:refer-clojure
-    :exclude [* + - / < > <= >= == rem bit-or bit-and bit-xor bit-not bit-shift-left bit-shift-right
-              byte short int float long double inc dec
-              zero? min max
-              true? false?
-              map mapcat filter reduce take-while drop take remove flatten])
+  (:refer-clojure :exclude [* + - / < > <= >= == rem bit-or bit-and bit-xor
+                            bit-not bit-shift-left bit-shift-right
+                            byte short int float long double inc dec
+                            zero? min max true? false?])
   (:require [primitive-math :refer :all]
-            [clojure.pprint :refer :all]
-            [clojure.core.reducers :refer :all]
+            [clojure.pprint :refer [cl-format pprint]]
+            [clojure.core.reducers :as r]
             [clj-uuid.constants :refer :all]
-            [clj-uuid.util :refer :all])
-  (:import [java.net  URI URL]
-           [java.util UUID]))
+            [clj-uuid.util :refer :all]))
 
 
 ;; Primitive Type  |  Size   |  Minimum  |     Maximum    |  Wrapper Type
