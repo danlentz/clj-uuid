@@ -251,7 +251,20 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ^UUID v4
-  "Generate a v4 (random) UUID."
+  "Generate a v4 (random) UUID.  Uses default JVM implementation.  If two
+  arguments, lsb and msb (both long) are provided, then construct a valid,
+  properly formatted v4 UUID based on those values.  So, for example the
+  following UUID, created from all zero bits, is indeed distinct from the
+  null UUID:
+
+      (v4)
+       => #uuid \"dcf0035f-ea29-4d1c-b52e-4ea499c6323e\"
+
+      (v4 0 0)
+       => #uuid \"00000000-0000-4000-8000-000000000000\"
+
+      (null)
+       => #uuid \"00000000-0000-0000-0000-000000000000\""
   ([]
     (UUID/randomUUID))
   ([^long msb ^long lsb]
@@ -263,14 +276,16 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SQUUID (sequential) UUID Constructor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; SQUUID's are a nonstandard variation on v4 (random) UUIDs that have the
-;; desirable property that they increase sequentially over time as well as
-;; encode retrievably the posix time at which they were generated.  Splits and
-;; reassembles a v4 UUID to merge current POSIX time (seconds since 12:00am
-;; January 1, 1970 UTC) with the most significant 32 bits of the UUID.  
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn ^UUID squuid []
+(defn ^UUID squuid
+  "Generate a SQUUID (sequential, random) unique identifier.  SQUUID's
+  are a nonstandard variation on v4 (random) UUIDs that have the
+  desirable property that they increase sequentially over time as well
+  as encode retrievably the posix time at which they were generated.
+  Splits and reassembles a v4 UUID to merge current POSIX
+  time (seconds since 12:00am January 1, 1970 UTC) with the most
+  significant 32 bits of the UUID."
+  []
   (let [uuid (UUID/randomUUID)
         time (System/currentTimeMillis)
         secs (quot time 1000)
