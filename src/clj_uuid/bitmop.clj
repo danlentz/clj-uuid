@@ -23,20 +23,13 @@
 ;; void            |    ?    |     ?     |        ?       |  Void
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Simple Arithmetic Utils
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn expt [num pow]
-  {:pre [(not (neg? pow))]}
-  (loop [acc 1 p pow]
-    (if (= 0 p) acc
-      (recur (* acc num) (- p 1)))))
-
-(defn expt2 [pow]
-  {:pre [(not (neg? pow))
-         (< pow 64)]}
-  (bit-shift-left 0x1 pow))
+(defn expt2 ^long [^long pow]
+  ;; {:pre [(not (neg? pow)) (< pow 64)]}
+  (bit-set 0 pow))
 
 (defn pphex [x]
   (returning x
@@ -45,26 +38,20 @@
       (Long/toBinaryString x))))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Bit-masking
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn mask [width offset]
-  {:pre [(not (neg? width))
-         (not (neg? offset))
-         (<= width 64)
-         (< offset 64)]}
-  (if (<= (+ width offset) 63)
-    (-> 1
-      (bit-shift-left width)
-      (dec)
-      (bit-shift-left offset))
-    (-> -1
-      (bit-and-not (dec (expt2 offset))))))
+(defn mask ^long [^long width ^long offset]
+  ;; {:pre [(not (neg? width)) (not (neg? offset))
+  ;;        (<= width 64) (< offset 64)]}
+  (if (< (+ width offset) 64)
+    (bit-shift-left (dec (bit-shift-left 1 width)) offset)
+    (bit-and-not -1 (dec (expt2 offset)))))
 
 (declare mask-offset mask-width)
 
-(defn mask-offset [m]
+(defn mask-offset ^long [^long m]
   (cond
     (zero? m) 0
     (neg?  m) (- 64 (mask-width m))
@@ -73,7 +60,7 @@
                   c
                   (recur (inc c))))))
 
-(defn mask-width [m]
+(defn mask-width ^long [^long m]
   (if (neg? m)
     (- 64 (mask-width (- (inc m))))
     (loop [m (bit-shift-right m (mask-offset m)) c 0]
@@ -82,20 +69,19 @@
         (recur m (inc c))))))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Fundamental Bitwise Operations
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn ldb [bitmask num]
-  (bit-and
-    (>>> bitmask (mask-offset bitmask))
-    (bit-shift-right num (mask-offset bitmask))))
+(defn ldb ^long [^long bitmask ^long num]
+  (let [off (mask-offset bitmask)]
+    (bit-and (>>> bitmask off)
+      (bit-shift-right num off))))
 
-(defn dpb [bitmask num value]
-  (-> (bit-and-not num bitmask)
-    (bit-or
-      (bit-and bitmask
-        (bit-shift-left value (mask-offset bitmask))))))
+(defn dpb ^long [^long bitmask ^long num ^long value]
+  (bit-or (bit-and-not num bitmask)
+    (bit-and bitmask
+      (bit-shift-left value (mask-offset bitmask)))))
 
 (defn bit-count [x]
   (let [n (ldb (mask 63 0) x) s (if (neg? x) 1 0)]
@@ -105,9 +91,9 @@
         (recur (+ c (bit-and 1 (bit-shift-right n i))) (inc i))))))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Byte Casting
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ub4 [num]
   (byte (bit-and num +ub4-mask+)))
