@@ -68,7 +68,7 @@
 ;; Digest Namespaced Identifiers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- digest-uuid-bytes [digest uuid-bytes namestring]
+(defn digest-uuid-bytes [digest uuid-bytes namestring]
   (apply sbvector
     (subvec (digest (sbvec (concat uuid-bytes (seq (.getBytes namestring)))))
       0 16)))
