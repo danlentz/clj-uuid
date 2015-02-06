@@ -172,100 +172,27 @@
   (to-uri [uuid]
     (URI/create (to-urn-string uuid)))
   (get-time-low [uuid]
-    (bitmop/ldb (bitmop/mask 32 0) (bit-shift-right (get-word-high uuid) 32)))
+    (bitmop/ldb (bitmop/mask 32 0)
+      (bit-shift-right (get-word-high uuid) 32)))
   (get-time-mid [uuid]
-    (bitmop/ldb (bitmop/mask 16 16) (get-word-high uuid)))
+    (bitmop/ldb (bitmop/mask 16 16)
+      (get-word-high uuid)))
   (get-time-high [uuid]
-    (bitmop/ldb (bitmop/mask 16 0) (get-word-high uuid)))
+    (bitmop/ldb (bitmop/mask 16 0)
+      (get-word-high uuid)))
   (get-clk-low [uuid]
-    (bitmop/ldb (bitmop/mask 8 0) (bit-shift-right (get-word-low uuid) 56)))
+    (bitmop/ldb (bitmop/mask 8 0)
+      (bit-shift-right (get-word-low uuid) 56)))
   (get-clk-high [uuid]
-    (bitmop/ldb (bitmop/mask 8 48) (get-word-low uuid)))
+    (bitmop/ldb (bitmop/mask 8 48)
+      (get-word-low uuid)))
   (get-node-id [uuid]
-    (bitmop/ldb (bitmop/mask 48 0) (get-word-low uuid)))
+    (bitmop/ldb (bitmop/mask 48 0)
+      (get-word-low uuid)))
   (get-timestamp [uuid]
     (when (= 1 (get-version uuid))
       (.timestamp uuid))))
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; General Representation Of UUID Constituent Values
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; The string representation of A UUID has the format:
-;;
-;;                                          clock-seq-and-reserved
-;;                                time-mid  | clock-seq-low
-;;                                |         | |
-;;                       6ba7b810-9dad-11d1-80b4-00c04fd430c8
-;;                       |             |         |
-;;                       ` time-low    |         ` node
-;;                                     ` time-high-and-version
-;;
-;;
-;; Each field is treated as integer and has its value printed as a zero-filled
-;; hexadecimal digit string with the most significant digit first.
-;;
-;; 0                   1                   2                   3
-;;  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-;; |                        %uuid_time-low                         |
-;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-;; |       %uuid_time-mid          |  %uuid_time-high-and-version  |
-;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-;; |clk-seq-hi-res | clock-seq-low |         %uuid_node (0-1)      |
-;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-;; |                         %uuid_node (2-5)                      |
-;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-;;
-;;
-;;  The following table enumerates a slot/type/value correspondence:
-;;
-;;   SLOT       SIZE   TYPE        BYTE-ARRAY
-;;  ----------------------------------------------------------------------
-;;  time-low       4   ub32     [<BYTE> <BYTE> <BYTE> <BYTE>]
-;;  time-mid       2   ub16     [<BYTE> <BYTE>]
-;;  time-high      2   ub16     [<BYTE> <BYTE>]
-;;  clock-high     1    ub8     [<BYTE>]
-;;  clock-low      1    ub8     [<BYTE>]
-;;  node           6   ub48     [<BYTE> <BYTE> <BYTE> <BYTE> <BYTE> <BYTE>]
-;;
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 8-bit Bytes mapping into 128-bit unsigned integer values
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;
-;;  (0 7)   (8 15)  (16 23) (24 31)  ;; time-low
-;;  (32 39) (40 47)                  ;; time-mid
-;;  (48 55) (56 63)                  ;; time-high-and-version
-;;
-;;  (64 71)                          ;; clock-seq-and-reserved
-;;  (72 79)                          ;; clock-seq-low
-;;  (80 87)   (88 95)   (96 103)     ;;
-;;  (104 111) (112 119) (120 127)    ;; node
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; UUID Version and Variant
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; The variant indicates the layout of the UUID. The UUID specification
-;; covers one particular variant. Other variants are reserved or exist
-;; for backward compatibility reasons (e.g., for values assigned before
-;; the UUID specification was produced). An example of a UUID that is a
-;; different variant is the null UUID, which is a UUID that has all 128
-;; bits set to zero.
-;;
-;; In the canonical representation, xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx,
-;; the most significant bits of N indicates the variant (depending on the
-;; variant one, two, or three bits are used). The variant covered by the
-;; UUID specification is indicated by the two most significant bits of N
-;; being 1 0 (i.e., the hexadecimal N will always be 8, 9, A, or B).
-;;
-;; The variant covered by the UUID specification has five versions. For this
-;; variant, the four bits of M indicates the UUID version (i.e., the
-;; hexadecimal M will be either 1, 2, 3, 4, or 5).
-;; <http://en.wikipedia.org/wiki/Universally_unique_identifier>
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; UUID Constituent Data Map
@@ -287,33 +214,45 @@
 ;; V0 UUID Constructor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn null ^UUID []
+(defn null
+  "Generates the v0 (null) UUID, 00000000-0000-0000-0000-000000000000."
+  ^UUID []
   +null+)
 
-(defn v0 ^UUID []
+(defn v0
+  "Generates the v0 (null) UUID, 00000000-0000-0000-0000-000000000000."
+  ^UUID []
   +null+)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; V1 UUID Constructor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Concatenate the UUID version with the MAC address of the computer that is
+;; generating the UUID, and with a monotonic timestamp based on the number
+;; of 100-nanosecond intervals since the adoption of the Gregorian calendar
+;; in the West, 12:00am Friday October 15, 1582 UTC.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn v1
-  "Generate a v1 (time-based) unique identifier."
+  "Generate a v1 (time-based) unique identifier, guaranteed to be unique
+  and thread-safe regardless of clock precision or degree of concurrency.
+  Creation of v1 UUID's does not require any call to a cryptographic 
+  generator and can be accomplished much more efficiently than v1, v3, v5,
+  or squuid's.  A v1 UUID reveals both the identity of the computer that 
+  generated the UUID and the time at which it did so.  Its uniqueness across 
+  computers is guaranteed as long as MAC addresses are not duplicated."
   ^UUID []
-  (let [ts (clock/monotonic-time)
-        time-low  (bitmop/ldb (bitmop/mask 32  0) ts)
-        time-mid  (bitmop/ldb (bitmop/mask 16 32) ts)
-        time-high (bitmop/dpb (bitmop/mask 4 12)
+  (let [ts        (clock/monotonic-time)
+        time-low  (bitmop/ldb (bitmop/mask 32  0)  ts)
+        time-mid  (bitmop/ldb (bitmop/mask 16 32)  ts)
+        time-high (bitmop/dpb (bitmop/mask 4  12)
                     (bitmop/ldb (bitmop/mask 12 48) ts) 0x1)
-        msb       (bit-or
+        msb       (bit-or time-high
                    (bit-shift-left time-low 32)
-                   (bit-shift-left time-mid 16)
-                   time-high)
+                   (bit-shift-left time-mid 16))
         clk-high  (bitmop/dpb (bitmop/mask 2 6)
-                    (bitmop/ldb
-                      (bitmop/mask 6 8)
-                      clock/+clock-seq+) 0x2)
+                    (bitmop/ldb (bitmop/mask 6 8) clock/+clock-seq+) 0x2)
         clk-low   (bitmop/ldb (bitmop/mask 8 0) clock/+clock-seq+)
         lsb       (bitmop/assemble-bytes
                     (concat [clk-high clk-low] node/+node-id+))]
@@ -325,28 +264,32 @@
 ;; V4 (random) UUID Constructor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn v4 ^UUID []
-  (UUID/randomUUID))
-
+(defn v4
+  "Generate a v4 (random) UUID."
+  (^UUID []
+    (UUID/randomUUID))
+  (^UUID [^long msb ^long lsb]
+    (UUID.
+      (bitmop/dpb (bitmop/mask 4 12) msb 0x4)
+      (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SQUUID (sequential) UUID Constructor
-;; 
-;; splits and reassembles a random UUID using bit-or to merge the current time
-;; with the most significant 32 bits of the UUID.  The two halves of the UUID
-;; are reassembled using the UUID. constructor, yielding UUIDs that increase
-;; sequentially over time.  credit: cognitect/datomic; clojure-cookbook
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; TODO: see about a version that eliminates call to random number generator
+;; SQUUID's are a nonstandard variation on v4 (random) UUIDs that have the
+;; desirable property that they increase sequentially over time as well as
+;; encode retrievably the posix time at which they were generated.  Splits and
+;; reassembles a v4 UUID to merge current POSIX time (seconds since 12:00am
+;; January 1, 1970 UTC) with the most significant 32 bits of the UUID.  
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn squuid ^UUID []
   (let [uuid (UUID/randomUUID)
         time (System/currentTimeMillis)
         secs (quot time 1000)
-        lsb (.getLeastSignificantBits uuid)
-        msb (.getMostSignificantBits uuid)
+        lsb  (.getLeastSignificantBits uuid)
+        msb  (.getMostSignificantBits uuid)
         timed-msb (bit-or (bit-shift-left secs 32)
                     (bit-and 0x00000000ffffffff msb))]
     (UUID. timed-msb lsb)))
@@ -356,27 +299,36 @@
 ;; Namespaced UUIDs
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn fmt-digested-uuid [version bytes]
-  (assert (or (= version 3) (= version 5)))
+(defn- fmt-digested-uuid [version bytes] {:pre [(or
+                                                  (= version 3)
+                                                  (= version 5))]}
   (let [msb (bitmop/assemble-bytes (take 8 bytes))
         lsb (bitmop/assemble-bytes (drop 8 bytes))]
     (UUID.
      (bitmop/dpb (bitmop/mask 4 12) msb version)
      (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
 
-(defn v5 ^UUID [context namestring]
-  (fmt-digested-uuid 5
-    (digest/digest-uuid-bytes digest/sha1 (to-byte-vector context) namestring)))
 
-(defn v3 ^UUID [context namestring]
+
+(defn v3
+  "Generate a v3 (name based, MD5 hash) UUID."
+  ^UUID [context namestring]
   (fmt-digested-uuid 3
-    (digest/digest-uuid-bytes digest/md5 (to-byte-vector context) namestring)))
+    (digest/digest-uuid-bytes digest/md5
+      (to-byte-vector context) namestring)))
+
+
+(defn v5
+  "Generate a v5 (name based, SHA1 hash) UUID."
+  ^UUID [context namestring]
+  (fmt-digested-uuid 5
+    (digest/digest-uuid-bytes digest/sha1
+      (to-byte-vector context) namestring)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Predicates
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defn uuid-string? [str]
   (not (nil? (re-matches uuid-regex str))))
@@ -388,36 +340,49 @@
   (not (nil? (re-matches urn-regex str))))
 
 (defn uuid-vec? [v]
-  (and
-   (= (count v) 16)
-   (every? #(and
-             (integer? %)
-             (>= -128  %)
-             (<=  127  %))
-           v)))
+  (and (= (count v) 16)
+    (every? #(and
+               (integer? %)
+               (>= -128  %)
+               (<=  127  %))
+      v)))
 
-(defn str->uuid [s]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; UUID Polymorphisn
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- str->uuid [s]
   (cond
     (uuid-string?     s) (UUID/fromString s)
-    (uuid-hex-string? s) (UUID. (bitmop/unhex (subs s 0 16)) (bitmop/unhex (subs s 16 32)))
+    (uuid-hex-string? s) (UUID.
+                           (bitmop/unhex (subs s 0 16))
+                           (bitmop/unhex (subs s 16 32)))
     (uuid-urn-string? s) (UUID/fromString (subs s 9))
     :else                (exception "invalid UUID")))
 
 (extend-protocol UniqueIdentifier
-  String
+  String  
   (uuid? [s]
     (or
      (uuid-string?     s)
      (uuid-hex-string? s)
      (uuid-urn-string? s)))
-  (uuid [s] (str->uuid s))
+  (uuid [s]
+    (str->uuid s))
   clojure.lang.PersistentVector
-  (uuid? [v] (uuid-vec? v))
+  (uuid? [v]
+    (uuid-vec? v))
   clojure.core.Vec
-  (uuid? [v] (uuid-vec? v))
+  (uuid? [v]
+    (uuid-vec? v))
   URI
   (uuid? [u]
     (uuid-urn-string? (str u)))
-  (uuid [u] (str->uuid (str u)))
+  (uuid [u]
+    (str->uuid (str u)))
   Object
-  (uuid? [_] false))
+  (uuid? [_]
+    false)
+  (uuid [_]
+    (exception IllegalArgumentException "Cannot be cast to UUID")))
