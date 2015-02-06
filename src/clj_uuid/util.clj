@@ -31,6 +31,24 @@
 ;; Timing and Performance Metric
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defmacro compile-if
+  "Evaluate `exp` and if it returns logical true and doesn't error, expand to
+  `then` otherwise expand to `else`.  
+  credit: <clojure/src/clj/clojure/core/reducers.clj#L24>
+
+  (compile-if (Class/forName \"java.util.concurrent.ForkJoinTask\")
+    (do-cool-stuff-with-fork-join)
+    (fall-back-to-executor-services))"
+  [exp then else]
+  (if (try (eval exp)
+           (catch Throwable _ false))
+    `(do ~then)
+    `(do ~else)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Timing and Performance Metric
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defmacro with-timing
   "Same as clojure.core/time but returns a vector of a the result of
    the code and the milliseconds rather than printing a string. Runs
