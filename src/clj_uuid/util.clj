@@ -11,7 +11,7 @@
   (indexed '(a b c d))  =>  ([0 a] [1 b] [2 c] [3 d])"
   [s]
   ;; (map vector (iterate inc 0) s))
-  (map vector (range) s))
+  (map #(clojure.lang.MapEntry. %1 %2) (range) s))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -1,6 +1,7 @@
 (ns clj-uuid.constants
   (:use [clojure.core]))
 
+(def +clock-seq+ (inc (rand-int 9999)))
 
 (def uuid-regex  #"[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}")
 (def hex-regex   #"[0-9A-Fa-f]{32}")

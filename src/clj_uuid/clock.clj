@@ -30,34 +30,40 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(set! *warn-on-reflection* true)
+;; (set! *warn-on-reflection* true)
 
-(def ^:const +subcounter-resolution+    9999)
-(def ^:const +clock-seq+ (inc (rand-int 9999)))
+(def  +subcounter-resolution+    9999)
 
 (deftype State [^short seqid ^long millis])
 
 
 (let [-state- (atom (->State 0 0))]
-  (defn monotonic-time ^long []
-    (let [^State new-state
-          (swap! -state-
-            (fn [^State current-state]
-              (loop [time-now (System/currentTimeMillis)]
-                (if-not (= (.millis current-state) time-now)
-                  (->State 0 time-now)
-                  (let [tt (.seqid current-state)]
-                    (if (< tt +subcounter-resolution+)
-                      (->State (inc tt) time-now)
-                      (recur (System/currentTimeMillis))))))))]
-      (+ (.seqid new-state)       
-        (+ 100103040000000000
-          (* (+ 2208988800000 (.millis new-state)) 10000))))))
+  (defn monotonic-time []
+     (let [^State new-state
+           (swap! -state-
+             (fn [^State current-state]
+               (loop [time-now (System/currentTimeMillis)]
+                 (if-not (= (.millis current-state) time-now)
+                   (->State 0 time-now)
+                   (let [tt (.seqid current-state)]
+                     (if (< tt +subcounter-resolution+)
+                       (->State (inc tt) time-now)
+                       (recur (System/currentTimeMillis))))))))]
+       (+ (.seqid new-state)       
+         (+ 100103040000000000
+           (* (+ 2208988800000 (.millis new-state)) 10000))))))
 
 
-(defn universal-time []
-  (+ (quot (System/currentTimeMillis) 1000) 2208988800))
+(defn universal-time
+  ([]
+   (universal-time (System/currentTimeMillis)))
+  ([^long millis]
+   (+ (quot millis 1000) 2208988800)))
 
-
+(defn posix-time
+  ([]
+   (posix-time (System/currentTimeMillis)))
+  ([^long millis]
+   (quot millis 1000)))
   
-(set! *warn-on-reflection* false)
+;; (set! *warn-on-reflection* false)

@@ -9,6 +9,7 @@
   (:import [java.net  URI URL]
            [java.util UUID]))
 
+(set! *warn-on-reflection* true)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; General UUID Representation and Constituent Values
@@ -101,7 +102,7 @@
 
 
 
-(defn ^long monotonic-time []
+(defn monotonic-time []
   (clock/monotonic-time))
 
 
@@ -199,14 +200,14 @@
 ;; V0 UUID Constructor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn null
+(defn ^UUID null
   "Generates the v0 (null) UUID, 00000000-0000-0000-0000-000000000000."
-  ^UUID []
+  []
   +null+)
 
-(defn v0
+(defn ^UUID v0
   "Generates the v0 (null) UUID, 00000000-0000-0000-0000-000000000000."
-  ^UUID []
+  []
   +null+)
 
 
@@ -219,7 +220,7 @@
 ;; in the West, 12:00am Friday October 15, 1582 UTC.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn v1
+(defn ^UUID v1
   "Generate a v1 (time-based) unique identifier, guaranteed to be unique
   and thread-safe regardless of clock precision or degree of concurrency.
   Creation of v1 UUID's does not require any call to a cryptographic 
@@ -227,7 +228,7 @@
   or squuid's.  A v1 UUID reveals both the identity of the computer that 
   generated the UUID and the time at which it did so.  Its uniqueness across 
   computers is guaranteed as long as MAC addresses are not duplicated."
-  ^UUID []
+  []
   (let [ts        (clock/monotonic-time)
         time-low  (bitmop/ldb (bitmop/mask 32  0)  ts)
         time-mid  (bitmop/ldb (bitmop/mask 16 32)  ts)
@@ -237,8 +238,8 @@
                    (bit-shift-left time-low 32)
                    (bit-shift-left time-mid 16))
         clk-high  (bitmop/dpb (bitmop/mask 2 6)
-                    (bitmop/ldb (bitmop/mask 6 8) clock/+clock-seq+) 0x2)
-        clk-low   (bitmop/ldb (bitmop/mask 8 0) clock/+clock-seq+)
+                    (bitmop/ldb (bitmop/mask 6 8) +clock-seq+) 0x2)
+        clk-low   (bitmop/ldb (bitmop/mask 8 0) +clock-seq+)
         lsb       (bitmop/assemble-bytes
                     (concat [clk-high clk-low] node/+node-id+))]
     (UUID. msb lsb)))
@@ -249,11 +250,11 @@
 ;; V4 (random) UUID Constructor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn v4
+(defn ^UUID v4
   "Generate a v4 (random) UUID."
-  (^UUID []
+  ([]
     (UUID/randomUUID))
-  (^UUID [^long msb ^long lsb]
+  ([^long msb ^long lsb]
     (UUID.
       (bitmop/dpb (bitmop/mask 4 12) msb 0x4)
       (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
@@ -269,7 +270,7 @@
 ;; January 1, 1970 UTC) with the most significant 32 bits of the UUID.  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn squuid ^UUID []
+(defn ^UUID squuid []
   (let [uuid (UUID/randomUUID)
         time (System/currentTimeMillis)
         secs (quot time 1000)
@@ -284,9 +285,9 @@
 ;; Namespaced UUIDs
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- fmt-digested-uuid ^UUID [version bytes] {:pre [(or
-                                                        (= version 3)
-                                                        (= version 5))]}
+(defn- ^UUID fmt-digested-uuid [^long version bytes] {:pre [(or
+                                                              (= version 3)
+                                                              (= version 5))]}
   (let [msb (bitmop/assemble-bytes (take 8 bytes))
         lsb (bitmop/assemble-bytes (drop 8 bytes))]
     (UUID.
@@ -294,17 +295,17 @@
      (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
 
 
-(defn v3
+(defn ^UUID v3
   "Generate a v3 (name based, MD5 hash) UUID."
-  ^UUID [context namestring]
+  [^UUID context ^String namestring]
   (fmt-digested-uuid 3
     (digest/digest-uuid-bytes digest/md5
       (to-byte-vector context) namestring)))
 
 
-(defn v5
+(defn ^UUID v5
   "Generate a v5 (name based, SHA1 hash) UUID."
-  ^UUID [context namestring]
+  [^UUID context ^String namestring]
   (fmt-digested-uuid 5
     (digest/digest-uuid-bytes digest/sha1
       (to-byte-vector context) namestring)))
@@ -367,3 +368,5 @@
     false)
   (as-uuid [_]
     (exception IllegalArgumentException "Cannot be cast to UUID")))
+
+ (set! *warn-on-reflection* false)

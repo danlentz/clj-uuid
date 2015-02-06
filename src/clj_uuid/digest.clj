@@ -3,6 +3,7 @@
   (:use [clj-uuid.constants])
   (:use [clj-uuid.bitmop]))
 
+;; (set! *warn-on-reflection* true)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Digest Instance
@@ -45,7 +46,7 @@
 
 (defmulti md5 class)
 
-(defmethod md5 String [s]
+(defmethod md5 String [^String s]
   (sbvec
     (seq
       (-> (make-digest +md5+)
@@ -60,7 +61,7 @@
 (defmethod md5 clojure.lang.PersistentVector [coll]
   (md5 (sbvec coll)))
 
-(defmethod md5 Object [o]
+(defmethod md5 Object [^Object o]
   (md5 (.toString o)))
 
 
@@ -68,7 +69,10 @@
 ;; Digest Namespaced Identifiers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn digest-uuid-bytes [digest uuid-bytes namestring]
+(defn digest-uuid-bytes [digest uuid-bytes ^String namestring]
   (apply sbvector
     (subvec (digest (sbvec (concat uuid-bytes (seq (.getBytes namestring)))))
       0 16)))
+
+
+;; (set! *warn-on-reflection* false)

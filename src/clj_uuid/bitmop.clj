@@ -10,6 +10,8 @@
             [clj-uuid.util :refer :all]))
 
 
+(set! *warn-on-reflection* true)
+
 ;; Primitive Type  |  Size   |  Minimum  |     Maximum    |  Wrapper Type
 ;;-----------------------------------------------------------------------
 ;; boolean         |1?8 bits |   false   |     true       |  Boolean
@@ -27,8 +29,9 @@
 ;; Simple Arithmetic Utils
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn expt2 ^long [^long pow]
-  ;; {:pre [(not (neg? pow)) (< pow 64)]}
+;; {:pre [(not (neg? pow)) (< pow 64)]}
+
+(defn- ^long expt2 [^long pow]
   (bit-set 0 pow))
 
 (defn pphex [x]
@@ -42,27 +45,28 @@
 ;; Bit-masking
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn mask ^long [^long width ^long offset]
-  ;; {:pre [(not (neg? width)) (not (neg? offset))
-  ;;        (<= width 64) (< offset 64)]}
+;; {:pre [(not (neg? width)) (not (neg? offset))
+;;        (<= width 64) (< offset 64)]}
+
+(defn mask [^long width ^long offset]
   (if (< (+ width offset) 64)
     (bit-shift-left (dec (bit-shift-left 1 width)) offset)
-    (bit-and-not -1 (dec (expt2 offset)))))
+    (bit-and-not -1 (clojure.core/dec (expt2 offset)))))
 
 (declare mask-offset mask-width)
 
-(defn mask-offset ^long [^long m]
+(defn mask-offset [^long m]
   (cond
     (zero? m) 0
-    (neg?  m) (- 64 (mask-width m))
+    (neg?  m) (clojure.core/- 64 (mask-width m))
     :else     (loop [c 0]
                 (if (pos? (bit-and 1 (bit-shift-right m c)))
                   c
                   (recur (inc c))))))
 
-(defn mask-width ^long [^long m]
+(defn mask-width [^long m]
   (if (neg? m)
-    (- 64 (mask-width (- (inc m))))
+    (clojure.core/- 64 (mask-width (- (inc m))))
     (loop [m (bit-shift-right m (mask-offset m)) c 0]
       (if (zero? (bit-and 1 (bit-shift-right m c)))
         c
@@ -73,17 +77,17 @@
 ;; Fundamental Bitwise Operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn ldb ^long [^long bitmask ^long num]
+(defn ldb [^long bitmask ^long num]
   (let [off (mask-offset bitmask)]
-    (bit-and (>>> bitmask off)
+    (bit-and (>>> bitmask ^long off)
       (bit-shift-right num off))))
 
-(defn dpb ^long [^long bitmask ^long num ^long value]
+(defn dpb [^long bitmask ^long num ^long value]
   (bit-or (bit-and-not num bitmask)
     (bit-and bitmask
       (bit-shift-left value (mask-offset bitmask)))))
 
-(defn bit-count ^long [^long x]
+(defn bit-count [^long x]
   (let [n (ldb (mask 63 0) x) s (if (neg? x) 1 0)]
     (loop [c s i 0]
       (if (zero? (bit-shift-right n i))
@@ -137,6 +141,14 @@
 ;; representation.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+(defn assemble-bytes [v]
+  (r/reduce (fn
+              ([] 0)
+              ([tot ^clojure.lang.MapEntry pair]
+               (dpb (mask 8 (* ^Long (.key pair) 8)) tot (.val pair))))
+    (indexed (reverse v))))
+
 (defn long-to-octets
   "convert a long into a sequence of minimum PAD-COUNT unsigned values.
   The zeroes are padded to the msb"
@@ -144,7 +156,7 @@
     (long-to-octets lng 8))
   ([^long lng pad-count]
     (let [pad         (repeat pad-count (byte 0))
-          raw-bytes   (for [i (range 8)] (ldb (mask 8 (* i 8)) lng))
+          raw-bytes   (for [^byte i (range 8)] (ldb (mask 8 (* i 8)) lng))
           value-bytes (drop-while clojure.core/zero? (reverse raw-bytes))]
       (vec (concat
              (into [] (drop (count value-bytes) pad))
@@ -155,36 +167,31 @@
     (= (class thing) Long) (into (vector-of :byte)
                              (map unchecked-byte (long-to-octets thing)))
     (coll? thing)          (into (vector-of :byte)
-                             (map unchecked-byte thing))))
+                             (map unchecked-byte thing))
+    :else                  (exception IllegalArgumentException)))
 
 (defn sbvector [& args]
   (sbvec args))
 
-(defn make-sbvector [length initial-element]
+(defn make-sbvector [^long length initial-element]
   (sbvec (loop [len length v []]
            (if (<= len 0)
              v
              (recur (- len 1)
                (cons (unchecked-byte initial-element) v))))))
 
-(defn assemble-bytes [v]
-  (r/reduce (fn
-              ([] 0)
-              ([tot pair]
-               (dpb (mask 8 (* (first pair) 8))  tot (second pair))))
-    (indexed (reverse v))))
-
 (defn ubvec [thing]
   (cond
    (= (class thing) Long) (into (vector-of :short)
                             (map unchecked-short (long-to-octets thing)))
    (coll? thing)          (into (vector-of :short)
-                            (map unchecked-short thing))))
+                            (map unchecked-short thing))
+   :else                  (exception IllegalArgumentException)))
 
 (defn ubvector [& args]
   (ubvec args))
 
-(defn make-ubvector [length initial-element]
+(defn make-ubvector [^long length initial-element]
   (ubvec (loop [len length v []]
            (if (<= len 0)
              v
@@ -202,16 +209,19 @@
     (+hex-chars+ (bit-and 0x0F num))))
 
 (defn hex [thing]
-  (cond
-    (and (number? thing) (<  thing 0))     (hex (ubvec thing))
-    (and (number? thing) (>=  thing 0 ))  (hex (ubvec thing))
+  (cond 
+    (and (number? thing) (<  ^long thing 0))  (hex (ubvec thing))
+    (and (number? thing) (>= ^long thing 0))  (hex (ubvec thing))
     (coll? thing)   (apply str (into [] (map octet-hex thing)))))
 
-(defn hex-str [s]
+(defn hex-str [^String s]
   (hex (.getBytes s)))
 
-(defn unhex [s]
+(defn unhex [^String s]
   (unchecked-long (read-string (str "0x" s))))
 
-(defn unhex-str [s]
+(defn unhex-str [^String s]
   (apply str (map char (unhex s))))
+
+
+(set! *warn-on-reflection* false)
