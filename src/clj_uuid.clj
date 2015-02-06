@@ -112,7 +112,7 @@
 (defprotocol UniqueIdentifier
   (null?           [uuid])
   (uuid?           [uuid])
-  (uuid            [uuid])
+  (as-uuid         [uuid])
   (uuid=           [x y])
   (get-word-high   [uuid])
   (get-word-low    [uuid])
@@ -139,7 +139,7 @@
 
 (extend-type UUID
   UniqueIdentifier
-  (uuid [u] u)
+  (as-uuid [u] u)
   (uuid? [_] true)
   (uuid= [x y]
     (.equals x y))
@@ -299,15 +299,14 @@
 ;; Namespaced UUIDs
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- fmt-digested-uuid [version bytes] {:pre [(or
-                                                  (= version 3)
-                                                  (= version 5))]}
+(defn- fmt-digested-uuid ^UUID [version bytes] {:pre [(or
+                                                        (= version 3)
+                                                        (= version 5))]}
   (let [msb (bitmop/assemble-bytes (take 8 bytes))
         lsb (bitmop/assemble-bytes (drop 8 bytes))]
     (UUID.
      (bitmop/dpb (bitmop/mask 4 12) msb version)
      (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
-
 
 
 (defn v3
@@ -341,11 +340,7 @@
 
 (defn uuid-vec? [v]
   (and (= (count v) 16)
-    (every? #(and
-               (integer? %)
-               (>= -128  %)
-               (<=  127  %))
-      v)))
+    (every? #(and (integer? %) (>= -128  %) (<=  127  %)) v)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -361,6 +356,7 @@
     (uuid-urn-string? s) (UUID/fromString (subs s 9))
     :else                (exception "invalid UUID")))
 
+
 (extend-protocol UniqueIdentifier
   String  
   (uuid? [s]
@@ -368,7 +364,7 @@
      (uuid-string?     s)
      (uuid-hex-string? s)
      (uuid-urn-string? s)))
-  (uuid [s]
+  (as-uuid [s]
     (str->uuid s))
   clojure.lang.PersistentVector
   (uuid? [v]
@@ -379,10 +375,10 @@
   URI
   (uuid? [u]
     (uuid-urn-string? (str u)))
-  (uuid [u]
+  (as-uuid [u]
     (str->uuid (str u)))
   Object
   (uuid? [_]
     false)
-  (uuid [_]
+  (as-uuid [_]
     (exception IllegalArgumentException "Cannot be cast to UUID")))
