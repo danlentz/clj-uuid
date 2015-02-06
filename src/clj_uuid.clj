@@ -194,21 +194,6 @@
       (.timestamp uuid))))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; UUID Constituent Data Map
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; NOTE: at least in its present form this is probably too fragile and
-;; not all that useful anyway.  So most likely it should go away, I think.
-;; It does come in handy for use in the repl during development sometimes...
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn- get-uuid-data [uuid]
-  (let [fns '[get-version get-time-low get-time-mid get-time-high
-              get-clk-low get-clk-high get-node-id]]
-    (zipmap
-     (map (comp keyword name) fns)
-     (map #((ns-resolve *ns* %) uuid) fns))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; V0 UUID Constructor
