@@ -169,7 +169,7 @@
 
 
 (defn assemble-bytes [v]
-  (reduce (fn
+  (r/reduce (fn
             ([] 0)
             ([tot pair] (dpb (mask 8 (* (first pair) 8))  tot (second pair))))
     (indexed (reverse v))))
