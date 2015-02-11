@@ -5,7 +5,7 @@
                             zero? min max true? false?])
   (:require [primitive-math :refer :all]
             [clojure.pprint :refer [cl-format pprint]]
-            [clojure.core.reducers :as r]
+            ;; [clojure.core.reducers :as r]
             [clj-uuid.constants :refer :all]
             [clj-uuid.util :refer :all]))
 
@@ -77,17 +77,17 @@
 ;; Fundamental Bitwise Operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn ldb [^long bitmask ^long num]
+(defn ^long ldb [^long bitmask ^long num]
   (let [off (mask-offset bitmask)]
     (bit-and (>>> bitmask ^long off)
       (bit-shift-right num off))))
 
-(defn dpb [^long bitmask ^long num ^long value]
+(defn ^long dpb [^long bitmask ^long num ^long value]
   (bit-or (bit-and-not num bitmask)
     (bit-and bitmask
       (bit-shift-left value (mask-offset bitmask)))))
 
-(defn bit-count [^long x]
+(defn ^long bit-count [^long x]
   (let [n (ldb (mask 63 0) x) s (if (neg? x) 1 0)]
     (loop [c s i 0]
       (if (zero? (bit-shift-right n i))
@@ -102,8 +102,14 @@
 (defn ub4 [num]
   (byte (bit-and num +ub4-mask+)))
 
-(defn ub8 [num]
-  (short (bit-and num +ub8-mask+)))
+(defn ub8 [^long num]
+  (unchecked-short (bit-and num +ub8-mask+)))
+
+;; (defn ub8 [num]
+;;   (bit-and num +ub8-mask+))
+;; (type (ub8 22))
+;; (type (bit-and +ub8-mask+ (unchecked-short 22)))
+;; (type (bit-and +ub8-mask+ (Short. (short 22))))
 
 (defn ub16 [num]
   (int (bit-and num +ub16-mask+)))
@@ -143,11 +149,26 @@
 
 
 (defn assemble-bytes [v]
-  (r/reduce (fn
-              ([] 0)
-              ([tot ^clojure.lang.MapEntry pair]
-               (dpb (mask 8 (* ^Long (.key pair) 8)) tot (.val pair))))
-    (indexed (reverse v))))
+  (loop [tot 0 bytes v c (count v)]
+    (if (zero? c)
+      tot
+      (recur
+        (long (dpb (mask 8 (* 8 (dec c))) tot ^long (first bytes)))
+        (rest bytes)
+        (dec c)))))
+
+
+;; (defn assemble-bytes [v]
+;;  (reduce (fn [^long tot ^clojure.lang.MapEntry pair]
+;;            (dpb (mask 8 (* ^long (.key pair) 8)) tot ^long (.val pair)))
+;;    0 (indexed (reverse v))))
+
+;; (defn assemble-bytes [v]
+;;   (r/reduce (fn
+;;               ([] 0)
+;;               ([tot ^clojure.lang.MapEntry pair]
+;;                (dpb (mask 8 (* ^Long (.key pair) 8)) tot (.val pair))))
+;;     (indexed (reverse v))))
 
 (defn long-to-octets
   "convert a long into a sequence of minimum PAD-COUNT unsigned values.
