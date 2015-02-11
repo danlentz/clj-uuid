@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/danlentz/clj-uuid.svg?branch=master)]
 (https://travis-ci.org/danlentz/clj-uuid)
-[![Dependency Status](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.0.7-SNAPSHOT/badge.svg)](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.0.7-SNAPSHOT)
+[![Dependency Status](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.0-SNAPSHOT/badge.svg)](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.0-SNAPSHOT)
 [![Reference Status](https://www.versioneye.com/clojure/danlentz:clj-uuid/reference_badge.svg?style=flat)](https://www.versioneye.com/clojure/danlentz:clj-uuid/references)
 
 A Clojure library for generation and utilization of UUIDs (Universally
@@ -22,6 +22,15 @@ in part, due to a general misunderstanding in the popular consiousness
 of their proper use and benefit. It is my hope that this library will
 serve to expand awareness, make available, and simplify use of RFC4122
 identifiers to a wider audience.
+
+## Usage
+
+### The Most Recent Release
+
+With Leiningen:
+
+![Clojars Project](http://clojars.org/danlentz/clj-uuid/latest-version.svg)
+
 
 ## How is it better?
 
@@ -78,14 +87,6 @@ be a reasonable philosophy.
 Copyright © 2013 Dan Lentz
 
 Distributed under the Eclipse Public License either version 1.0 
-
-## Usage
-
-### The Most Recent Release
-
-With Leiningen:
-
-![Clojars Project](http://clojars.org/danlentz/clj-uuid/latest-version.svg)
 
 
 
