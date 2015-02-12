@@ -76,12 +76,16 @@
 ;; Fundamental Bitwise Operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn ^long ldb [^long bitmask ^long num]
+(defn ^long ldb
+  "Load Byte"
+  [^long bitmask ^long num]
   (let [off (mask-offset bitmask)]
     (bit-and (>>> bitmask ^long off)
       (bit-shift-right num off))))
 
-(defn ^long dpb [^long bitmask ^long num ^long value]
+(defn ^long dpb
+  "Deposit Byte"
+  [^long bitmask ^long num ^long value]
   (bit-or (bit-and-not num bitmask)
     (bit-and bitmask
       (bit-shift-left value (mask-offset bitmask)))))
