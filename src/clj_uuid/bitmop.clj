@@ -47,25 +47,25 @@
 ;; {:pre [(not (neg? width)) (not (neg? offset))
 ;;        (<= width 64) (< offset 64)]}
 
-(defn mask [^long width ^long offset]
+(defn ^long mask [^long width ^long offset]
   (if (< (+ width offset) 64)
     (bit-shift-left (dec (bit-shift-left 1 width)) offset)
     (bit-and-not -1 (clojure.core/dec (expt2 offset)))))
 
-(declare mask-offset mask-width)
+(declare ^long mask-offset ^long mask-width)
 
-(defn mask-offset [^long m]
+(defn ^long mask-offset [^long m]
   (cond
     (zero? m) 0
-    (neg?  m) (clojure.core/- 64 (mask-width m))
+    (neg?  m) (- 64 ^long (mask-width m))
     :else     (loop [c 0]
                 (if (pos? (bit-and 1 (bit-shift-right m c)))
                   c
                   (recur (inc c))))))
 
-(defn mask-width [^long m]
+(defn ^long mask-width [^long m]
   (if (neg? m)
-    (clojure.core/- 64 (mask-width (- (inc m))))
+    (clojure.core/- 64  (mask-width ^long (- (inc m))))
     (loop [m (bit-shift-right m (mask-offset m)) c 0]
       (if (zero? (bit-and 1 (bit-shift-right m c)))
         c
