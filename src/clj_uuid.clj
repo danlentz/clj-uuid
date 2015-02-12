@@ -305,7 +305,7 @@
         lsb  (.getLeastSignificantBits uuid)
         msb  (.getMostSignificantBits uuid)
         timed-msb (bit-or (bit-shift-left secs 32)
-                    (bit-and 0x00000000ffffffff msb))]
+                    (bit-and +ub32-mask+ msb))]
     (UUID. timed-msb lsb)))
 
 
