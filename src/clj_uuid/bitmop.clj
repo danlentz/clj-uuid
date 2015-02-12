@@ -5,7 +5,6 @@
                             zero? min max true? false?])
   (:require [primitive-math :refer :all]
             [clojure.pprint :refer [cl-format pprint]]
-            ;; [clojure.core.reducers :as r]
             [clj-uuid.constants :refer :all]
             [clj-uuid.util :refer :all]))
 
