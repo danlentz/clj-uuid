@@ -104,12 +104,6 @@
 (defn ub8 [^long num]
   (unchecked-short (bit-and num +ub8-mask+)))
 
-;; (defn ub8 [num]
-;;   (bit-and num +ub8-mask+))
-;; (type (ub8 22))
-;; (type (bit-and +ub8-mask+ (unchecked-short 22)))
-;; (type (bit-and +ub8-mask+ (Short. (short 22))))
-
 (defn ub16 [num]
   (int (bit-and num +ub16-mask+)))
 
@@ -155,19 +149,6 @@
         (long (dpb (mask 8 (* 8 (dec c))) tot ^long (first bytes)))
         (rest bytes)
         (dec c)))))
-
-
-;; (defn assemble-bytes [v]
-;;  (reduce (fn [^long tot ^clojure.lang.MapEntry pair]
-;;            (dpb (mask 8 (* ^long (.key pair) 8)) tot ^long (.val pair)))
-;;    0 (indexed (reverse v))))
-
-;; (defn assemble-bytes [v]
-;;   (r/reduce (fn
-;;               ([] 0)
-;;               ([tot ^clojure.lang.MapEntry pair]
-;;                (dpb (mask 8 (* ^Long (.key pair) 8)) tot (.val pair))))
-;;     (indexed (reverse v))))
 
 (defn long-to-octets
   "convert a long into a sequence of minimum PAD-COUNT unsigned values.
