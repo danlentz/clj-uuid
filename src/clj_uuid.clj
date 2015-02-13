@@ -162,7 +162,7 @@
   (get-word-low [uuid]
     (.getLeastSignificantBits uuid))
   (null? [uuid]
-    (= 0 (get-word-low uuid)))
+    (= 0 (get-word-high uuid) (get-word-low uuid)))
   (to-byte-vector [uuid]
     (bitmop/sbvec (concat
                     (bitmop/sbvec (get-word-high uuid))
