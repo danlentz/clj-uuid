@@ -91,10 +91,34 @@ Or include in namespace declaration:
 
 ### Time Based (v1) Identifiers
 
+Make your own v1 UUID's with the function `#'uuid/v1`:
+
+```clojure
+
+user> (uuid/v1)
+
+;;  => #uuid "ffa803f0-b3d3-11e4-a03e-3af93c3de9ae"
+
+user> (uuid/v1)
+
+;;  => #uuid "005b7570-b3d4-11e4-a03e-3af93c3de9ae"
+
+user> (uuid/v1)
+
+;;  => #uuid "018a0a60-b3d4-11e4-a03e-3af93c3de9ae"
+
+user> (uuid/v1)
+
+;;  => #uuid "02621ae0-b3d4-11e4-a03e-3af93c3de9ae"
+
+```
+
+
+
 
 V1 identifiers are the fastest kind of UUID to generate -- about 25%
 faster than calling the JVM's built-in static method for generating ids,
-`#'java.util.UUID/randomUUID`
+`#'java.util.UUID/randomUUID`.
 
 
 ```
@@ -113,7 +137,7 @@ to generate in addition to being non-deterministically unique.
 
 
 ```
-clj-uuid> (criterium/bench (v4))
+clj-uuid> (criterium.core/bench (v4))
 
 Evaluation count : 31754100 in 60 samples of 529235 calls.
 Execution time mean : 1.928087 µs
