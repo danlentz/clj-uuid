@@ -23,9 +23,7 @@ of their proper use and benefit. It is my hope that this library will
 serve to expand awareness, make available, and simplify use of RFC4122
 identifiers to a wider audience.
 
-## Usage
-
-### The Most Recent Release
+## The Most Recent Release
 
 With Leiningen:
 
@@ -42,6 +40,7 @@ v5 UUIDs.  v3/v5 UUID's are necessary because many of the interesting things
 that you can do with UUID's require namespaced identifiers. v1 UUIDs are
 really useful because they can be generated faster than v4's as they don't
 need to call a cryptographic random number generator.
+
 
 ## How Big?
 
@@ -61,6 +60,48 @@ library limits the number of unique identifiers to a mere...
 
 If you think you might be starting to run low, let me know when you get down
 to your last few undecillion or so and I'll see what I can do to help out.
+
+
+## Usage
+
+Using clj-uuid is really easy.  Docstrings are provided, but sometimes
+examples help, too.  The following cases demonstrate about 90% of the
+functionality that you are likely to ever need.
+
+In order to refer to the symbols in this library, it is recommended to
+*require* it in a given namespace:
+
+```clojure
+
+(require '[clj-uuid :as uuid])
+```
+
+Or include in namespace declaration:
+
+
+```clojure
+
+(ns foo
+  (:require [clj-uuid :as uuid])
+  ...
+  )
+
+```
+
+
+### Time Based (v1) Identifiers
+
+
+### Random (v4) Identifiers
+
+
+### Namespaced (v3/v5) Identifiers
+
+
+### Hybrid (non-standard) Identifiers
+
+
+## API
 
 
 ## Motivation
