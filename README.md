@@ -88,6 +88,19 @@ Or include in namespace declaration:
 
 ```
 
+### Literal Syntax
+
+UUID's have a convenient literal syntax supported by the clojure
+reader.  The tag `#uuid` denotes that the following string literal
+will be read as a UUID.  UUID's evaluate to themselves:
+
+```clojure
+
+user> #uuid "e6ff478d-9492-48dd-886d-23ec4c6385ee"
+
+;;  => #uuid "e6ff478d-9492-48dd-886d-23ec4c6385ee"
+```
+
 
 ### Time Based (v1) Identifiers
 
