@@ -122,7 +122,7 @@ faster than calling the JVM's built-in static method for generating ids,
 
 
 ```
-clj-uuid> (criterium.core/bench (v1))
+user> (criterium.core/bench (uuid/v1))
 
 Evaluation count : 41142600 in 60 samples of 685710 calls.
 Execution time mean : 1.499075 µs
@@ -137,7 +137,7 @@ to generate in addition to being non-deterministically unique.
 
 
 ```
-clj-uuid> (criterium.core/bench (v4))
+user> (criterium.core/bench (uuid/v4))
 
 Evaluation count : 31754100 in 60 samples of 529235 calls.
 Execution time mean : 1.928087 µs
