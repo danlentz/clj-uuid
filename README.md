@@ -104,7 +104,14 @@ user> #uuid "e6ff478d-9492-48dd-886d-23ec4c6385ee"
 
 ### Time Based (v1) Identifiers
 
-Make your own v1 UUID's with the function `#'uuid/v1`:
+You can make your own v1 UUID's with the function `#'uuid/v1`.  These
+UUID's will be guaranteed to be unique and thread-safe regardless of
+clock precision or degree of concurrency.
+
+A v1 UUID may reveal both the identity of the computer that generated
+the UUID and the time at which it did so.  Its uniqueness across
+computers is guaranteed as long as node/MAC addresses are not duplicated.
+  
 
 ```clojure
 
@@ -125,8 +132,6 @@ user> (uuid/v1)
 ;;  => #uuid "02621ae0-b3d4-11e4-a03e-3af93c3de9ae"
 
 ```
-
-
 
 
 V1 identifiers are the fastest kind of UUID to generate -- about 25%
