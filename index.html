@@ -4,49 +4,44 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>clj-uuid by danlentz</title>
+
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script src="javascripts/respond.js"></script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <!--[if lt IE 8]>
-    <link rel="stylesheet" href="stylesheets/ie.css">
-    <![endif]-->
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
   </head>
   <body>
-      <div id="header">
-        <nav>
-          <li class="fork"><a href="https://github.com/danlentz/clj-uuid">View On GitHub</a></li>
-          <li class="downloads"><a href="https://github.com/danlentz/clj-uuid/zipball/master">ZIP</a></li>
-          <li class="downloads"><a href="https://github.com/danlentz/clj-uuid/tarball/master">TAR</a></li>
-          <li class="title">DOWNLOADS</li>
-        </nav>
-      </div><!-- end header -->
-
     <div class="wrapper">
+      <header>
+        <h1>clj-uuid</h1>
+        <p>A Clojure library extending java.util.UUID with true v1 (time based) and v3/v5 (namespace based) identifiers</p>
 
+        <p class="view"><a href="https://github.com/danlentz/clj-uuid">View the Project on GitHub <small>danlentz/clj-uuid</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/danlentz/clj-uuid/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/danlentz/clj-uuid/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/danlentz/clj-uuid">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
       <section>
-        <div id="title">
-          <h1>clj-uuid</h1>
-          <p>A Clojure library that extends the java.util.UUID class with true v1 (time based) and v3/v5 (namespace based) identifiers</p>
-          <hr>
-          <span class="credits left">Project maintained by <a href="https://github.com/danlentz">danlentz</a></span>
-          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
-        </div>
-
         <h1>
-<a name="clj-uuid" class="anchor" href="#clj-uuid"><span class="octicon octicon-link"></span></a>clj-uuid</h1>
+<a id="clj-uuid" class="anchor" href="#clj-uuid" aria-hidden="true"><span class="octicon octicon-link"></span></a>clj-uuid</h1>
 
-<p>A Clojure library for generation and utilization of UUIDs (Universally
-Unique Identifiers) as described by RFC-4122. This library extends the
-standard Java UUID class to provide true v1 (time based) and v3/v5
-(namespace based) identifier generation. Additionally, a number of
-useful supporting utilities are provided to support serialization and
-manipulation of these UUIDs in a simple, efficient manner.</p>
+<p><a href="https://travis-ci.org/danlentz/clj-uuid"><img src="https://travis-ci.org/danlentz/clj-uuid.svg?branch=master" alt="Build Status"></a>
+<a href="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.0-SNAPSHOT"><img src="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.0-SNAPSHOT/badge.svg" alt="Dependency Status"></a>
+<a href="https://www.versioneye.com/clojure/danlentz:clj-uuid/references"><img src="https://www.versioneye.com/clojure/danlentz:clj-uuid/reference_badge.svg?style=flat" alt="Reference Status"></a></p>
+
+<p><strong>clj-uuid</strong> is a Clojure library for generation and utilization of
+UUIDs (Universally Unique Identifiers) as described by RFC-4122.
+This library extends the standard Java UUID class to provide true v1
+(time based) and v3/v5 (namespace based) identifier generation.
+Additionally, a number of useful supporting utilities are provided to
+support serialization and manipulation of these UUIDs in a simple,
+efficient manner.</p>
 
 <p>The essential nature of the value RFC4122 UUIDs provide is that of an
 enormous namespace and a deterministic mathematical model by means of
@@ -59,8 +54,27 @@ of their proper use and benefit. It is my hope that this library will
 serve to expand awareness, make available, and simplify use of RFC4122
 identifiers to a wider audience.</p>
 
-<h2>
-<a name="how-big" class="anchor" href="#how-big"><span class="octicon octicon-link"></span></a>How Big?</h2>
+<h3>
+<a id="the-most-recent-release" class="anchor" href="#the-most-recent-release" aria-hidden="true"><span class="octicon octicon-link"></span></a>The Most Recent Release</h3>
+
+<p>With Leiningen:</p>
+
+<p><img src="http://clojars.org/danlentz/clj-uuid/latest-version.svg" alt="Clojars Project"></p>
+
+<h3>
+<a id="how-is-it-better" class="anchor" href="#how-is-it-better" aria-hidden="true"><span class="octicon octicon-link"></span></a>How is it better?</h3>
+
+<p>The JVM version only provides an automatic builder for random (v4)
+and (non-namespaced) pseudo-v3 UUID's.  Where appropriate, this library
+does use the internal JVM UUID implementation.  The benefit with this library
+is that clj-uuid provides an easy way to get v1 and true namespaced v3 and
+v5 UUIDs.  v3/v5 UUID's are necessary because many of the interesting things
+that you can do with UUID's require namespaced identifiers. v1 UUIDs are
+really useful because they can be generated faster than v4's as they don't
+need to call a cryptographic random number generator.</p>
+
+<h3>
+<a id="how-big" class="anchor" href="#how-big" aria-hidden="true"><span class="octicon octicon-link"></span></a>How Big?</h3>
 
 <p>The provided namespace represents an <em>inexhaustable</em> resource and as
 such can be used in a variety of ways not feasible using traditional
@@ -79,8 +93,197 @@ library limits the number of unique identifiers to a mere...</p>
 <p>If you think you might be starting to run low, let me know when you get down
 to your last few undecillion or so and I'll see what I can do to help out.</p>
 
-<h2>
-<a name="motivation" class="anchor" href="#motivation"><span class="octicon octicon-link"></span></a>Motivation</h2>
+<h3>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
+
+<p>Using clj-uuid is really easy.  Docstrings are provided, but sometimes
+examples help, too.  The following cases demonstrate about 90% of the
+functionality that you are likely to ever need.</p>
+
+<p>In order to refer to the symbols in this library, it is recommended to
+<em>require</em> it in a given namespace:</p>
+
+<div class="highlight highlight-clojure"><pre>
+(<span class="pl-k">require</span> '[clj-uuid <span class="pl-c1">:as</span> uuid])</pre></div>
+
+<p>Or include in namespace declaration:</p>
+
+<div class="highlight highlight-clojure"><pre>
+(<span class="pl-k">ns</span> <span class="pl-e">foo</span>
+  (<span class="pl-c1">:require</span> [clj-uuid <span class="pl-c1">:as</span> uuid])
+  ...
+  )
+</pre></div>
+
+<h4>
+<a id="literal-syntax" class="anchor" href="#literal-syntax" aria-hidden="true"><span class="octicon octicon-link"></span></a>Literal Syntax</h4>
+
+<p>UUID's have a convenient literal syntax supported by the clojure
+reader.  The tag <code>#uuid</code> denotes that the following string literal
+will be read as a UUID.  UUID's evaluate to themselves:</p>
+
+<div class="highlight highlight-clojure"><pre>
+user&gt; #uuid <span class="pl-s1"><span class="pl-pds">"</span>e6ff478d-9492-48dd-886d-23ec4c6385ee<span class="pl-pds">"</span></span>
+
+<span class="pl-c">;;  =&gt; #uuid "e6ff478d-9492-48dd-886d-23ec4c6385ee"</span></pre></div>
+
+<h4>
+<a id="the-null-v0-identifier" class="anchor" href="#the-null-v0-identifier" aria-hidden="true"><span class="octicon octicon-link"></span></a>The NULL (v0) Identifier</h4>
+
+<h4>
+<a id="time-based-v1-identifiers" class="anchor" href="#time-based-v1-identifiers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Time Based (v1) Identifiers</h4>
+
+<p>You can make your own v1 UUID's with the function <code>#'uuid/v1</code>.  These
+UUID's will be guaranteed to be unique and thread-safe regardless of
+clock precision or degree of concurrency.</p>
+
+<p>A v1 UUID may reveal both the identity of the computer that generated
+the UUID and the time at which it did so.  Its uniqueness across
+computers is guaranteed as long as node/MAC addresses are not duplicated.</p>
+
+<div class="highlight highlight-clojure"><pre>
+user&gt; (uuid/v1)
+
+<span class="pl-c">;;  =&gt; #uuid "ffa803f0-b3d3-11e4-a03e-3af93c3de9ae"</span>
+
+user&gt; (uuid/v1)
+
+<span class="pl-c">;;  =&gt; #uuid "005b7570-b3d4-11e4-a03e-3af93c3de9ae"</span>
+
+user&gt; (uuid/v1)
+
+<span class="pl-c">;;  =&gt; #uuid "018a0a60-b3d4-11e4-a03e-3af93c3de9ae"</span>
+
+user&gt; (uuid/v1)
+
+<span class="pl-c">;;  =&gt; #uuid "02621ae0-b3d4-11e4-a03e-3af93c3de9ae"</span>
+</pre></div>
+
+<p>V1 identifiers are the fastest kind of UUID to generate -- about 25%
+faster than calling the JVM's built-in static method for generating ids,
+<code>#'java.util.UUID/randomUUID</code>.</p>
+
+<pre><code>user&gt; (criterium.core/bench (uuid/v1))
+
+Evaluation count : 41142600 in 60 samples of 685710 calls.
+Execution time mean : 1.499075 µs
+</code></pre>
+
+<h4>
+<a id="random-v4-identifiers" class="anchor" href="#random-v4-identifiers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Random (v4) Identifiers</h4>
+
+<p>V4 identifiers are generated by directly invoking the static method
+<code>#'java.util.UUID/randomUUID</code> and are, in typical situations, slower
+to generate in addition to being non-deterministically unique.</p>
+
+<pre><code>user&gt; (criterium.core/bench (uuid/v4))
+
+Evaluation count : 31754100 in 60 samples of 529235 calls.
+Execution time mean : 1.928087 µs
+</code></pre>
+
+<h5>
+<a id="repeatable-construction" class="anchor" href="#repeatable-construction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Repeatable Construction</h5>
+
+<h4>
+<a id="namespaced-v3v5-identifiers" class="anchor" href="#namespaced-v3v5-identifiers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Namespaced (v3/v5) Identifiers</h4>
+
+<h4>
+<a id="hybrid-non-standard-identifiers" class="anchor" href="#hybrid-non-standard-identifiers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Hybrid (non-standard) Identifiers</h4>
+
+<h3>
+<a id="api" class="anchor" href="#api" aria-hidden="true"><span class="octicon octicon-link"></span></a>API</h3>
+
+<hr>
+
+<p><em>(var)</em>         <code>+null+</code></p>
+
+<blockquote>
+<p><code>#uuid "00000000-0000-0000-0000-000000000000"</code></p>
+</blockquote>
+
+<p><em>(var)</em>         <code>+namespace-dns+</code></p>
+
+<blockquote>
+<p><code>#uuid "6ba7b810-9dad-11d1-80b4-00c04fd430c8"</code></p>
+</blockquote>
+
+<p><em>(var)</em>         <code>+namespace-url+</code></p>
+
+<blockquote>
+<p><code>#uuid "6ba7b811-9dad-11d1-80b4-00c04fd430c8"</code></p>
+</blockquote>
+
+<p><em>(var)</em>         <code>+namespace-oid+</code></p>
+
+<blockquote>
+<p><code>#uuid "6ba7b812-9dad-11d1-80b4-00c04fd430c8"</code></p>
+</blockquote>
+
+<p><em>(var)</em>         <code>+namespace-x500+</code></p>
+
+<blockquote>
+<p><code>#uuid "6ba7b814-9dad-11d1-80b4-00c04fd430c8"</code></p>
+</blockquote>
+
+<hr>
+
+<p><em>(function)</em>    <code>v0 []</code></p>
+
+<blockquote>
+<p>Return the null UUID, #uuid "00000000-0000-0000-0000-000000000000"</p>
+</blockquote>
+
+<p><em>(function)</em>    <code>v1 []</code></p>
+
+<blockquote>
+<p>Generate a v1 (time-based) unique identifier, guaranteed to be unique
+ and thread-safe regardless of clock precision or degree of concurrency.
+ Creation of v1 UUID's does not require any call to a cryptographic 
+ generator and can be accomplished much more efficiently than v1, v3, v5,
+ or squuid's.  A v1 UUID reveals both the identity of the computer that 
+ generated the UUID and the time at which it did so.  Its uniqueness across 
+ computers is guaranteed as long as MAC addresses are not duplicated.</p>
+</blockquote>
+
+<p><em>(function)</em>    <code>v3 [^UUID namespace ^String name]</code></p>
+
+<blockquote>
+<p>Generate a v3</p>
+</blockquote>
+
+<p><em>(function)</em>    <code>v4 []</code></p>
+
+<p><em>(function)</em>    <code>v4 [^long msb, ^long lsb]</code></p>
+
+<blockquote>
+<p>Generate a v4 (random) UUID.  Uses default JVM implementation.  If two
+ arguments, lsb and msb (both long) are provided, then construct a valid,
+ properly formatted v4 UUID based on those values.  So, for example the
+ following UUID, created from all zero bits, is indeed distinct from the
+ null UUID:</p>
+
+<pre><code> (v4)
+  =&gt; #uuid "dcf0035f-ea29-4d1c-b52e-4ea499c6323e"
+
+ (v4 0 0)
+  =&gt; #uuid "00000000-0000-4000-8000-000000000000"
+
+ (null)
+  =&gt; #uuid "00000000-0000-0000-0000-000000000000"
+</code></pre>
+</blockquote>
+
+<p><em>(function)</em>    <code>v5 [^UUID namespace ^String name]</code></p>
+
+<blockquote>
+<p>Generate a v5</p>
+</blockquote>
+
+<hr>
+
+<h3>
+<a id="motivation" class="anchor" href="#motivation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Motivation</h3>
 
 <p>To a large extent, the design of the algorithmic
 implementation is inspired by the Common-Lisp library
@@ -92,43 +295,36 @@ precise implementation of the RFC-4122 specification available
 anywhere, in any language, on any platform.</p>
 
 <p>That having been said, this library intends to present a slightly more
-comfortable public interface that places slightly more priority on
+comfortable public interface that places a little more priority on
 convenient DWIM semantics at the cost of somewhat less emphasis on
 low level performance optimizations.  Since this library is built as
 an extension to the standard java.util.UUID class whose implementation
 largely dominates its performance characteristics anyway, this seems to
 be a reasonable philosophy.</p>
 
-<h2>
-<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+<h3>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h3>
 
-<p>Copyright © 2013 Dan Lentz</p>
+<p>Copyright © 2015 Dan Lentz</p>
 
 <p>Distributed under the Eclipse Public License either version 1.0 </p>
-
-<h2>
-<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
-
-<h3>
-<a name="the-most-recent-release" class="anchor" href="#the-most-recent-release"><span class="octicon octicon-link"></span></a>The Most Recent Release</h3>
-
-<p>With Leiningen:</p>
-
-<div class="highlight highlight-clj"><pre><span class="p">[</span><span class="nv">danlentz/clj-uuid</span> <span class="s">"0.0.6-SNAPSHOT"</span><span class="p">]</span>
-</pre></div>
-
-<p>With Maven:</p>
-
-<div class="highlight highlight-xml"><pre><span class="nt">&lt;dependency&gt;</span>
-  <span class="nt">&lt;groupId&gt;</span>danlentz<span class="nt">&lt;/groupId&gt;</span>
-  <span class="nt">&lt;artifactId&gt;</span>clj-uuid<span class="nt">&lt;/artifactId&gt;</span>
-  <span class="nt">&lt;version&gt;</span>0.0.6-SNAPSHOT<span class="nt">&lt;/version&gt;</span>
-<span class="nt">&lt;/dependency&gt;</span>
-</pre></div>
       </section>
-
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/danlentz">danlentz</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
     </div>
-    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-    
+    <script src="javascripts/scale.fix.js"></script>
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-37992128-5");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
   </body>
 </html>
