@@ -1,11 +1,11 @@
 clj-uuid
 ========
 
-
 [![Build Status](https://travis-ci.org/danlentz/clj-uuid.svg?branch=master)]
 (https://travis-ci.org/danlentz/clj-uuid)
 [![Dependency Status](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.0-SNAPSHOT/badge.svg)](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.0-SNAPSHOT)
-[![Reference Status](https://www.versioneye.com/clojure/danlentz:clj-uuid/reference_badge.svg?style=flat)](https://www.versioneye.com/clojure/danlentz:clj-uuid/references)
+
+* * * * * *
 
 **clj-uuid** is a Clojure library for generation and utilization of
 UUIDs (Universally Unique Identifiers) as described by RFC-4122.
@@ -25,6 +25,8 @@ in part, due to a general misunderstanding in the popular consiousness
 of their proper use and benefit. It is my hope that this library will
 serve to expand awareness, make available, and simplify use of RFC4122
 identifiers to a wider audience.
+
+
 
 ### The Most Recent Release
 
@@ -176,6 +178,7 @@ Execution time mean : 1.928087 µs
 #### Hybrid (non-standard) Identifiers
 
 
+
 ### API
 
 * * * * * *
@@ -222,9 +225,9 @@ _(function)_    `v1 []`
 >  computers is guaranteed as long as MAC addresses are not duplicated.
 
 
-_(function)_    `v3 [^UUID namespace ^String name]`
+_(function)_    `v3 [^UUID namespace ^String local-name]`
 
->  Generate a v3
+>  Generate a v3 ...
 
 
 _(function)_    `v4 []`
@@ -247,9 +250,10 @@ _(function)_    `v4 [^long msb, ^long lsb]`
 >       => #uuid "00000000-0000-0000-0000-000000000000"
 
 
-_(function)_    `v5 [^UUID namespace ^String name]`
+_(function)_    `v5 [^UUID namespace ^String local-name]`
 
->  Generate a v5
+>  Generate a v5 ...
+
 
 * * * * * *
 
