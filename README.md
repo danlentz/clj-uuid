@@ -101,6 +101,8 @@ user> #uuid "e6ff478d-9492-48dd-886d-23ec4c6385ee"
 ;;  => #uuid "e6ff478d-9492-48dd-886d-23ec4c6385ee"
 ```
 
+### The NULL (v0) Identifier
+
 
 ### Time Based (v1) Identifiers
 
@@ -161,6 +163,10 @@ Evaluation count : 31754100 in 60 samples of 529235 calls.
 Execution time mean : 1.928087 µs
 ```
 
+#### Repeatable Construction
+
+
+
 ### Namespaced (v3/v5) Identifiers
 
 
@@ -168,6 +174,40 @@ Execution time mean : 1.928087 µs
 
 
 ## API
+
+
+_[function]_    `v0 []`
+
+> Return the null UUID, #uuid "00000000-0000-0000-0000-000000000000"
+
+
+_[function]_    `v1 []`
+
+>  Generate a v1 (time-based) unique identifier, guaranteed to be unique
+>  and thread-safe regardless of clock precision or degree of concurrency.
+>  Creation of v1 UUID's does not require any call to a cryptographic 
+>  generator and can be accomplished much more efficiently than v1, v3, v5,
+>  or squuid's.  A v1 UUID reveals both the identity of the computer that 
+>  generated the UUID and the time at which it did so.  Its uniqueness across 
+>  computers is guaranteed as long as MAC addresses are not duplicated.
+
+
+_[function]_    `v4 []`
+
+>  Generate a v4 (random) UUID.  Uses default JVM implementation.  If two
+>  arguments, lsb and msb (both long) are provided, then construct a valid,
+>  properly formatted v4 UUID based on those values.  So, for example the
+>  following UUID, created from all zero bits, is indeed distinct from the
+>  null UUID:
+>
+>      (v4)
+>       => #uuid "dcf0035f-ea29-4d1c-b52e-4ea499c6323e"
+>
+>      (v4 0 0)
+>       => #uuid "00000000-0000-4000-8000-000000000000"
+>
+>      (null)
+>       => #uuid "00000000-0000-0000-0000-000000000000"
 
 
 ## Motivation
