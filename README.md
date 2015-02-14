@@ -193,6 +193,7 @@ _[function]_    `v1 []`
 
 
 _[function]_    `v4 []`
+_[function]_    `v4 [^long msb, ^long lsb]`
 
 >  Generate a v4 (random) UUID.  Uses default JVM implementation.  If two
 >  arguments, lsb and msb (both long) are provided, then construct a valid,
