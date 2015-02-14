@@ -178,6 +178,7 @@ Execution time mean : 1.928087 µs
 
 ### API
 
+* * * * * *
 
 _(var)_         `+null+`
 
@@ -250,7 +251,7 @@ _(function)_    `v5 [^UUID namespace ^String name]`
 
 >  Generate a v5
 
-
+* * * * * *
 
 ### Motivation
 
