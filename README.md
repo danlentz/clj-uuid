@@ -176,12 +176,38 @@ Execution time mean : 1.928087 µs
 ## API
 
 
-_[function]_    `v0 []`
+_(var)_         `+null+`
+
+> `#uuid "00000000-0000-0000-0000-000000000000"`
+
+
+_(var)_         `+namespace-dns+`
+
+> `#uuid "6ba7b810-9dad-11d1-80b4-00c04fd430c8"`
+
+
+_(var)_         `+namespace-url+`
+
+> `#uuid "6ba7b811-9dad-11d1-80b4-00c04fd430c8"`
+
+
+_(var)_         `+namespace-oid+`
+
+> `#uuid "6ba7b812-9dad-11d1-80b4-00c04fd430c8"`
+
+
+_(var)_         `+namespace-x500+`
+
+> `#uuid "6ba7b814-9dad-11d1-80b4-00c04fd430c8"`
+
+
+
+_(function)_    `v0 []`
 
 > Return the null UUID, #uuid "00000000-0000-0000-0000-000000000000"
 
 
-_[function]_    `v1 []`
+_(function)_    `v1 []`
 
 >  Generate a v1 (time-based) unique identifier, guaranteed to be unique
 >  and thread-safe regardless of clock precision or degree of concurrency.
@@ -192,8 +218,14 @@ _[function]_    `v1 []`
 >  computers is guaranteed as long as MAC addresses are not duplicated.
 
 
-_[function]_    `v4 []`
-_[function]_    `v4 [^long msb, ^long lsb]`
+_(function)_    `v3 [^UUID namespace ^String name]`
+
+>  Generate a v3
+
+
+_(function)_    `v4 []`
+
+_(function)_    `v4 [^long msb, ^long lsb]`
 
 >  Generate a v4 (random) UUID.  Uses default JVM implementation.  If two
 >  arguments, lsb and msb (both long) are provided, then construct a valid,
@@ -209,6 +241,12 @@ _[function]_    `v4 [^long msb, ^long lsb]`
 >
 >      (null)
 >       => #uuid "00000000-0000-0000-0000-000000000000"
+
+
+_(function)_    `v5 [^UUID namespace ^String name]`
+
+>  Generate a v5
+
 
 
 ## Motivation
