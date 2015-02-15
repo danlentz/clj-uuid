@@ -30,7 +30,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;; (set! *warn-on-reflection* true)
+(set! *warn-on-reflection* true)
 
 (def  +subcounter-resolution+    9999)
 
@@ -66,4 +66,4 @@
   ([^long millis]
    (quot millis 1000)))
   
-;; (set! *warn-on-reflection* false)
+(set! *warn-on-reflection* false)
