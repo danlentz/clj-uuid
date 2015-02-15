@@ -5,8 +5,8 @@
 
 
 (deftest check-monotonic-time
-  (doseq [concur (range 4 9)]
-    (let [extent    250000
+  (doseq [concur (range 5 9)]
+    (let [extent    100000
           agents    (map agent (repeat concur nil))
           working   (map #(send-off %
                             (fn [state]
