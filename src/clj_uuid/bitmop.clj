@@ -30,8 +30,9 @@
 
 ;; {:pre [(not (neg? pow)) (< pow 64)]}
 
-(defn- ^long expt2 [^long pow]
+(defn ^long expt2 [^long pow]
   (bit-set 0 pow))
+
 
 (defn pphex [x]
   (returning x
@@ -50,7 +51,8 @@
 (defn ^long mask [^long width ^long offset]
   (if (< (+ width offset) 64)
     (bit-shift-left (dec (bit-shift-left 1 width)) offset)
-    (bit-and-not -1 (clojure.core/dec (expt2 offset)))))
+    (let [x (expt2 offset)]
+      (bit-and-not -1 (dec ^long x)))))
 
 (declare ^long mask-offset ^long mask-width)
 
@@ -65,7 +67,8 @@
 
 (defn ^long mask-width [^long m]
   (if (neg? m)
-    (clojure.core/- 64  (mask-width ^long (- (inc m))))
+    (let [x (mask-width (- (inc m)))]
+      (- 64  ^long x))
     (loop [m (bit-shift-right m (mask-offset m)) c 0]
       (if (zero? (bit-and 1 (bit-shift-right m c)))
         c

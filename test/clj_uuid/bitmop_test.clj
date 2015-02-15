@@ -3,7 +3,7 @@
     [clojure.test    :refer :all]
     [clj-uuid.bitmop :refer :all]))
 
-(comment
+
   
 (deftest check-bit-mask-operators
   (testing "bit-mask construction..."
@@ -101,7 +101,7 @@
     (is (= (bit-count (- (mask 62 0))) 3))))
 
 ;;;
-;;; example of DPB test result
+;; example of DPB test result
 ;;
 ;;   "ffffffffffff01"
 ;;   "ffffffffff02ff"
@@ -110,7 +110,7 @@
 ;;   "ffff10ffffffff"
 ;;   "ff20ffffffffff"
 ;;   "40ffffffffffff"
-
+;;;
 
 (deftest check-byte-cast-operators
   (testing "byte-cast ops..."
@@ -132,7 +132,7 @@
 
 (deftest check-byte-vector-representation
   (testing "raw conversion..."      
-    (is (= (long-to-octets -1)                 [0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff]))
+    (is (= (long-to-octets -1) [0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff]))
     (is (= (long-to-octets 1)                  [0 0 0 0 0 0 0 1]))
     (is (= (long-to-octets 1 1)                [1]))
     (is (= (long-to-octets 1 2)                [0 1]))
@@ -142,7 +142,9 @@
     (is (= (long-to-octets (inc (mask 4 60)))  [240 0 0 0 0 0 0 1])))
   (testing "sbvector representation..."    
     (is (every? #(= % Byte) (map type (sbvec -1))))
-    (is (= (sbvec (long-to-octets (inc (mask 4 60)))) (sbvec (inc (mask 4 60)))))
+    (is (=
+          (sbvec (long-to-octets (inc (mask 4 60))))
+          (sbvec (inc (mask 4 60)))))
     (is (= (sbvec -1)               [-1  -1  -1  -1  -1  -1  -1  -1]))    
     (is (= (sbvec -256)             [-1  -1  -1  -1  -1  -1  -1  0]))
     (is (= (sbvec 0)                [ 0   0   0   0   0   0   0   0]))
@@ -282,4 +284,3 @@
     (is (= (unhex "F000000000000001") (inc (mask 4 60))))))
 
 
-)
