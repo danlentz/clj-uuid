@@ -8,6 +8,10 @@
             [clj-uuid.constants :refer :all]
             [clj-uuid.util :refer :all]))
 
+;; NOTE: this package uses copious amounts of unchecked math on primitive
+;; numeric datatypes.  These functions should be considered an internal
+;; implementation detail of clj-uuid and used with appropriate external
+;; checks in place.
 
 (set! *warn-on-reflection* true)
 
