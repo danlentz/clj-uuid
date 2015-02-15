@@ -30,9 +30,14 @@
   (defn- make-node-id []
     (clj-uuid.bitmop/ubvec
       (map clj-uuid.bitmop/ub8
-        (.getHardwareAddress
-          (java.net.NetworkInterface/getByInetAddress 
-            (java.net.InetAddress/getLocalHost))))))
+        (repeatedly 6 #(rand-int 256)))))
+        
+    ;; (clj-uuid.bitmop/ubvec
+    ;;   (map clj-uuid.bitmop/ub8
+    ;;     (.getHardwareAddress
+    ;;       (java.net.NetworkInterface/getByInetAddress 
+    ;;         (java.net.InetAddress/getLocalHost))))))
+
   ;; JDK7
   (defn- make-node-id []
     (let [addresses (all-local-addresses)
