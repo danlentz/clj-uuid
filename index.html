@@ -111,10 +111,10 @@ functionality that you are likely to ever need.</p>
 
 <div class="highlight highlight-clojure"><pre>
 (<span class="pl-k">ns</span> <span class="pl-e">foo</span>
-  (<span class="pl-c1">:require</span> [clj-uuid <span class="pl-c1">:as</span> uuid])
-  ...
-  )
-</pre></div>
+<span class="pl-e">  (<span class="pl-c1">:require</span> [clj-uuid <span class="pl-c1">:as</span> uuid])</span>
+<span class="pl-e">  ...</span>
+<span class="pl-e">  )</span>
+<span class="pl-e"></span></pre></div>
 
 <h4>
 <a id="literal-syntax" class="anchor" href="#literal-syntax" aria-hidden="true"><span class="octicon octicon-link"></span></a>Literal Syntax</h4>
@@ -143,19 +143,19 @@ the UUID and the time at which it did so.  Its uniqueness across
 computers is guaranteed as long as node/MAC addresses are not duplicated.</p>
 
 <div class="highlight highlight-clojure"><pre>
-user&gt; (uuid/v1)
+user&gt; (<span class="pl-en">uuid/v1</span>)
 
 <span class="pl-c">;;  =&gt; #uuid "ffa803f0-b3d3-11e4-a03e-3af93c3de9ae"</span>
 
-user&gt; (uuid/v1)
+user&gt; (<span class="pl-en">uuid/v1</span>)
 
 <span class="pl-c">;;  =&gt; #uuid "005b7570-b3d4-11e4-a03e-3af93c3de9ae"</span>
 
-user&gt; (uuid/v1)
+user&gt; (<span class="pl-en">uuid/v1</span>)
 
 <span class="pl-c">;;  =&gt; #uuid "018a0a60-b3d4-11e4-a03e-3af93c3de9ae"</span>
 
-user&gt; (uuid/v1)
+user&gt; (<span class="pl-en">uuid/v1</span>)
 
 <span class="pl-c">;;  =&gt; #uuid "02621ae0-b3d4-11e4-a03e-3af93c3de9ae"</span>
 </pre></div>
