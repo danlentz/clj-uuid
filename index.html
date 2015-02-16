@@ -131,6 +131,8 @@ user&gt; #uuid <span class="pl-s1"><span class="pl-pds">"</span>e6ff478d-9492-48
 <h4>
 <a id="the-null-v0-identifier" class="anchor" href="#the-null-v0-identifier" aria-hidden="true"><span class="octicon octicon-link"></span></a>The NULL (v0) Identifier</h4>
 
+<p>Another interesting tidbiit about <code>+null+</code>:  it's <code>hash-code</code> is 0.</p>
+
 <h4>
 <a id="time-based-v1-identifiers" class="anchor" href="#time-based-v1-identifiers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Time Based (v1) Identifiers</h4>
 
@@ -188,6 +190,49 @@ Execution time mean : 1.928087 µs
 
 <h4>
 <a id="namespaced-v3v5-identifiers" class="anchor" href="#namespaced-v3v5-identifiers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Namespaced (v3/v5) Identifiers</h4>
+
+<p>If you are familiar wit Clojure <em>vars</em>, you already understand the
+idea of <em>namespaced</em> identifiers.  To resolve the value of a var, one
+needs to know not only the <em>name</em> of a var, but also the <em>namespace</em>
+it resides in.  It is intuitively clear that vars <code>#'user/x</code> and
+<code>#'library/x</code> are distinct.  Namespaced UUID's follow a similar
+concept, however namespaces are themselves represented as UUID's.
+Names are strings that encode a representation of a symbol or value in
+the namespace of that identifier.  Given a namespace and a local-name,
+one can always (re)construct the unique identifier that represents
+it.  We can demonstrate a few examples constructed using several of
+the canonical top level namespace UUIDs:</p>
+
+<div class="highlight highlight-clojure"><pre>
+user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>)
+
+<span class="pl-c">;;  =&gt; #uuid "0a300ee9-f9e4-5697-a51a-efc7fafaba67"</span>
+
+
+user&gt; (<span class="pl-en">uuid/v3</span> uuid/+namespace-dns+ <span class="pl-s1"><span class="pl-pds">"</span>www.clojure.org<span class="pl-pds">"</span></span>)
+
+<span class="pl-c">;;  =&gt; #uuid "3bdca4f7-fc85-3a8b-9038-7626457527b0"</span>
+
+
+user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-oid+ <span class="pl-s1"><span class="pl-pds">"</span>0.1.22.13.8.236.1<span class="pl-pds">"</span></span>)
+
+<span class="pl-c">;;  =&gt; #uuid "9989a7d2-b7fc-5b6a-84d6-556b0531a065"</span></pre></div>
+
+<p>You can see in each case that the local "name" string is given in some
+well-definted format specific to each namespace.  This is a very
+common convention, but not enforced.  It is perfectly valid to
+construct a namespaced UUID from any literal string.</p>
+
+<div class="highlight highlight-clojure"><pre>
+user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>I am clearly not a URL<span class="pl-pds">"</span></span>)
+
+<span class="pl-c">;;  =&gt; #uuid "a167a791-e550-57ae-b20f-666ee47ce7c1"</span></pre></div>
+
+<p>The only difference between v3 and v5 UUID's is that v3's are computed
+using an MD5 digest algorithm and v5's are computed using SHA1.  It is
+generally considered that SHA1 is a superior hash, but MD5 is
+computationally less expensive and so v3 may be preferred in
+situations requiring slightly faster performance.</p>
 
 <h4>
 <a id="hybrid-non-standard-identifiers" class="anchor" href="#hybrid-non-standard-identifiers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Hybrid (non-standard) Identifiers</h4>
