@@ -1,31 +1,34 @@
 (ns clj-uuid.api-test
   (:require [clojure.test :refer :all]
-            [clj-uuid :refer :all]))
+            [clj-uuid     :refer :all]))
 
-(comment
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Protocol Tests
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; v0 uuid protocol test
-(let [tmpid +null+]
-  (= (get-word-high tmpid)       0)
-  (= (get-word-low tmpid)        0)
-  (= (null? tmpid)           true)
-  (= (to-octet-vector tmpid) [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0])
-  (= (hash-code tmpid)       0)
-  (= (get-version tmpid)         0)
-  (= (to-string tmpid)       "00000000-0000-0000-0000-000000000000")
-  (= (to-hex-string tmpid)   "00000000000000000000000000000000")   
-  (= (to-urn-string tmpid)   "urn:uuid:00000000-0000-0000-0000-000000000000")
-  (= (get-time-low tmpid)       [0 0 0 0])
-  (= (get-time-mid tmpid)       [0 0])
-  (= (get-time-high tmpid)      [0 0])
-  (= (get-clk-low tmpid)        [0])
-  (= (get-clk-high tmpid)       [0])
-  (= (get-node-id tmpid)           [0 0 0 0 0 0])
-  (= (get-timestamp tmpid)      nil)
-  )
+(deftest check-unique-identifier-protocol
+  (testing "v0 uuid protocol..."
+    (let [tmpid +null+]
+      (is (= (get-word-high tmpid)       0))
+      (is (= (get-word-low tmpid)        0))
+      (is (= (null? tmpid)           true))
+      (is (= (to-octet-vector tmpid) [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]))
+      (is (= (to-byte-vector  tmpid) [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]))
+      (is (= (hash-code tmpid)       0))
+      (is (= (get-version tmpid)         0))
+      (is (= (to-string tmpid)       "00000000-0000-0000-0000-000000000000"))
+      (is (= (to-hex-string tmpid)   "00000000000000000000000000000000"))
+      (is (=
+            (to-urn-string tmpid)
+            "urn:uuid:00000000-0000-0000-0000-000000000000"))
+      (is (= (get-time-low tmpid)       0))
+      (is (= (get-time-mid tmpid)       0))
+      (is (= (get-time-high tmpid)      0))
+      (is (= (get-clk-low tmpid)        0))
+      (is (= (get-clk-high tmpid)       0))
+      (is (= (get-node-id tmpid)        0))
+      (is (= (get-timestamp tmpid)      nil))))
+  
 
 ;; v1 uuid protocol test
 (let [tmpid +namespace-x500+]
@@ -49,7 +52,7 @@
 
 
 ;; v3 uuid protocol test
-(let [tmpid (UUID/fromString "d9c53a66-fde2-3d04-b5ad-dce3848df07e")]
+(let [tmpid (java.util.UUID/fromString "d9c53a66-fde2-3d04-b5ad-dce3848df07e")]
   (= (get-word-high tmpid)       -2754731383046652668)
   (= (get-word-low tmpid)        -5355381512134070146)
   (= (null? tmpid)           false)
@@ -69,7 +72,7 @@
   )
 
 ;; v4 uuid protocol test
-(let [tmpid (UUID/fromString "3eb1e29a-4747-4a7d-8e40-94e245f57dc0")]
+(let [tmpid (java.util.UUID/fromString "3eb1e29a-4747-4a7d-8e40-94e245f57dc0")]
   (= (get-word-high tmpid)       4517641053478013565)
   (= (get-word-low tmpid)        -8196387622257066560)
   (= (null? tmpid)           false)
@@ -88,56 +91,59 @@
   (= (get-timestamp tmpid)       nil)
   )  
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Predicate Tests
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(uuid-string?       (to-string       (make-v4-uuid)))
-(uuid-hex-string?   (to-hex-string   (make-v4-uuid)))
-(uuid-urn-string?   (to-urn-string   (make-v4-uuid)))
-(uuid-octet-vector? (to-octet-vector (make-v4-uuid)))
+(uuid-string?       (to-string       (v4)))
+(uuid-hex-string?   (to-hex-string   (v4)))
+(uuid-urn-string?   (to-urn-string   (v4)))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; (uuid-octet-vector? (to-octet-vector (v4)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; V0 Tests
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; V4 Tests
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; (get-timestamp (make-v4-uuid))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; V1 Tests
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; (number? (get-timestamp (make-v1-uuid)))
 ;; (= (get-version   (make-v1-uuid)) 1)
 ;; (= (get-node-id   (make-v1-uuid)) (make-node-id))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; V3/V5 Tests
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(format-digested-uuid 3 (to-octet-vector +null+))
-"00000000-0000-3000-0000-000000000000"
-(format-digested-uuid 3 (svec (range 0 16)))
-"00010203-0405-3607-0809-0A0B0C0D0E0F"
-(format-digested-uuid 5 (to-octet-vector +null+))
-"00000000-0000-5000-0000-000000000000"
-(format-digested-uuid 5 (svec (range 0 16)))
-"00010203-0405-5607-0809-0A0B0C0D0E0F"
+;; (format-digested-uuid 3 (to-octet-vector +null+))
+;; "00000000-0000-3000-0000-000000000000"
+;; (format-digested-uuid 3 (svec (range 0 16)))
+;; "00010203-0405-3607-0809-0A0B0C0D0E0F"
+;; (format-digested-uuid 5 (to-octet-vector +null+))
+;; "00000000-0000-5000-0000-000000000000"
+;; (format-digested-uuid 5 (svec (range 0 16)))
+;; "00010203-0405-5607-0809-0A0B0C0D0E0F"
 
-(= 3 (get-version (make-v3-uuid +null+ "test")))
-(= 5 (get-version (make-v5-uuid +null+ "test")))
+;; (= 3 (get-version (make-v3-uuid +null+ "test")))
+;; (= 5 (get-version (make-v5-uuid +null+ "test")))
 
-(uuid= (make-v3-uuid +null+ "test") #uuid"052c0ae9-722c-39ec-0743-9dd29c94efe4")
-(uuid= (make-v5-uuid +null+ "test") #uuid"c7913647-8df1-5968-984a-4c33308a8f9b")  
+;; (uuid= (make-v3-uuid +null+ "test") #uuid"052c0ae9-722c-39ec-0743-9dd29c94efe4")
+;; (uuid= (make-v5-uuid +null+ "test") #uuid"c7913647-8df1-5968-984a-4c33308a8f9b")  
 
 
-)
+
