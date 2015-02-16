@@ -108,6 +108,7 @@ user> #uuid "e6ff478d-9492-48dd-886d-23ec4c6385ee"
 
 #### The NULL (v0) Identifier
 
+Another interesting tidbiit about `+null+`:  it's `hash-code` is 0.
 
 #### Time Based (v1) Identifiers
 
@@ -173,6 +174,53 @@ Execution time mean : 1.928087 µs
 
 
 #### Namespaced (v3/v5) Identifiers
+
+If you are familiar wit Clojure _vars_, you already understand the
+idea of _namespaced_ identifiers.  To resolve the value of a var, one
+needs to know not only the _name_ of a var, but also the _namespace_
+it resides in.  It is intuitively clear that vars `#'user/x` and
+`#'library/x` are distinct.  Namespaced UUID's follow a similar
+concept, however namespaces are themselves represented as UUID's.
+Names are strings that encode a representation of a symbol or value in
+the namespace of that identifier.  Given a namespace and a local-name,
+one can always (re)construct the unique identifier that represents
+it.  We can demonstrate a few examples constructed using several of
+the canonical top level namespace UUIDs:
+
+```clojure
+
+user> (uuid/v5 uuid/+namespace-url+ "http://example.com/")
+
+;;  => #uuid "0a300ee9-f9e4-5697-a51a-efc7fafaba67"
+
+
+user> (uuid/v3 uuid/+namespace-dns+ "www.clojure.org")
+
+;;  => #uuid "3bdca4f7-fc85-3a8b-9038-7626457527b0"
+
+
+user> (uuid/v5 uuid/+namespace-oid+ "0.1.22.13.8.236.1")
+
+;;  => #uuid "9989a7d2-b7fc-5b6a-84d6-556b0531a065"
+```
+
+You can see in each case that the local "name" string is given in some
+well-definted format specific to each namespace.  This is a very
+common convention, but not enforced.  It is perfectly valid to
+construct a namespaced UUID from any literal string.
+
+```clojure
+
+user> (uuid/v5 uuid/+namespace-url+ "I am clearly not a URL")
+
+;;  => #uuid "a167a791-e550-57ae-b20f-666ee47ce7c1"
+```
+
+The only difference between v3 and v5 UUID's is that v3's are computed
+using an MD5 digest algorithm and v5's are computed using SHA1.  It is
+generally considered that SHA1 is a superior hash, but MD5 is
+computationally less expensive and so v3 may be preferred in
+situations requiring slightly faster performance.
 
 
 #### Hybrid (non-standard) Identifiers
