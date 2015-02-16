@@ -234,6 +234,64 @@ generally considered that SHA1 is a superior hash, but MD5 is
 computationally less expensive and so v3 may be preferred in
 situations requiring slightly faster performance.</p>
 
+<p>Because each UUID denotes its own namespace, it is easy to compose v5
+identifiers in order to represent hierarchical sub-namespaces.  This,
+for example, can be used to assign unique identifiers based not only
+on the content of a string but the unique identity representing its
+source or provenance:</p>
+
+<div class="highlight highlight-clojure"><pre>
+user&gt; (<span class="pl-en">uuid/v5</span>
+        (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>)
+        <span class="pl-s1"><span class="pl-pds">"</span>resource1#<span class="pl-pds">"</span></span>)
+
+<span class="pl-c">;;  =&gt; #uuid "6a3944a4-f00e-5921-b8b6-2cea5a745132"</span>
+
+
+user&gt; (<span class="pl-en">uuid/v5</span>
+        (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>)
+        <span class="pl-s1"><span class="pl-pds">"</span>resource2#<span class="pl-pds">"</span></span>)
+
+<span class="pl-c">;;  =&gt; #uuid "98879e2a-8511-59ab-877d-ac6f8667866d"</span>
+
+user&gt; (<span class="pl-en">uuid/v5</span>
+        (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>http://other.com/<span class="pl-pds">"</span></span>)
+        <span class="pl-s1"><span class="pl-pds">"</span>resource1#<span class="pl-pds">"</span></span>)
+
+user&gt; (<span class="pl-en">uuid/v5</span>
+        (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>http://other.com/<span class="pl-pds">"</span></span>)
+        <span class="pl-s1"><span class="pl-pds">"</span>resource2#<span class="pl-pds">"</span></span>)
+
+</pre></div>
+
+<p>Because UUID's and namespaces can be chained together like this, one
+can be certain that the UUID resulting from a chain of calls such as
+the following will be unique -- if and only if the original namespace
+matches and at each step, the local part string is identical, will the
+final UUID match:</p>
+
+<div class="highlight highlight-clojure"><pre>
+user&gt; (<span class="pl-en">-&gt;</span> uuid/+namespace-dns+
+        (<span class="pl-en">v5</span> <span class="pl-s1"><span class="pl-pds">"</span>one<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">v5</span> <span class="pl-s1"><span class="pl-pds">"</span>two<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">v5</span> <span class="pl-s1"><span class="pl-pds">"</span>three<span class="pl-pds">"</span></span>))
+
+<span class="pl-c">;;  =&gt; #uuid "617756cc-3b02-5a86-ad4a-ab3e1403dbd6"</span>
+
+
+user&gt; (<span class="pl-en">-&gt;</span> uuid/+namespace-dns+
+        (<span class="pl-en">v5</span> <span class="pl-s1"><span class="pl-pds">"</span>two<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">v5</span> <span class="pl-s1"><span class="pl-pds">"</span>one<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">v5</span> <span class="pl-s1"><span class="pl-pds">"</span>three<span class="pl-pds">"</span></span>))
+
+<span class="pl-c">;;  =&gt; #uuid "52d5453e-2aa1-53c1-b093-0ea20ef57ad1"</span>
+</pre></div>
+
+<p>This capability can be used to represent uniqueness of a sequence of
+computations in, for example, a transaction system such as the one
+used in the graph-relational database system
+<a href="http://github.com/lisp/de.setf.resource/">de.setf.resource</a>. </p>
+
 <h4>
 <a id="hybrid-non-standard-identifiers" class="anchor" href="#hybrid-non-standard-identifiers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Hybrid (non-standard) Identifiers</h4>
 
