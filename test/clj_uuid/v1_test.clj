@@ -4,7 +4,7 @@
             [clj-uuid :refer :all]))
 
 
-(deftest check-v1
+(deftest check-v1-concurrency
   (doseq [concur (range 5 9)]
     (let [extent    100000
           agents    (map agent (repeat concur nil))
