@@ -222,6 +222,68 @@ generally considered that SHA1 is a superior hash, but MD5 is
 computationally less expensive and so v3 may be preferred in
 situations requiring slightly faster performance.
 
+Because each UUID denotes its own namespace, it is easy to compose v5
+identifiers in order to represent hierarchical sub-namespaces.  This,
+for example, can be used to assign unique identifiers based not only
+on the content of a string but the unique identity representing its
+source or provenance:
+
+```clojure
+
+user> (uuid/v5
+        (uuid/v5 uuid/+namespace-url+ "http://example.com/")
+        "resource1#")
+
+;;  => #uuid "6a3944a4-f00e-5921-b8b6-2cea5a745132"
+
+
+user> (uuid/v5
+        (uuid/v5 uuid/+namespace-url+ "http://example.com/")
+        "resource2#")
+
+;;  => #uuid "98879e2a-8511-59ab-877d-ac6f8667866d"
+
+user> (uuid/v5
+        (uuid/v5 uuid/+namespace-url+ "http://other.com/")
+        "resource1#")
+
+user> (uuid/v5
+        (uuid/v5 uuid/+namespace-url+ "http://other.com/")
+        "resource2#")
+
+
+```
+
+Because UUID's and namespaces can be chained together like this, one
+can be certain that the UUID resulting from a chain of calls such as
+the following will be unique -- if and only if the original namespace
+matches and at each step, the local part string is identical, will the
+final UUID match:
+
+```clojure
+
+user> (-> uuid/+namespace-dns+
+        (v5 "one")
+        (v5 "two")
+        (v5 "three"))
+
+;;  => #uuid "617756cc-3b02-5a86-ad4a-ab3e1403dbd6"
+
+
+user> (-> uuid/+namespace-dns+
+        (v5 "two")
+        (v5 "one")
+        (v5 "three"))
+
+;;  => #uuid "52d5453e-2aa1-53c1-b093-0ea20ef57ad1"
+
+```
+
+This capability can be used to represent uniqueness of a sequence of
+computations in, for example, a transaction system such as the one
+used in the graph-relational database system
+[de.setf.resource](http://github.com/lisp/de.setf.resource/). 
+
 
 #### Hybrid (non-standard) Identifiers
 
