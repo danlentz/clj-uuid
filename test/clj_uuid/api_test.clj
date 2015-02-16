@@ -28,27 +28,33 @@
       (is (= (get-clk-high tmpid)       0))
       (is (= (get-node-id tmpid)        0))
       (is (= (get-timestamp tmpid)      nil))))
+  (testing "v1 uuid protocol"
+    (let [tmpid +namespace-x500+]
+      (is (= (get-word-high tmpid)       7757371281853190609))
+      (is (= (get-word-low tmpid)        -9172705715073830712))
+      (is (= (null? tmpid)           false))
+      (is (=
+            (to-octet-vector tmpid)
+            [107 167 184 20 157 173 17 209 128 180 0 192 79 212 48 200]))
+      (is (=
+            (to-byte-vector tmpid)
+            [107 -89 -72 20 -99 -83 17 -47 -128 -76 0 -64 79 -44 48 -56]))
+      (is (= (hash-code tmpid)       963287501))
+      (is (= (get-version tmpid)         1))
+      (is (= (to-string tmpid)     "6ba7b814-9dad-11d1-80b4-00c04fd430c8"))
+      (is (= (to-hex-string tmpid) "6BA7B8149DAD11D180B400C04FD430C8"))
+      (is (=
+            (to-urn-string tmpid)
+            "urn:uuid:6ba7b814-9dad-11d1-80b4-00c04fd430c8"))
+      (is (= (get-time-low tmpid)       1806153748))
+      (is (= (get-time-mid tmpid)       40365))
+      (is (= (get-time-high tmpid)      4561))
+      (is (= (get-clk-low tmpid)        128))
+      (is (= (get-clk-high tmpid)       180))
+      (is (= (get-node-id tmpid)        825973027016))
+      (is (= (get-timestamp tmpid)      131059232331511828))))
   
-
-;; v1 uuid protocol test
-(let [tmpid +namespace-x500+]
-  (= (get-word-high tmpid)       7757371281853190609)
-  (= (get-word-low tmpid)        -9172705715073830712)
-  (= (null? tmpid)           false)
-  (= (to-octet-vector tmpid) [107 167 184 20 157 173 17 209 128 180 0 192 79 212 48 200])
-  (= (hash-code tmpid)       963287501)
-  (= (get-version tmpid)         1)
-  (= (to-string tmpid)       "6ba7b814-9dad-11d1-80b4-00c04fd430c8")
-  (= (to-hex-string tmpid)   "6BA7B8149DAD11D180B400C04FD430C8")
-  (= (to-urn-string tmpid)   "urn:uuid:6ba7b814-9dad-11d1-80b4-00c04fd430c8")
-  (= (get-time-low tmpid)       [107 167 184 20])
-  (= (get-time-mid tmpid)       [157 173])
-  (= (get-time-high tmpid)      [17 209])
-  (= (get-clk-low tmpid)        [128])
-  (= (get-clk-high tmpid)       [180])
-  (= (get-node-id tmpid)           [0 192 79 212 48 200])
-  (= (get-timestamp tmpid)      131059232331511828)
-  )
+  
 
 
 ;; v3 uuid protocol test
