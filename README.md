@@ -257,8 +257,31 @@ user> (uuid/v5
 Because UUID's and namespaces can be chained together like this, one
 can be certain that the UUID resulting from a chain of calls such as
 the following will be unique -- if and only if the original namespace
-matches and at each step, the local part string is identical, will the
-final UUID match:
+matches:
+
+
+```clojure
+
+user> (-> (uuid/v1)
+        (uuid/v5 "one")
+        (uuid/v5 "two")
+        (uuid/v5 "three"))
+
+;;  => #uuid "eb7a0c2b-eb0e-5bb2-9819-3c9edc2814fa"
+
+
+user> (-> (uuid/v1)
+        (uuid/v5 "one")
+        (uuid/v5 "two")
+        (uuid/v5 "three"))
+
+;;  => #uuid "45e8c272-1660-57ba-8892-6844e1d3196a"
+
+```
+
+
+At each step, the local part string must be identical, in order for the the
+final UUID to match:
 
 ```clojure
 
@@ -278,6 +301,8 @@ user> (-> uuid/+namespace-dns+
 ;;  => #uuid "52d5453e-2aa1-53c1-b093-0ea20ef57ad1"
 
 ```
+
+
 
 This capability can be used to represent uniqueness of a sequence of
 computations in, for example, a transaction system such as the one
