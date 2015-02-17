@@ -93,6 +93,7 @@ Or include in namespace declaration:
 
 ```
 
+
 #### Literal Syntax
 
 UUID's have a convenient literal syntax supported by the clojure
@@ -106,9 +107,34 @@ user> #uuid "e6ff478d-9492-48dd-886d-23ec4c6385ee"
 ;;  => #uuid "e6ff478d-9492-48dd-886d-23ec4c6385ee"
 ```
 
+
 #### The NULL (v0) Identifier
 
-Another interesting tidbiit about `+null+`:  it's `hash-code` is 0.
+The special UUID, `#uuid "00000000-0000-0000-0000-000000000000"` is
+known as the _null UUID_ or _version 0 UUID_ and can be useful for
+representing special values such as _nil_ or _null-context. One may
+reference the null UUID declaratively or functionally, although it is
+best to pick one convention and remain consistant.
+
+
+```clojure
+
+user> (uuid/null)
+
+;;  => #uuid "00000000-0000-0000-0000-000000000000"
+
+
+user> (uuid/v0)
+
+;;  => #uuid "00000000-0000-0000-0000-000000000000"
+
+
+user> uuid/+null+
+
+;;  => #uuid "00000000-0000-0000-0000-000000000000"
+
+```
+
 
 #### Time Based (v1) Identifiers
 
