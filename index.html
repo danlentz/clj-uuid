@@ -32,7 +32,7 @@
 <a id="clj-uuid" class="anchor" href="#clj-uuid" aria-hidden="true"><span class="octicon octicon-link"></span></a>clj-uuid</h1>
 
 <p><a href="https://travis-ci.org/danlentz/clj-uuid"><img src="https://travis-ci.org/danlentz/clj-uuid.svg?branch=master" alt="Build Status"></a>
-<a href="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.0-SNAPSHOT"><img src="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.0-SNAPSHOT/badge.svg" alt="Dependency Status"></a></p>
+<a href="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.2-SNAPSHOT"><img src="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.2-SNAPSHOT/badge.svg" alt="Dependency Status"></a></p>
 
 <hr>
 
@@ -131,7 +131,27 @@ user&gt; #uuid <span class="pl-s1"><span class="pl-pds">"</span>e6ff478d-9492-48
 <h4>
 <a id="the-null-v0-identifier" class="anchor" href="#the-null-v0-identifier" aria-hidden="true"><span class="octicon octicon-link"></span></a>The NULL (v0) Identifier</h4>
 
-<p>Another interesting tidbiit about <code>+null+</code>:  it's <code>hash-code</code> is 0.</p>
+<p>The special UUID, <code>#uuid "00000000-0000-0000-0000-000000000000"</code> is
+known as the <em>null UUID</em> or <em>version 0 UUID</em> and can be useful for
+representing special values such as <em>nil</em> or _null-context. One may
+reference the null UUID declaratively or functionally, although it is
+best to pick one convention and remain consistant.</p>
+
+<div class="highlight highlight-clojure"><pre>
+user&gt; (<span class="pl-en">uuid/null</span>)
+
+<span class="pl-c">;;  =&gt; #uuid "00000000-0000-0000-0000-000000000000"</span>
+
+
+user&gt; (<span class="pl-en">uuid/v0</span>)
+
+<span class="pl-c">;;  =&gt; #uuid "00000000-0000-0000-0000-000000000000"</span>
+
+
+user&gt; uuid/+null+
+
+<span class="pl-c">;;  =&gt; #uuid "00000000-0000-0000-0000-000000000000"</span>
+</pre></div>
 
 <h4>
 <a id="time-based-v1-identifiers" class="anchor" href="#time-based-v1-identifiers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Time Based (v1) Identifiers</h4>
@@ -184,9 +204,6 @@ to generate in addition to being non-deterministically unique.</p>
 Evaluation count : 31754100 in 60 samples of 529235 calls.
 Execution time mean : 1.928087 µs
 </code></pre>
-
-<h5>
-<a id="repeatable-construction" class="anchor" href="#repeatable-construction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Repeatable Construction</h5>
 
 <h4>
 <a id="namespaced-v3v5-identifiers" class="anchor" href="#namespaced-v3v5-identifiers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Namespaced (v3/v5) Identifiers</h4>
@@ -311,11 +328,8 @@ computations in, for example, a transaction system such as the one
 used in the graph-relational database system
 <a href="http://github.com/lisp/de.setf.resource/">de.setf.resource</a>. </p>
 
-<h4>
-<a id="hybrid-non-standard-identifiers" class="anchor" href="#hybrid-non-standard-identifiers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Hybrid (non-standard) Identifiers</h4>
-
 <h3>
-<a id="api" class="anchor" href="#api" aria-hidden="true"><span class="octicon octicon-link"></span></a>API</h3>
+<a id="basic-api" class="anchor" href="#basic-api" aria-hidden="true"><span class="octicon octicon-link"></span></a>Basic API</h3>
 
 <hr>
 
@@ -372,7 +386,7 @@ used in the graph-relational database system
 <p><em>(function)</em>    <code>v3 [^UUID namespace ^String local-name]</code></p>
 
 <blockquote>
-<p>Generate a v3 ...</p>
+<p>Generate a v3 (name based, MD5 hash) UUID.</p>
 </blockquote>
 
 <p><em>(function)</em>    <code>v4 []</code></p>
@@ -400,7 +414,19 @@ used in the graph-relational database system
 <p><em>(function)</em>    <code>v5 [^UUID namespace ^String local-name]</code></p>
 
 <blockquote>
-<p>Generate a v5 ...</p>
+<p>Generate a v5 (name based, SHA1 hash) UUID.</p>
+</blockquote>
+
+<p><em>(function)</em>    <code>squuid []</code></p>
+
+<blockquote>
+<p>"Generate a SQUUID (sequential, random) unique identifier.  SQUUID's
+ are a nonstandard variation on v4 (random) UUIDs that have the
+ desirable property that they increase sequentially over time as well
+ as encode retrievably the posix time at which they were generated.
+ Splits and reassembles a v4 UUID to merge current POSIX
+ time (seconds since 12:00am January 1, 1970 UTC) with the most
+ significant 32 bits of the UUID</p>
 </blockquote>
 
 <hr>
