@@ -263,17 +263,17 @@ final UUID match:
 ```clojure
 
 user> (-> uuid/+namespace-dns+
-        (v5 "one")
-        (v5 "two")
-        (v5 "three"))
+        (uuid/v5 "one")
+        (uuid/v5 "two")
+        (uuid/v5 "three"))
 
 ;;  => #uuid "617756cc-3b02-5a86-ad4a-ab3e1403dbd6"
 
 
 user> (-> uuid/+namespace-dns+
-        (v5 "two")
-        (v5 "one")
-        (v5 "three"))
+        (uuid/v5 "two")
+        (uuid/v5 "one")
+        (uuid/v5 "three"))
 
 ;;  => #uuid "52d5453e-2aa1-53c1-b093-0ea20ef57ad1"
 
