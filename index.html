@@ -267,22 +267,41 @@ user&gt; (<span class="pl-en">uuid/v5</span>
 <p>Because UUID's and namespaces can be chained together like this, one
 can be certain that the UUID resulting from a chain of calls such as
 the following will be unique -- if and only if the original namespace
-matches and at each step, the local part string is identical, will the
-final UUID match:</p>
+matches:</p>
+
+<div class="highlight highlight-clojure"><pre>
+user&gt; (<span class="pl-en">-&gt;</span> (<span class="pl-en">uuid/v1</span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>one<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>two<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>three<span class="pl-pds">"</span></span>))
+
+<span class="pl-c">;;  =&gt; #uuid "eb7a0c2b-eb0e-5bb2-9819-3c9edc2814fa"</span>
+
+
+user&gt; (<span class="pl-en">-&gt;</span> (<span class="pl-en">uuid/v1</span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>one<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>two<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>three<span class="pl-pds">"</span></span>))
+
+<span class="pl-c">;;  =&gt; #uuid "45e8c272-1660-57ba-8892-6844e1d3196a"</span>
+</pre></div>
+
+<p>At each step, the local part string must be identical, in order for the the
+final UUID to match:</p>
 
 <div class="highlight highlight-clojure"><pre>
 user&gt; (<span class="pl-en">-&gt;</span> uuid/+namespace-dns+
-        (<span class="pl-en">v5</span> <span class="pl-s1"><span class="pl-pds">"</span>one<span class="pl-pds">"</span></span>)
-        (<span class="pl-en">v5</span> <span class="pl-s1"><span class="pl-pds">"</span>two<span class="pl-pds">"</span></span>)
-        (<span class="pl-en">v5</span> <span class="pl-s1"><span class="pl-pds">"</span>three<span class="pl-pds">"</span></span>))
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>one<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>two<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>three<span class="pl-pds">"</span></span>))
 
 <span class="pl-c">;;  =&gt; #uuid "617756cc-3b02-5a86-ad4a-ab3e1403dbd6"</span>
 
 
 user&gt; (<span class="pl-en">-&gt;</span> uuid/+namespace-dns+
-        (<span class="pl-en">v5</span> <span class="pl-s1"><span class="pl-pds">"</span>two<span class="pl-pds">"</span></span>)
-        (<span class="pl-en">v5</span> <span class="pl-s1"><span class="pl-pds">"</span>one<span class="pl-pds">"</span></span>)
-        (<span class="pl-en">v5</span> <span class="pl-s1"><span class="pl-pds">"</span>three<span class="pl-pds">"</span></span>))
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>two<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>one<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>three<span class="pl-pds">"</span></span>))
 
 <span class="pl-c">;;  =&gt; #uuid "52d5453e-2aa1-53c1-b093-0ea20ef57ad1"</span>
 </pre></div>
