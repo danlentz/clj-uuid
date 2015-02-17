@@ -3,7 +3,7 @@ clj-uuid
 
 [![Build Status](https://travis-ci.org/danlentz/clj-uuid.svg?branch=master)]
 (https://travis-ci.org/danlentz/clj-uuid)
-[![Dependency Status](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.0-SNAPSHOT/badge.svg)](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.0-SNAPSHOT)
+[![Dependency Status](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.2-SNAPSHOT/badge.svg)](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.2-SNAPSHOT)
 
 * * * * * *
 
