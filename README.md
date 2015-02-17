@@ -180,6 +180,7 @@ Evaluation count : 41142600 in 60 samples of 685710 calls.
 Execution time mean : 1.499075 µs
 ```
 
+
 #### Random (v4) Identifiers
 
 
@@ -194,9 +195,6 @@ user> (criterium.core/bench (uuid/v4))
 Evaluation count : 31754100 in 60 samples of 529235 calls.
 Execution time mean : 1.928087 µs
 ```
-
-##### Repeatable Construction
-
 
 
 #### Namespaced (v3/v5) Identifiers
@@ -328,19 +326,14 @@ user> (-> uuid/+namespace-dns+
 
 ```
 
-
-
 This capability can be used to represent uniqueness of a sequence of
 computations in, for example, a transaction system such as the one
 used in the graph-relational database system
 [de.setf.resource](http://github.com/lisp/de.setf.resource/). 
 
 
-#### Hybrid (non-standard) Identifiers
 
-
-
-### API
+### Basic API
 
 * * * * * *
 
@@ -388,7 +381,7 @@ _(function)_    `v1 []`
 
 _(function)_    `v3 [^UUID namespace ^String local-name]`
 
->  Generate a v3 ...
+>  Generate a v3 (name based, MD5 hash) UUID.
 
 
 _(function)_    `v4 []`
@@ -413,9 +406,19 @@ _(function)_    `v4 [^long msb, ^long lsb]`
 
 _(function)_    `v5 [^UUID namespace ^String local-name]`
 
->  Generate a v5 ...
+>  Generate a v5 (name based, SHA1 hash) UUID.
 
 
+_(function)_    `squuid []`
+
+> "Generate a SQUUID (sequential, random) unique identifier.  SQUUID's
+>  are a nonstandard variation on v4 (random) UUIDs that have the
+>  desirable property that they increase sequentially over time as well
+>  as encode retrievably the posix time at which they were generated.
+>  Splits and reassembles a v4 UUID to merge current POSIX
+>  time (seconds since 12:00am January 1, 1970 UTC) with the most
+>  significant 32 bits of the UUID
+  
 * * * * * *
 
 ### Motivation
