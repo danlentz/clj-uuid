@@ -13,7 +13,9 @@
 (def ByteArray (class (byte-array 0)))
 
 (defprotocol UUIDNameBytes
-  (^bytes as-byte-array [x] "unique byte serialization"))
+  (^bytes as-byte-array [x] "extract a byte serialization that
+  represents the 'name' of x, typically unique within a given
+  namespace."))
 
 (extend-protocol UUIDNameBytes
 
