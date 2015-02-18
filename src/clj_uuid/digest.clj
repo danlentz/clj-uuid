@@ -5,7 +5,6 @@
   (:require [clj-uuid.util :as util])
   (:import [java.net URL])
   (:import [java.security MessageDigest])
-  (:import [java.nio.charset StandardCharsets])
   (:import [java.io ByteArrayOutputStream ObjectOutputStream]))
 
 (set! *warn-on-reflection* true)
@@ -32,7 +31,7 @@
   (^bytes as-byte-array [this]
     (util/compile-if (neg? (compare (System/getProperty "java.version") "1.7"))
       (.getBytes this)
-      (.getBytes this StandardCharsets/UTF_8)))
+      (.getBytes this java.nio.charset.StandardCharsets/UTF_8)))
 
   java.net.URL
   (^bytes as-byte-array [this]
