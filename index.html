@@ -225,6 +225,10 @@ user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="p
 
 <span class="pl-c">;;  =&gt; #uuid "0a300ee9-f9e4-5697-a51a-efc7fafaba67"</span>
 
+user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-x500+ <span class="pl-s1"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>)
+
+<span class="pl-c">;;  =&gt; #uuid "0cb29677-4eaf-578f-ab9b-f9ac67c33cb9"</span>
+
 
 user&gt; (<span class="pl-en">uuid/v3</span> uuid/+namespace-dns+ <span class="pl-s1"><span class="pl-pds">"</span>www.clojure.org<span class="pl-pds">"</span></span>)
 
@@ -272,7 +276,7 @@ their string representation:</p>
 <div class="highlight highlight-clojure"><pre>
 (<span class="pl-en">extend-protocol</span> UUIDNameBytes java.net.URL
   (<span class="pl-en">as-byte-array</span> [this]
-  (<span class="pl-en">.getBytes</span> (<span class="pl-en">.toString</span> this) StandardCharsets/UTF_8)))
+    (<span class="pl-en">.getBytes</span> (<span class="pl-en">.toString</span> this) StandardCharsets/UTF_8)))
 
 
 (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>)
