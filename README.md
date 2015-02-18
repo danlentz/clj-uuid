@@ -271,7 +271,7 @@ their string representation:
 
 (extend-protocol UUIDNameBytes java.net.URL
   (as-byte-array [this]
-  (.getBytes (.toString this) StandardCharsets/UTF_8)))
+    (.getBytes (.toString this) StandardCharsets/UTF_8)))
 
 
 (uuid/v5 uuid/+namespace-url+ "http://example.com/")
