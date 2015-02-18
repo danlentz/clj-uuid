@@ -144,16 +144,12 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; "Byte Vectors"
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; implement a collection of primitive signed and unsigned byte
-;; values cast appropriately from the JVM native (signed) two's complement
-;; representation.
+;; Byte (dis)Assembly
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (defn assemble-bytes [v]
-  (loop [tot 0 bytes v c (count v)]
+  (loop [tot 0 bytes v c 8]
     (if (zero? c)
       tot
       (recur
@@ -161,54 +157,16 @@
         (rest bytes)
         (dec c)))))
 
-(defn long-to-octets
-  "convert a long into a sequence of minimum PAD-COUNT unsigned values.
-  The zeroes are padded to the msb"
-  ([^long lng]
-    (long-to-octets lng 8))
-  ([^long lng pad-count]
-    (let [pad         (repeat pad-count (byte 0))
-          raw-bytes   (for [^byte i (range 8)] (ldb (mask 8 (* i 8)) lng))
-          value-bytes (drop-while clojure.core/zero? (reverse raw-bytes))]
-      (vec (concat
-             (into [] (drop (count value-bytes) pad))
-             value-bytes)))))
-
-(defn sbvec [thing]
-  (cond 
-    (= (class thing) Long) (into (vector-of :byte)
-                             (map unchecked-byte (long-to-octets thing)))
-    (coll? thing)          (into (vector-of :byte)
-                             (map unchecked-byte thing))
-    :else                  (exception IllegalArgumentException)))
-
-(defn sbvector [& args]
-  (sbvec args))
-
-(defn make-sbvector [^long length initial-element]
-  (sbvec (loop [len length v []]
-           (if (<= len 0)
-             v
-             (recur (- len 1)
-               (cons (unchecked-byte initial-element) v))))))
-
-(defn ubvec [thing]
-  (cond
-   (= (class thing) Long) (into (vector-of :short)
-                            (map unchecked-short (long-to-octets thing)))
-   (coll? thing)          (into (vector-of :short)
-                            (map unchecked-short thing))
-   :else                  (exception IllegalArgumentException)))
-
-(defn ubvector [& args]
-  (ubvec args))
-
-(defn make-ubvector [^long length initial-element]
-  (ubvec (loop [len length v []]
-           (if (<= len 0)
-             v
-             (recur (- len 1)
-               (cons (short initial-element) v))))))
+(defn long->bytes
+  ([^long x]
+   (long->bytes x (byte-array 8) 0))
+  ([^long x ^bytes arr ^long i]
+   (loop [j 7 k 0]
+     (if (neg? j)
+       arr
+       (do
+         (aset-byte arr (+ i k) (sb8 (ldb (mask 8 (* 8 j)) x)))
+         (recur (dec j) (inc k)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -221,19 +179,10 @@
     (+hex-chars+ (bit-and 0x0F num))))
 
 (defn hex [thing]
-  (cond 
-    (and (number? thing) (<  ^long thing 0))  (hex (ubvec thing))
-    (and (number? thing) (>= ^long thing 0))  (hex (ubvec thing))
-    (coll? thing)   (apply str (into [] (map octet-hex thing)))))
+  (if (number? thing)
+    (hex (map ub8 (long->bytes thing)))
+    (apply str (map octet-hex thing))))
 
-(defn hex-str [^String s]
-  (hex (.getBytes s)))
-
-(defn unhex [^String s]
-  (unchecked-long (read-string (str "0x" s))))
-
-(defn unhex-str [^String s]
-  (apply str (map char (unhex s))))
 
 
 (set! *warn-on-reflection* false)

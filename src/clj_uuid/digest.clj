@@ -1,9 +1,43 @@
 (ns clj-uuid.digest
   (:use [clojure.core])
   (:use [clj-uuid.constants])
-  (:use [clj-uuid.bitmop]))
+  (:use [clj-uuid.bitmop])
+  (:require [clj-uuid.util :as util])
+  (:import [java.net URL])
+  (:import [java.security MessageDigest])
+  (:import [java.io ByteArrayOutputStream ObjectOutputStream]))
 
-;; (set! *warn-on-reflection* true)
+(set! *warn-on-reflection* true)
+
+
+(def ByteArray (class (byte-array 0)))
+
+(defprotocol UUIDNameBytes
+  (^bytes as-byte-array [x] "unique byte serialization"))
+
+(extend-protocol UUIDNameBytes
+
+  java.lang.Object
+  (^bytes as-byte-array [this]
+    (if (instance? ByteArray this)
+      this
+      (let [baos (ByteArrayOutputStream.)
+            oos  (ObjectOutputStream. baos)]
+        (.writeObject oos this)
+        (.close oos)
+        (.toByteArray baos))))
+
+  java.lang.String
+  (^bytes as-byte-array [this]
+    (util/compile-if (neg? (compare (System/getProperty "java.version") "1.7"))
+      (.getBytes this)
+      (.getBytes this java.nio.charset.StandardCharsets/UTF_8)))
+
+  java.net.URL
+  (^bytes as-byte-array [this]
+    (as-byte-array (.toString this))))
+ 
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Digest Instance
@@ -12,67 +46,24 @@
 (def +md5+  "MD5")
 (def +sha1+ "SHA1")
 
+
 (defn make-digest [designator]
-  (java.security.MessageDigest/getInstance designator))
+  (MessageDigest/getInstance designator))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; SHA1 Digest
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defmulti sha1 class)
-
-(defmethod sha1 String [s]
-  (sbvec
-    (seq
-      (-> (make-digest +sha1+)
-        (.digest (.getBytes s))))))
-
-(defmethod sha1 clojure.core.Vec [coll]
-  (sbvec
-    (seq
-      (-> (make-digest +sha1+)
-        (.digest (byte-array (map sb8 coll)))))))
-
-(defmethod sha1 clojure.lang.PersistentVector [coll]
-  (sha1 (sbvec coll)))
-
-(defmethod sha1 Object [o]
-  (sha1 (.toString o)))
+(defn digest-bytes  [kind ^bytes ns-bytes ^bytes local-bytes]
+  (let [^MessageDigest m (make-digest kind)]    
+    (.update m ns-bytes)
+    (.digest m local-bytes)))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; MD5 Digest
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmulti md5 class)
-
-(defmethod md5 String [^String s]
-  (sbvec
-    (seq
-      (-> (make-digest +md5+)
-          (.digest (.getBytes s))))))
-
-(defmethod md5 clojure.core.Vec [coll]
-  (sbvec
-    (seq 
-      (-> (make-digest +md5+)
-          (.digest (byte-array (map sb8 coll)))))))
-
-(defmethod md5 clojure.lang.PersistentVector [coll]
-  (md5 (sbvec coll)))
-
-(defmethod md5 Object [^Object o]
-  (md5 (.toString o)))
+(set! *warn-on-reflection* false)
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Digest Namespaced Identifiers
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn digest-uuid-bytes [digest uuid-bytes ^String namestring]
-  (apply sbvector
-    (subvec (digest (sbvec (concat uuid-bytes (seq (.getBytes namestring)))))
-      0 16)))
 
 
-;; (set! *warn-on-reflection* false)
+
+
+
+
+

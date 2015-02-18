@@ -1,11 +1,12 @@
 (ns clj-uuid
   (:refer-clojure :exclude [==])
   (:require [clj-uuid [constants :refer :all]
-                      [util      :refer :all]
-                      [bitmop    :as bitmop]
-                      [digest    :as digest]
-                      [clock     :as clock]
-                      [node      :as node]])
+             [util      :refer :all]
+             [digest :refer :all]
+             [bitmop    :as bitmop]
+             [digest    :as digest]
+             [clock     :as clock]
+             [node      :as node]])
   (:import [java.net  URI URL]
            [java.util UUID]))
 
@@ -137,6 +138,7 @@
   (to-urn-string   [uuid])
   (to-octet-vector [uuid])
   (to-byte-vector  [uuid])
+  (to-byte-array   [uuid])
   (to-uri          [uuid])
   (get-time-low    [uuid])
   (get-time-mid    [uuid])
@@ -152,7 +154,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (extend-type UUID
+  
   UniqueIdentifier
+
   (as-uuid [u] u)
   (uuid? [_] true)
   (uuid= [x y]
@@ -163,24 +167,17 @@
     (.getLeastSignificantBits uuid))
   (null? [uuid]
     (= 0 (get-word-high uuid) (get-word-low uuid)))
-  (to-byte-vector [uuid]
-    (bitmop/sbvec (concat
-                    (bitmop/sbvec (get-word-high uuid))
-                    (bitmop/sbvec (get-word-low uuid)))))
-  (to-octet-vector [uuid]
-    (bitmop/ubvec (concat
-                    (bitmop/ubvec (get-word-high uuid))
-                    (bitmop/ubvec (get-word-low uuid)))))
+  (to-byte-array [uuid]
+    (let [arr (byte-array 16)]
+      (bitmop/long->bytes (.getMostSignificantBits  uuid) arr 0)
+      (bitmop/long->bytes (.getLeastSignificantBits uuid) arr 8)
+      arr))
   (hash-code [uuid]
     (.hashCode uuid))
   (get-version [uuid]
     (.version uuid))
   (to-string [uuid]
     (.toString uuid))
-  (to-hex-string [uuid]
-    (str
-      (bitmop/hex (get-word-high uuid))
-      (bitmop/hex (get-word-low uuid))))
   (to-urn-string [uuid]
     (str "urn:uuid:" (to-string uuid)))
   (to-uri [uuid]
@@ -205,7 +202,13 @@
       (get-word-low uuid)))
   (get-timestamp [uuid]
     (when (= 1 (get-version uuid))
-      (.timestamp uuid))))
+      (.timestamp uuid)))
+
+  UUIDNameBytes
+  
+  (as-byte-array [this]
+    (to-byte-array this)))
+
 
 
 
@@ -313,30 +316,36 @@
 ;; Namespaced UUIDs
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- ^UUID fmt-digested-uuid [^long version bytes] {:pre [(or
-                                                              (= version 3)
-                                                              (= version 5))]}
-  (let [msb (bitmop/assemble-bytes (take 8 bytes))
-        lsb (bitmop/assemble-bytes (drop 8 bytes))]
+
+(defn- ^UUID build-digested-uuid [^long version ^bytes arr]
+  {:pre [(or (= version 3) (= version 5))]}   
+  (let [byte-seq (seq arr)
+        msb (bitmop/assemble-bytes (take 8 byte-seq))
+        lsb (bitmop/assemble-bytes (drop 8 byte-seq))]
     (UUID.
      (bitmop/dpb (bitmop/mask 4 12) msb version)
      (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
 
 
+
 (defn ^UUID v3
   "Generate a v3 (name based, MD5 hash) UUID."
-  [^UUID context ^String namestring]
-  (fmt-digested-uuid 3
-    (digest/digest-uuid-bytes digest/md5
-      (to-byte-vector context) namestring)))
+  [^UUID context local-part]
+  (build-digested-uuid 3
+    (digest/digest-bytes digest/+md5+
+      (to-byte-array (as-uuid context))
+      (as-byte-array ^UUIDNameBytes local-part))))
+
 
 
 (defn ^UUID v5
   "Generate a v5 (name based, SHA1 hash) UUID."
-  [^UUID context ^String namestring]
-  (fmt-digested-uuid 5
-    (digest/digest-uuid-bytes digest/sha1
-      (to-byte-vector context) namestring)))
+  [^UUID context local-part]
+  (build-digested-uuid 5
+    (digest/digest-bytes digest/+sha1+
+      (to-byte-array (as-uuid context))
+      (as-byte-array ^UUIDNameBytes local-part))))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -345,9 +354,6 @@
 
 (defn uuid-string? [str]
   (not (nil? (re-matches uuid-regex str))))
-
-(defn uuid-hex-string? [str]
-  (not (nil? (re-matches hex-regex str))))
 
 (defn uuid-urn-string? [str]
   (not (nil? (re-matches urn-regex str))))
@@ -364,9 +370,6 @@
 (defn- str->uuid [s]
   (cond
     (uuid-string?     s) (UUID/fromString s)
-    (uuid-hex-string? s) (UUID.
-                           (bitmop/unhex (subs s 0 16))
-                           (bitmop/unhex (subs s 16 32)))
     (uuid-urn-string? s) (UUID/fromString (subs s 9))
     :else                (exception "invalid UUID")))
 
@@ -376,7 +379,6 @@
   (uuid? [s]
     (or
      (uuid-string?     s)
-     (uuid-hex-string? s)
      (uuid-urn-string? s)))
   (as-uuid [s]
     (str->uuid s))

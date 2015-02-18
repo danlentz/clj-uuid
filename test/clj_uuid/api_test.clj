@@ -13,12 +13,10 @@
       (is (= (get-word-high tmpid)       0))
       (is (= (get-word-low tmpid)        0))
       (is (= (null? tmpid)           true))
-      (is (= (to-octet-vector tmpid) [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]))
-      (is (= (to-byte-vector  tmpid) [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]))
+      (is (= (seq (to-byte-array tmpid)) [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]))
       (is (= (hash-code tmpid)       0))
       (is (= (get-version tmpid)         0))
       (is (= (to-string tmpid)       "00000000-0000-0000-0000-000000000000"))
-      (is (= (to-hex-string tmpid)   "00000000000000000000000000000000"))
       (is (=
             (to-urn-string tmpid)
             "urn:uuid:00000000-0000-0000-0000-000000000000"))
@@ -36,15 +34,11 @@
       (is (= (get-word-low tmpid)        -9172705715073830712))
       (is (= (null? tmpid)           false))
       (is (=
-            (to-octet-vector tmpid)
-            [107 167 184 20 157 173 17 209 128 180 0 192 79 212 48 200]))
-      (is (=
-            (to-byte-vector tmpid)
+            (seq (to-byte-array tmpid))
             [107 -89 -72 20 -99 -83 17 -47 -128 -76 0 -64 79 -44 48 -56]))
       (is (= (hash-code tmpid)       963287501))
       (is (= (get-version tmpid)         1))
       (is (= (to-string tmpid)     "6ba7b814-9dad-11d1-80b4-00c04fd430c8"))
-      (is (= (to-hex-string tmpid) "6BA7B8149DAD11D180B400C04FD430C8"))
       (is (=
             (to-urn-string tmpid)
             "urn:uuid:6ba7b814-9dad-11d1-80b4-00c04fd430c8"))
@@ -63,15 +57,11 @@
       (is (= (get-word-low tmpid)        -5355381512134070146))
       (is (= (null? tmpid)           false))
       (is (=
-            (to-octet-vector tmpid)
-            [217 197 58 102 253 226 61 4 181 173 220 227 132 141 240 126]))
-      (is (=
-            (to-byte-vector tmpid)
+            (seq (to-byte-array tmpid))
             [-39 -59 58 102 -3 -30 61 4 -75 -83 -36 -29 -124 -115 -16 126]))
       (is (= (hash-code tmpid)       352791551))
       (is (= (get-version tmpid)         3))
       (is (= (to-string tmpid)       "d9c53a66-fde2-3d04-b5ad-dce3848df07e"))
-      (is (= (to-hex-string tmpid)   "D9C53A66FDE23D04B5ADDCE3848DF07E"))
       (is (=
             (to-urn-string tmpid)
             "urn:uuid:d9c53a66-fde2-3d04-b5ad-dce3848df07e"))
@@ -90,15 +80,11 @@
       (is (= (get-word-low tmpid)       -8196387622257066560))
       (is (= (null? tmpid)               false))
       (is (=
-            (to-octet-vector tmpid)
-            [62 177 226 154 71 71 74 125 142 64 148 226 69 245 125 192]))
-      (is (=
-            (to-byte-vector tmpid)
+            (seq (to-byte-array tmpid))
             [62 -79 -30 -102 71 71 74 125 -114 64 -108 -30 69 -11 125 -64]))
       (is (= (hash-code tmpid)       -1304215099))
       (is (= (get-version tmpid)         4))
       (is (= (to-string tmpid)       "3eb1e29a-4747-4a7d-8e40-94e245f57dc0"))
-      (is (= (to-hex-string tmpid)   "3EB1E29A47474A7D8E4094E245F57DC0"))
       (is (=
             (to-urn-string tmpid)
             "urn:uuid:3eb1e29a-4747-4a7d-8e40-94e245f57dc0"))
@@ -119,7 +105,6 @@
 (deftest check-predicates
   (testing "string predicates..."
     (is (uuid-string?       (to-string       (v4))))
-    (is (uuid-hex-string?   (to-hex-string   (v4))))
     (is (uuid-urn-string?   (to-urn-string   (v4))))))
 
 
