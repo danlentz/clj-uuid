@@ -2,6 +2,7 @@
   (:use [clojure.core])
   (:use [clj-uuid.constants])
   (:use [clj-uuid.bitmop])
+  (:require [clj-uuid.util :as util])
   (:import [java.net URL])
   (:import [java.security MessageDigest])
   (:import [java.nio.charset StandardCharsets])
@@ -29,11 +30,13 @@
 
   java.lang.String
   (^bytes as-byte-array [this]
-    (.getBytes this StandardCharsets/UTF_8))
+    (util/compile-if (neg? (compare (System/getProperty "java.version") "1.7"))
+      (.getBytes this)
+      (.getBytes this StandardCharsets/UTF_8)))
 
   java.net.URL
   (^bytes as-byte-array [this]
-    (.getBytes (.toString this) StandardCharsets/UTF_8)))
+    (as-byte-array (.toString this))))
  
 
 
