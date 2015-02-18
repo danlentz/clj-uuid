@@ -328,7 +328,7 @@ user> (-> uuid/+namespace-dns+
 
 This capability can be used to represent uniqueness of a sequence of
 computations in, for example, a transaction system such as the one
-used in the graph-relational database system
+used in the graph-object database system
 [de.setf.resource](http://github.com/lisp/de.setf.resource/). 
 
 
