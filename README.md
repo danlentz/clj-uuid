@@ -262,7 +262,7 @@ This will be most efficient for classes of object that have been
 extended with the `UUIDNameBytes` protocol.  If one intends to do such
 a thing fequently, it is a simple matter to specialize an
 `as-byte-array` method which can extract a unique sequence of bytes
-from an arbitrary class of input data.  Here is a simplified example where
+from an arbitrary class of input data.  Here is a simple example where
 one adds specialized support for URLs to be quickly digested as the bytes of
 their string representation:
 
@@ -271,7 +271,7 @@ their string representation:
 
 (extend-protocol UUIDNameBytes java.net.URL
   (as-byte-array [this]
-  (.getBytes (.toString this))))
+  (.getBytes (.toString this) StandardCharsets/UTF_8)))
 
 
 (uuid/v5 uuid/+namespace-url+ "http://example.com/")
