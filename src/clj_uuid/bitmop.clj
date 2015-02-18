@@ -153,7 +153,7 @@
 
 
 (defn assemble-bytes [v]
-  (loop [tot 0 bytes v c (count v)]
+  (loop [tot 0 bytes v c 8]
     (if (zero? c)
       tot
       (recur
@@ -173,6 +173,19 @@
       (vec (concat
              (into [] (drop (count value-bytes) pad))
              value-bytes)))))
+
+(defn long->bytes
+  ([^long x]
+   (long->bytes x (byte-array 8) 0))
+  ([^long x ^bytes arr ^long i]
+   (loop [j 7 k 0]
+     (if (neg? j)
+       arr
+       (do
+         (aset-byte arr (+ i k) (sb8 (ldb (mask 8 (* 8 j)) x)))
+         (recur (dec j) (inc k)))))))
+
+
 
 (defn sbvec [thing]
   (cond 

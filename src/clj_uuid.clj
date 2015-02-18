@@ -1,11 +1,12 @@
 (ns clj-uuid
   (:refer-clojure :exclude [==])
   (:require [clj-uuid [constants :refer :all]
-                      [util      :refer :all]
-                      [bitmop    :as bitmop]
-                      [digest    :as digest]
-                      [clock     :as clock]
-                      [node      :as node]])
+             [util      :refer :all]
+             [digest :refer :all]
+             [bitmop    :as bitmop]
+             [digest    :as digest]
+             [clock     :as clock]
+             [node      :as node]])
   (:import [java.net  URI URL]
            [java.util UUID]))
 
@@ -137,6 +138,7 @@
   (to-urn-string   [uuid])
   (to-octet-vector [uuid])
   (to-byte-vector  [uuid])
+  (to-byte-array   [uuid])
   (to-uri          [uuid])
   (get-time-low    [uuid])
   (get-time-mid    [uuid])
@@ -152,7 +154,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (extend-type UUID
+  
   UniqueIdentifier
+
   (as-uuid [u] u)
   (uuid? [_] true)
   (uuid= [x y]
@@ -164,13 +168,16 @@
   (null? [uuid]
     (= 0 (get-word-high uuid) (get-word-low uuid)))
   (to-byte-vector [uuid]
-    (bitmop/sbvec (concat
-                    (bitmop/sbvec (get-word-high uuid))
-                    (bitmop/sbvec (get-word-low uuid)))))
+    (vec (to-byte-array uuid)))
   (to-octet-vector [uuid]
     (bitmop/ubvec (concat
                     (bitmop/ubvec (get-word-high uuid))
                     (bitmop/ubvec (get-word-low uuid)))))
+  (to-byte-array [uuid]
+    (let [arr (byte-array 16)]
+      (bitmop/long->bytes (.getMostSignificantBits  uuid) arr 0)
+      (bitmop/long->bytes (.getLeastSignificantBits uuid) arr 8)
+      arr))
   (hash-code [uuid]
     (.hashCode uuid))
   (get-version [uuid]
@@ -205,7 +212,23 @@
       (get-word-low uuid)))
   (get-timestamp [uuid]
     (when (= 1 (get-version uuid))
-      (.timestamp uuid))))
+      (.timestamp uuid)))
+
+  UUIDNameBytes
+  
+  (as-byte-array [this]
+    (to-byte-array this)))
+
+
+
+;; (vec (to-byte-array +null+))  (0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)
+;; (seq (to-byte-array +namespace-dns+))
+;; (107 -89 -72 16 -99 -83 17 -47 -128 -76 0 -64 79 -44 48 -56)
+;; (seq (to-byte-array +namespace-oid+))
+;; (107 -89 -72 18 -99 -83 17 -47 -128 -76 0 -64 79 -44 48 -56)
+;; (107 -89 -72 16 -99 -83 17 -47 -128 -76 0 -64 79 -44 48 -56) 
+;; (to-byte-vector +namespace-dns+)
+;; [107 -89 -72 16 -99 -83 17 -47 -128 -76 0 -64 79 -44 48 -56]
 
 
 
@@ -313,30 +336,36 @@
 ;; Namespaced UUIDs
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- ^UUID fmt-digested-uuid [^long version bytes] {:pre [(or
-                                                              (= version 3)
-                                                              (= version 5))]}
-  (let [msb (bitmop/assemble-bytes (take 8 bytes))
-        lsb (bitmop/assemble-bytes (drop 8 bytes))]
+
+(defn- ^UUID build-digested-uuid [^long version ^bytes arr]
+  {:pre [(or (= version 3) (= version 5))]}   
+  (let [byte-seq (seq arr)
+        msb (bitmop/assemble-bytes (take 8 byte-seq))
+        lsb (bitmop/assemble-bytes (drop 8 byte-seq))]
     (UUID.
      (bitmop/dpb (bitmop/mask 4 12) msb version)
      (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
 
 
+
 (defn ^UUID v3
   "Generate a v3 (name based, MD5 hash) UUID."
-  [^UUID context ^String namestring]
-  (fmt-digested-uuid 3
-    (digest/digest-uuid-bytes digest/md5
-      (to-byte-vector context) namestring)))
+  [^UUID context local-part]
+  (build-digested-uuid 3
+    (digest/digest-bytes digest/+md5+
+      (to-byte-array (as-uuid context))
+      (as-byte-array ^UUIDNameBytes local-part))))
+
 
 
 (defn ^UUID v5
   "Generate a v5 (name based, SHA1 hash) UUID."
-  [^UUID context ^String namestring]
-  (fmt-digested-uuid 5
-    (digest/digest-uuid-bytes digest/sha1
-      (to-byte-vector context) namestring)))
+  [^UUID context local-part]
+  (build-digested-uuid 5
+    (digest/digest-bytes digest/+sha1+
+      (to-byte-array (as-uuid context))
+      (as-byte-array ^UUIDNameBytes local-part))))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
