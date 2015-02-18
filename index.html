@@ -251,6 +251,43 @@ generally considered that SHA1 is a superior hash, but MD5 is
 computationally less expensive and so v3 may be preferred in
 situations requiring slightly faster performance.</p>
 
+<p>As a matter of fact, the requirements for a valid the local-part
+constituent are even more general than even just Strings.  Any kind of
+object can be used:</p>
+
+<div class="highlight highlight-clojure"><pre>
+user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-c1">:keyword</span>)
+
+<span class="pl-c">;;  =&gt; #uuid "bc480d53-fba7-5e5f-8f33-6ad77880a007"</span>
+</pre></div>
+
+<p>This will be most efficient for classes of object that have been
+extended with the <code>UUIDNameBytes</code> protocol.  If one intends to do such
+a thing fequently, it is a simple matter to specialize an
+<code>as-byte-array</code> method which can extract a unique sequence of bytes
+from an arbitrary class of input data.  Here is a simple example where
+one adds specialized support for URLs to be quickly digested as the bytes of
+their string representation:</p>
+
+<div class="highlight highlight-clojure"><pre>
+(<span class="pl-en">extend-protocol</span> UUIDNameBytes java.net.URL
+  (<span class="pl-en">as-byte-array</span> [this]
+  (<span class="pl-en">.getBytes</span> (<span class="pl-en">.toString</span> this) StandardCharsets/UTF_8)))
+
+
+(<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>)
+
+<span class="pl-c">;; =&gt; #uuid "0a300ee9-f9e4-5697-a51a-efc7fafaba67"</span>
+
+
+(<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ (<span class="pl-en">java.net.URL.</span> <span class="pl-s1"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>))
+
+<span class="pl-c">;; =&gt; #uuid "0a300ee9-f9e4-5697-a51a-efc7fafaba67"</span>
+</pre></div>
+
+<h5>
+<a id="hierarchical-namespace" class="anchor" href="#hierarchical-namespace" aria-hidden="true"><span class="octicon octicon-link"></span></a>Hierarchical Namespace</h5>
+
 <p>Because each UUID denotes its own namespace, it is easy to compose v5
 identifiers in order to represent hierarchical sub-namespaces.  This,
 for example, can be used to assign unique identifiers based not only
@@ -325,7 +362,7 @@ user&gt; (<span class="pl-en">-&gt;</span> uuid/+namespace-dns+
 
 <p>This capability can be used to represent uniqueness of a sequence of
 computations in, for example, a transaction system such as the one
-used in the graph-relational database system
+used in the graph-object database system
 <a href="http://github.com/lisp/de.setf.resource/">de.setf.resource</a>. </p>
 
 <h3>
