@@ -246,6 +246,48 @@ generally considered that SHA1 is a superior hash, but MD5 is
 computationally less expensive and so v3 may be preferred in
 situations requiring slightly faster performance.
 
+As a matter of fact, the requirements for a valid the local-part
+constituent are even more general than even just Strings.  Any kind of
+object can be used:
+
+```clojure
+
+user> (uuid/v5 uuid/+namespace-url+ :keyword)
+
+;;  => #uuid "bc480d53-fba7-5e5f-8f33-6ad77880a007"
+
+```
+
+This will be most efficient for classes of object that have been
+extended with the `UUIDNameBytes` protocol.  If one intends to do such
+a thing fequently, it is a simple matter to specialize an
+`as-byte-array` method which can extract a unique sequence of bytes
+from an arbitrary class of input data.  Here is a simplified example where
+one adds specialized support for URLs to be quickly digested as the bytes of
+their string representation:
+
+
+```clojure
+
+(extend-protocol UUIDNameBytes java.net.URL
+  (as-byte-array [this]
+  (.getBytes (.toString this))))
+
+
+(uuid/v5 uuid/+namespace-url+ "http://example.com/")
+
+;; => #uuid "0a300ee9-f9e4-5697-a51a-efc7fafaba67"
+
+
+(uuid/v5 uuid/+namespace-url+ (java.net.URL. "http://example.com/"))
+
+;; => #uuid "0a300ee9-f9e4-5697-a51a-efc7fafaba67"
+
+```
+
+
+##### Hierarchical Namespace
+
 Because each UUID denotes its own namespace, it is easy to compose v5
 identifiers in order to represent hierarchical sub-namespaces.  This,
 for example, can be used to assign unique identifiers based not only
