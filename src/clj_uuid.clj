@@ -167,12 +167,6 @@
     (.getLeastSignificantBits uuid))
   (null? [uuid]
     (= 0 (get-word-high uuid) (get-word-low uuid)))
-  (to-byte-vector [uuid]
-    (vec (to-byte-array uuid)))
-  (to-octet-vector [uuid]
-    (bitmop/ubvec (concat
-                    (bitmop/ubvec (get-word-high uuid))
-                    (bitmop/ubvec (get-word-low uuid)))))
   (to-byte-array [uuid]
     (let [arr (byte-array 16)]
       (bitmop/long->bytes (.getMostSignificantBits  uuid) arr 0)
@@ -184,10 +178,6 @@
     (.version uuid))
   (to-string [uuid]
     (.toString uuid))
-  (to-hex-string [uuid]
-    (str
-      (bitmop/hex (get-word-high uuid))
-      (bitmop/hex (get-word-low uuid))))
   (to-urn-string [uuid]
     (str "urn:uuid:" (to-string uuid)))
   (to-uri [uuid]
@@ -219,16 +209,6 @@
   (as-byte-array [this]
     (to-byte-array this)))
 
-
-
-;; (vec (to-byte-array +null+))  (0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)
-;; (seq (to-byte-array +namespace-dns+))
-;; (107 -89 -72 16 -99 -83 17 -47 -128 -76 0 -64 79 -44 48 -56)
-;; (seq (to-byte-array +namespace-oid+))
-;; (107 -89 -72 18 -99 -83 17 -47 -128 -76 0 -64 79 -44 48 -56)
-;; (107 -89 -72 16 -99 -83 17 -47 -128 -76 0 -64 79 -44 48 -56) 
-;; (to-byte-vector +namespace-dns+)
-;; [107 -89 -72 16 -99 -83 17 -47 -128 -76 0 -64 79 -44 48 -56]
 
 
 
@@ -375,9 +355,6 @@
 (defn uuid-string? [str]
   (not (nil? (re-matches uuid-regex str))))
 
-(defn uuid-hex-string? [str]
-  (not (nil? (re-matches hex-regex str))))
-
 (defn uuid-urn-string? [str]
   (not (nil? (re-matches urn-regex str))))
 
@@ -393,9 +370,6 @@
 (defn- str->uuid [s]
   (cond
     (uuid-string?     s) (UUID/fromString s)
-    (uuid-hex-string? s) (UUID.
-                           (bitmop/unhex (subs s 0 16))
-                           (bitmop/unhex (subs s 16 32)))
     (uuid-urn-string? s) (UUID/fromString (subs s 9))
     :else                (exception "invalid UUID")))
 
@@ -405,7 +379,6 @@
   (uuid? [s]
     (or
      (uuid-string?     s)
-     (uuid-hex-string? s)
      (uuid-urn-string? s)))
   (as-uuid [s]
     (str->uuid s))
