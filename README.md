@@ -217,6 +217,10 @@ user> (uuid/v5 uuid/+namespace-url+ "http://example.com/")
 
 ;;  => #uuid "0a300ee9-f9e4-5697-a51a-efc7fafaba67"
 
+user> (uuid/v5 uuid/+namespace-x500+ "http://example.com/")
+
+;;  => #uuid "0cb29677-4eaf-578f-ab9b-f9ac67c33cb9"
+
 
 user> (uuid/v3 uuid/+namespace-dns+ "www.clojure.org")
 
