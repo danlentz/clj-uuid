@@ -264,6 +264,11 @@ user> (uuid/v5 uuid/+namespace-url+ :keyword)
 
 ;;  => #uuid "bc480d53-fba7-5e5f-8f33-6ad77880a007"
 
+
+user> (uuid/v5 uuid/+namespace-oid+ :keyword)
+
+;;  => #uuid "9b3d8a3d-fadf-55b5-811f-12a0c50c3e86"
+
 ```
 
 This will be most efficient for classes of object that have been
