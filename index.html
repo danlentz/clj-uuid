@@ -482,31 +482,22 @@ used in the graph-object database system
 <hr>
 
 <h3>
-<a id="motivation" class="anchor" href="#motivation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Motivation</h3>
+<a id="references" class="anchor" href="#references" aria-hidden="true"><span class="octicon octicon-link"></span></a>References</h3>
 
-<p>To a large extent, the design of the algorithmic
-implementation is inspired by the Common-Lisp library
-<a href="http://github.com/mon-key/unicly"><em>UNICLY</em></a> which is a painstakingly
-optimized, encyclopaedic implementation of RFC-4122 the author of
-which, Stan Pearman, has devoted considerable effort to research, refine, and
-improve.  To my knowledge there is no more performant  and
-precise implementation of the RFC-4122 specification available
-anywhere, in any language, on any platform.</p>
-
-<p>That having been said, this library intends to present a slightly more
-comfortable public interface that places a little more priority on
-convenient DWIM semantics at the cost of somewhat less emphasis on
-low level performance optimizations.  Since this library is built as
-an extension to the standard java.util.UUID class whose implementation
-largely dominates its performance characteristics anyway, this seems to
-be a reasonable philosophy.</p>
+<ul>
+<li><p><em>A Universally Unique IDentifier (UUID) URN Namespace</em>  <a href="http://www.ietf.org/rfc/rfc4122.txt">IETF RFC-4122</a></p></li>
+<li><p>Wikipedia <a href="http://en.wikipedia.org/wiki/Universally_unique_identifier"><em>Universally unique identifier</em></a></p></li>
+<li><p>Reference Implementation: <a href="http://www.dardoria.net/software/uuid.html">CL-UUID</a></p></li>
+<li><p>Reference Implementation: <a href="https://github.com/mon-key/unicly">UNICLY</a></p></li>
+<li><p>JavaDoc <a href="http://docs.oracle.com/javase/6/docs/api/java/util/UUID.html">java.util.UUID</a></p></li>
+</ul>
 
 <h3>
 <a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h3>
 
 <p>Copyright © 2015 Dan Lentz</p>
 
-<p>Distributed under the Eclipse Public License either version 1.0 </p>
+<p>Distributed under the Eclipse Public License version 1.0 </p>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/danlentz">danlentz</a></p>
