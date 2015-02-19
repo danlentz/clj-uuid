@@ -476,30 +476,24 @@ _(function)_    `squuid []`
   
 * * * * * *
 
-### Motivation
+### References
 
-To a large extent, the design of the algorithmic
-implementation is inspired by the Common-Lisp library
-[_UNICLY_](http://github.com/mon-key/unicly) which is a painstakingly
-optimized, encyclopaedic implementation of RFC-4122 the author of
-which, Stan Pearman, has devoted considerable effort to research, refine, and
-improve.  To my knowledge there is no more performant  and
-precise implementation of the RFC-4122 specification available
-anywhere, in any language, on any platform.
+* _A Universally Unique IDentifier (UUID) URN Namespace_  [IETF RFC-4122](http://www.ietf.org/rfc/rfc4122.txt)
 
-That having been said, this library intends to present a slightly more
-comfortable public interface that places a little more priority on
-convenient DWIM semantics at the cost of somewhat less emphasis on
-low level performance optimizations.  Since this library is built as
-an extension to the standard java.util.UUID class whose implementation
-largely dominates its performance characteristics anyway, this seems to
-be a reasonable philosophy.
+* Wikipedia [_Universally unique identifier_](http://en.wikipedia.org/wiki/Universally_unique_identifier)
+
+* Reference Implementation: [CL-UUID](http://www.dardoria.net/software/uuid.html)
+
+* Reference Implementation: [UNICLY](https://github.com/mon-key/unicly)
+
+* JavaDoc [java.util.UUID](http://docs.oracle.com/javase/6/docs/api/java/util/UUID.html)
+
 
 ### License
 
 Copyright © 2015 Dan Lentz
 
-Distributed under the Eclipse Public License either version 1.0 
+Distributed under the Eclipse Public License version 1.0 
 
 
 
