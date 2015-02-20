@@ -133,7 +133,7 @@ user&gt; #uuid <span class="pl-s1"><span class="pl-pds">"</span>e6ff478d-9492-48
 
 <p>The special UUID, <code>#uuid "00000000-0000-0000-0000-000000000000"</code> is
 known as the <em>null UUID</em> or <em>version 0 UUID</em> and can be useful for
-representing special values such as <em>nil</em> or _null-context. One may
+representing special values such as <em>nil</em> or <em>null-context</em>. One may
 reference the null UUID declaratively or functionally, although it is
 best to pick one convention and remain consistant.</p>
 
@@ -208,7 +208,7 @@ Execution time mean : 1.928087 µs
 <h4>
 <a id="namespaced-v3v5-identifiers" class="anchor" href="#namespaced-v3v5-identifiers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Namespaced (v3/v5) Identifiers</h4>
 
-<p>If you are familiar wit Clojure <em>vars</em>, you already understand the
+<p>If you are familiar with Clojure <em>vars</em>, you already understand the
 idea of <em>namespaced</em> identifiers.  To resolve the value of a var, one
 needs to know not only the <em>name</em> of a var, but also the <em>namespace</em>
 it resides in.  It is intuitively clear that vars <code>#'user/x</code> and
@@ -257,7 +257,7 @@ situations requiring slightly faster performance.</p>
 
 <p>As a matter of fact, the requirements for a valid the local-part
 constituent are even more general than even just Strings.  Any kind of
-object can be used:</p>
+object will do:</p>
 
 <div class="highlight highlight-clojure"><pre>
 user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-c1">:keyword</span>)
@@ -268,10 +268,20 @@ user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="p
 
 <span class="pl-c">;;  =&gt; #uuid "bc480d53-fba7-5e5f-8f33-6ad77880a007"</span>
 
-
 user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-oid+ <span class="pl-c1">:keyword</span>)
 
 <span class="pl-c">;;  =&gt; #uuid "9b3d8a3d-fadf-55b5-811f-12a0c50c3e86"</span>
+
+
+
+user&gt; (<span class="pl-en">uuid/v5</span> uuid/+null+ #{<span class="pl-c1">:a</span> <span class="pl-c1">:b</span> <span class="pl-c1">:c</span>})
+
+<span class="pl-c">;;  =&gt; #uuid "83b6edde-46c2-5821-b555-bbf2ea4cd807"</span>
+
+user&gt; (<span class="pl-en">uuid/v5</span> uuid/+null+ #{<span class="pl-c1">:a</span> <span class="pl-c1">:b</span> <span class="pl-c1">:c</span>})
+
+<span class="pl-c">;;  =&gt; #uuid "83b6edde-46c2-5821-b555-bbf2ea4cd807"</span>
+
 </pre></div>
 
 <p>This will be most efficient for classes of object that have been
@@ -321,13 +331,19 @@ user&gt; (<span class="pl-en">uuid/v5</span>
 
 <span class="pl-c">;;  =&gt; #uuid "98879e2a-8511-59ab-877d-ac6f8667866d"</span>
 
+
 user&gt; (<span class="pl-en">uuid/v5</span>
         (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>http://other.com/<span class="pl-pds">"</span></span>)
         <span class="pl-s1"><span class="pl-pds">"</span>resource1#<span class="pl-pds">"</span></span>)
 
+<span class="pl-c">;;  =&gt; #uuid "bc956d0c-7af3-5b81-89f2-a96e8f9fd1a8"</span>
+
+
 user&gt; (<span class="pl-en">uuid/v5</span>
         (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>http://other.com/<span class="pl-pds">"</span></span>)
         <span class="pl-s1"><span class="pl-pds">"</span>resource2#<span class="pl-pds">"</span></span>)
+
+<span class="pl-c">;;  =&gt; #uuid "a38b24fe-7ab8-58c8-a3f8-d3adb308260b"</span>
 
 </pre></div>
 
@@ -433,7 +449,7 @@ used in the graph-object database system
  computers is guaranteed as long as MAC addresses are not duplicated.</p>
 </blockquote>
 
-<p><em>(function)</em>    <code>v3 [^UUID namespace ^String local-name]</code></p>
+<p><em>(function)</em>    <code>v3 [^UUID namespace ^Object local-name]</code></p>
 
 <blockquote>
 <p>Generate a v3 (name based, MD5 hash) UUID.</p>
