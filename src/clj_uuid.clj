@@ -322,11 +322,10 @@
   time (seconds since 12:00am January 1, 1970 UTC) with the most
   significant 32 bits of the UUID."
   []
-  (let [uuid (UUID/randomUUID)
-        time (System/currentTimeMillis)
-        secs (quot time 1000)
-        lsb  (.getLeastSignificantBits uuid)
-        msb  (.getMostSignificantBits uuid)
+  (let [uuid (v4)
+        secs (clock/posix-time)
+        lsb  (get-word-low  uuid)
+        msb  (get-word-high uuid)
         timed-msb (bit-or (bit-shift-left secs 32)
                     (bit-and +ub32-mask+ msb))]
     (UUID. timed-msb lsb)))
