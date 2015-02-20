@@ -136,28 +136,27 @@
   (^Boolean uuidable? [x] "return 'true' if 'x'represents a UUID."))
   
 (defprotocol UUIDRfc4122
-  (^Boolean null?  [uuid])
-  (^Boolean uuid?  [x] "return true if 'x' is an instance of java.util.UUID.")
+  (^long hash-code       [uuid])
+  (^Boolean null?        [uuid])
+  (^Boolean uuid?        [x]
+    "return true if 'x' is an instance of java.util.UUID.")
   (^Boolean uuid=  [x y])
   (^Boolean uuid<  [x y])
   (^long get-word-high   [uuid])
   (^long get-word-low    [uuid])
-  (^long hash-code       [uuid])
-  (^long get-version     [uuid])
+  (^long   get-version   [uuid])
   (^String to-string     [uuid])
   (^String to-hex-string [uuid])
   (^String to-urn-string [uuid])
-  (to-octet-vector [uuid])
-  (to-byte-vector  [uuid])
-  (^bytes to-byte-array   [uuid])
-  (^URI to-uri          [uuid])
+  (^bytes  to-byte-array [uuid])
+  (^URI    to-uri        [uuid])
   (^long get-time-low    [uuid])
   (^long get-time-mid    [uuid])
   (^long get-time-high   [uuid])
   (^long get-clk-low     [uuid])
   (^long get-clk-high    [uuid])
-  (get-node-id     [uuid])
-  (get-timestamp   [uuid]))
+  (get-node-id           [uuid])
+  (get-timestamp         [uuid]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
