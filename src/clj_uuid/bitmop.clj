@@ -147,7 +147,7 @@
 ;; Byte (dis)Assembly
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
+;; TODO: eliminate in favor of bytes->long
 (defn assemble-bytes [v]
   (loop [tot 0 bytes v c 8]
     (if (zero? c)
@@ -155,6 +155,16 @@
       (recur
         (long (dpb (mask 8 (* 8 (dec c))) tot ^long (first bytes)))
         (rest bytes)
+        (dec c)))))
+
+
+(defn bytes->long [^bytes arr ^long i]
+  (loop [tot 0 j i c 8]
+    (if (zero? c)
+      tot
+      (recur
+        (long (dpb (mask 8 (* 8 ^long (dec c))) tot  (aget arr j)))
+        (inc j)
         (dec c)))))
 
 (defn long->bytes

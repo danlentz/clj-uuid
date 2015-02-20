@@ -383,9 +383,8 @@
 
 (defn- ^UUID build-digested-uuid [^long version ^bytes arr]
   {:pre [(or (= version 3) (= version 5))]}   
-  (let [byte-seq (seq arr)
-        msb (bitmop/assemble-bytes (take 8 byte-seq))
-        lsb (bitmop/assemble-bytes (drop 8 byte-seq))]
+  (let [msb (bitmop/bytes->long arr 0)
+        lsb (bitmop/bytes->long arr 8)]
     (UUID.
      (bitmop/dpb (bitmop/mask 4 12) msb version)
      (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
