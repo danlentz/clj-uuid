@@ -199,7 +199,7 @@ Execution time mean : 1.928087 µs
 
 #### Namespaced (v3/v5) Identifiers
 
-If you are familiar wit Clojure _vars_, you already understand the
+If you are familiar with Clojure _vars_, you already understand the
 idea of _namespaced_ identifiers.  To resolve the value of a var, one
 needs to know not only the _name_ of a var, but also the _namespace_
 it resides in.  It is intuitively clear that vars `#'user/x` and
@@ -274,10 +274,10 @@ user> (uuid/v5 uuid/+namespace-oid+ :keyword)
 This will be most efficient for classes of object that have been
 extended with the `UUIDNameBytes` protocol.  If one intends to do such
 a thing fequently, it is a simple matter to specialize an
-`as-byte-array` method which can extract a byte serialization that
-represents the 'name' of an object, typically unique within some given
-namespace.  Here is a simple example where one adds specialized support
-for URLs to be quickly digested as the bytes of their string representation.
+`as-byte-array` method which can extract a unique sequence of bytes
+from an arbitrary class of input data.  Here is a simple example where
+one adds specialized support for URLs to be quickly digested as the bytes of
+their string representation:
 
 
 ```clojure
