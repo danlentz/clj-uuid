@@ -147,7 +147,7 @@
 ;; Byte (dis)Assembly
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; TODO: eliminate in favor of bytes->long
+
 (defn assemble-bytes [v]
   (loop [tot 0 bytes v c 8]
     (if (zero? c)

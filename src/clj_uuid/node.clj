@@ -28,7 +28,7 @@
 (compile-if (neg? (compare (System/getProperty "java.version") "1.7"))
   ;; JDK6
   (defn- make-node-id []
-    (repeatedly 6 #(clj-uuid.bitmop/sb8 (rand-int 256))))
+    (vec (repeatedly 6 #(clj-uuid.bitmop/sb8 (rand-int 256)))))
         
     ;; (clj-uuid.bitmop/ubvec
     ;;   (map clj-uuid.bitmop/ub8
@@ -49,7 +49,7 @@
       (doseq [^String d to-digest]
         (.update digest
           (.getBytes d java.nio.charset.StandardCharsets/UTF_8)))
-      (take 6 (seq (.digest digest))))))
+      (vec (take 6 (seq (.digest digest)))))))
       
 
 
