@@ -465,8 +465,8 @@
   Object
   (uuidable? [_]
     false)
-  (as-uuid [_]
-    (exception IllegalArgumentException "Cannot be coerced to UUID.")))
+  (as-uuid [x]
+    (exception IllegalArgumentException x "Cannot be coerced to UUID.")))
 
  
 (set! *warn-on-reflection* false)
