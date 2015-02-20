@@ -182,14 +182,15 @@ user&gt; (uuid/v1)
 <span class="pl-c">;;  =&gt; #uuid "02621ae0-b3d4-11e4-a03e-3af93c3de9ae"</span>
 </pre></div>
 
-<p>V1 identifiers are the fastest kind of UUID to generate -- about 25%
-faster than calling the JVM's built-in static method for generating ids,
+<p>V1 identifiers are the fastest kind of UUID to generate -- about <strong>40%
+faster</strong> than calling the JVM's built-in static method for generating ids,
 <code>#'java.util.UUID/randomUUID</code>.</p>
 
 <pre><code>user&gt; (criterium.core/bench (uuid/v1))
 
-Evaluation count : 41142600 in 60 samples of 685710 calls.
-Execution time mean : 1.499075 µs
+Evaluation count : 51250020 in 60 samples of 854167 calls.
+Execution time mean : 1.204272 µs
+
 </code></pre>
 
 <h4>
@@ -201,8 +202,8 @@ to generate in addition to being non-deterministically unique.</p>
 
 <pre><code>user&gt; (criterium.core/bench (uuid/v4))
 
-Evaluation count : 31754100 in 60 samples of 529235 calls.
-Execution time mean : 1.928087 µs
+Evaluation count : 30413220 in 60 samples of 506887 calls.
+Execution time mean : 2.009033 µs
 </code></pre>
 
 <h4>
