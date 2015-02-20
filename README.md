@@ -112,7 +112,7 @@ user> #uuid "e6ff478d-9492-48dd-886d-23ec4c6385ee"
 
 The special UUID, `#uuid "00000000-0000-0000-0000-000000000000"` is
 known as the _null UUID_ or _version 0 UUID_ and can be useful for
-representing special values such as _nil_ or _null-context. One may
+representing special values such as _nil_ or _null-context_. One may
 reference the null UUID declaratively or functionally, although it is
 best to pick one convention and remain consistant.
 
@@ -199,7 +199,7 @@ Execution time mean : 1.928087 µs
 
 #### Namespaced (v3/v5) Identifiers
 
-If you are familiar wit Clojure _vars_, you already understand the
+If you are familiar with Clojure _vars_, you already understand the
 idea of _namespaced_ identifiers.  To resolve the value of a var, one
 needs to know not only the _name_ of a var, but also the _namespace_
 it resides in.  It is intuitively clear that vars `#'user/x` and
@@ -252,7 +252,7 @@ situations requiring slightly faster performance.
 
 As a matter of fact, the requirements for a valid the local-part
 constituent are even more general than even just Strings.  Any kind of
-object can be used:
+object will do:
 
 ```clojure
 
@@ -264,10 +264,20 @@ user> (uuid/v5 uuid/+namespace-url+ :keyword)
 
 ;;  => #uuid "bc480d53-fba7-5e5f-8f33-6ad77880a007"
 
-
 user> (uuid/v5 uuid/+namespace-oid+ :keyword)
 
 ;;  => #uuid "9b3d8a3d-fadf-55b5-811f-12a0c50c3e86"
+
+
+
+user> (uuid/v5 uuid/+null+ #{:a :b :c})
+
+;;  => #uuid "83b6edde-46c2-5821-b555-bbf2ea4cd807"
+
+user> (uuid/v5 uuid/+null+ #{:a :b :c})
+
+;;  => #uuid "83b6edde-46c2-5821-b555-bbf2ea4cd807"
+
 
 ```
 
@@ -322,13 +332,19 @@ user> (uuid/v5
 
 ;;  => #uuid "98879e2a-8511-59ab-877d-ac6f8667866d"
 
+
 user> (uuid/v5
         (uuid/v5 uuid/+namespace-url+ "http://other.com/")
         "resource1#")
 
+;;  => #uuid "bc956d0c-7af3-5b81-89f2-a96e8f9fd1a8"
+
+
 user> (uuid/v5
         (uuid/v5 uuid/+namespace-url+ "http://other.com/")
         "resource2#")
+
+;;  => #uuid "a38b24fe-7ab8-58c8-a3f8-d3adb308260b"
 
 
 ```
@@ -434,7 +450,7 @@ _(function)_    `v1 []`
 >  computers is guaranteed as long as MAC addresses are not duplicated.
 
 
-_(function)_    `v3 [^UUID namespace ^String local-name]`
+_(function)_    `v3 [^UUID namespace ^Object local-name]`
 
 >  Generate a v3 (name based, MD5 hash) UUID.
 
