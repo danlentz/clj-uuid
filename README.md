@@ -168,8 +168,8 @@ user> (uuid/v1)
 ```
 
 
-V1 identifiers are the fastest kind of UUID to generate -- about **40%
-faster** than calling the JVM's built-in static method for generating ids,
+V1 identifiers are the fastest kind of UUID to generate -- about 40%
+faster than calling the JVM's built-in static method for generating ids,
 `#'java.util.UUID/randomUUID`.
 
 
