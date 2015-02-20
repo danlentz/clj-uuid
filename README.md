@@ -270,13 +270,13 @@ user> (uuid/v5 uuid/+namespace-oid+ :keyword)
 
 
 
-user> (uuid/v5 uuid/+null+ #{:a :b :c})
+user> (uuid/v5 uuid/+null+ 'this-var)
 
-;;  => #uuid "83b6edde-46c2-5821-b555-bbf2ea4cd807"
+;;  => #uuid "17dd4af8-fe2f-52ac-8444-8df6616a6755"
 
-user> (uuid/v5 uuid/+null+ #{:a :b :c})
+user> (uuid/v5 uuid/+null+ 'this-var)
 
-;;  => #uuid "83b6edde-46c2-5821-b555-bbf2ea4cd807"
+;;  => #uuid "17dd4af8-fe2f-52ac-8444-8df6616a6755"
 
 
 ```
