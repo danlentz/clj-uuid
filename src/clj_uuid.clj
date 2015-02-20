@@ -1,13 +1,14 @@
 (ns clj-uuid
   (:refer-clojure :exclude [==])
-  (:require [clj-uuid [constants :refer :all]
+  (:require [clj-uuid
+             [constants :refer :all]
              [util      :refer :all]
-             [digest :refer :all]
              [bitmop    :as bitmop]
-             [digest    :as digest]
              [clock     :as clock]
              [node      :as node]])
-  (:import [java.net  URI URL]
+  (:import [java.security MessageDigest]
+           [java.io ByteArrayOutputStream ObjectOutputStream]
+           [java.net  URI URL]
            [java.util UUID]))
 
 (set! *warn-on-reflection* true)
@@ -121,30 +122,40 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; UniqueIdentifier Protocol
+;; UUID Protocols
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defprotocol UniqueIdentifier
-  (null?           [uuid])
-  (uuid?           [uuid])
-  (as-uuid         [uuid])
-  (uuid=           [x y])
-  (get-word-high   [uuid])
-  (get-word-low    [uuid])
-  (hash-code       [uuid])
-  (get-version     [uuid])
-  (to-string       [uuid])
-  (to-hex-string   [uuid])
-  (to-urn-string   [uuid])
+
+(defprotocol UUIDNameBytes
+  (^bytes as-byte-array [x] "extract a byte serialization that
+  represents the 'name' of x, typically unique within a given
+  namespace."))
+
+(defprotocol UUIDable
+  (^UUID    as-uuid   [x] "coerce the value 'x' to a UUID.")
+  (^Boolean uuidable? [x] "return 'true' if 'x'represents a UUID."))
+  
+(defprotocol UUIDRfc4122
+  (^Boolean null?  [uuid])
+  (^Boolean uuid?  [x] "return true if 'x' is an instance of java.util.UUID.")
+  (^Boolean uuid=  [x y])
+  (^Boolean uuid<  [x y])
+  (^long get-word-high   [uuid])
+  (^long get-word-low    [uuid])
+  (^long hash-code       [uuid])
+  (^long get-version     [uuid])
+  (^String to-string     [uuid])
+  (^String to-hex-string [uuid])
+  (^String to-urn-string [uuid])
   (to-octet-vector [uuid])
   (to-byte-vector  [uuid])
-  (to-byte-array   [uuid])
-  (to-uri          [uuid])
-  (get-time-low    [uuid])
-  (get-time-mid    [uuid])
-  (get-time-high   [uuid])
-  (get-clk-low     [uuid])
-  (get-clk-high    [uuid])
+  (^bytes to-byte-array   [uuid])
+  (^URI to-uri          [uuid])
+  (^long get-time-low    [uuid])
+  (^long get-time-mid    [uuid])
+  (^long get-time-high   [uuid])
+  (^long get-clk-low     [uuid])
+  (^long get-clk-high    [uuid])
   (get-node-id     [uuid])
   (get-timestamp   [uuid]))
 
@@ -154,13 +165,22 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (extend-type UUID
-  
-  UniqueIdentifier
 
-  (as-uuid [u] u)
+  UUIDable
+  (as-uuid   [u] u)
+  (uuidable? [_] true)
+  
+  UUIDRfc4122
+
   (uuid? [_] true)
-  (uuid= [x y]
+  (uuid= [x ^UUID y]
     (.equals x y))
+  (uuid< [x ^UUID y]
+    (let [xh (.getMostSignificantBits x)
+          yh (.getMostSignificantBits y)]
+      (or (< xh yh)
+        (and (= xh yh) (< (.getLeastSignificantBits x)
+                         (.getLeastSignificantBits y))))))
   (get-word-high [uuid]
     (.getMostSignificantBits uuid))
   (get-word-low [uuid]
@@ -203,11 +223,12 @@
   (get-timestamp [uuid]
     (when (= 1 (get-version uuid))
       (.timestamp uuid)))
-
+  
   UUIDNameBytes
   
   (as-byte-array [this]
     (to-byte-array this)))
+
 
 
 
@@ -312,10 +333,55 @@
     (UUID. timed-msb lsb)))
 
 
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Namespaced UUIDs
+;; "Local-Part" Representation
+;;
+;; The following represent a default set of local-part encoding rules.  As a
+;; default, a plain byte-array will be passed through unchanged and a
+;; generic java.lang.Object is represented by the bytes of its serialization.
+;; Strings are represented using UTF8 encoding.  URL's are digested as the
+;; UTF bytes of their string representation.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(def ^:private ByteArray (class (byte-array 0)))
+
+(extend-protocol UUIDNameBytes
+
+  java.lang.Object
+  (^bytes as-byte-array [this]
+    (if (instance? ByteArray this)
+      this
+      (let [baos (ByteArrayOutputStream.)
+            oos  (ObjectOutputStream. baos)]
+        (.writeObject oos this)
+        (.close oos)
+        (.toByteArray baos))))
+
+  java.lang.String
+  (^bytes as-byte-array [this]
+    (compile-if (neg? (compare (System/getProperty "java.version") "1.7"))
+      (.getBytes this)
+      (.getBytes this java.nio.charset.StandardCharsets/UTF_8)))
+
+  java.net.URL
+  (^bytes as-byte-array [this]
+    (as-byte-array (.toString this))))
+ 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Digest Instance
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- ^MessageDigest make-digest [^String designator]
+  (MessageDigest/getInstance designator))
+
+(defn- ^bytes digest-bytes  [^String kind ^bytes ns-bytes ^bytes local-bytes]
+  (let [^MessageDigest m (make-digest kind)]    
+    (.update m ns-bytes)
+    (.digest m local-bytes)))
 
 (defn- ^UUID build-digested-uuid [^long version ^bytes arr]
   {:pre [(or (= version 3) (= version 5))]}   
@@ -327,24 +393,28 @@
      (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Namespaced UUIDs
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 (defn ^UUID v3
-  "Generate a v3 (name based, MD5 hash) UUID."
-  [^UUID context local-part]
+  "Generate a v3 (name based, MD5 hash) UUID. 'context' must be UUIDable."
+  [context local-part]
   (build-digested-uuid 3
-    (digest/digest-bytes digest/+md5+
+    (digest-bytes +md5+
       (to-byte-array (as-uuid context))
-      (as-byte-array ^UUIDNameBytes local-part))))
+      (as-byte-array local-part))))
 
 
 
 (defn ^UUID v5
-  "Generate a v5 (name based, SHA1 hash) UUID."
-  [^UUID context local-part]
+  "Generate a v5 (name based, SHA1 hash) UUID. 'context' must be UUIDable."
+  [context local-part]
   (build-digested-uuid 5
-    (digest/digest-bytes digest/+sha1+
+    (digest-bytes +sha1+
       (to-byte-array (as-uuid context))
-      (as-byte-array ^UUIDNameBytes local-part))))
+      (as-byte-array local-part))))
 
 
 
@@ -364,7 +434,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; UUID Polymorphisn
+;; UUID Polymorphism
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn- str->uuid [s]
@@ -373,30 +443,30 @@
     (uuid-urn-string? s) (UUID/fromString (subs s 9))
     :else                (exception "invalid UUID")))
 
+(extend-protocol UUIDRfc4122
+  Object
+  (uuid? [x] false))
 
-(extend-protocol UniqueIdentifier
-  String  
-  (uuid? [s]
+(extend-protocol UUIDable
+  String 
+  (uuidable? [s]
     (or
      (uuid-string?     s)
      (uuid-urn-string? s)))
   (as-uuid [s]
     (str->uuid s))
-  clojure.lang.PersistentVector
-  (uuid? [v]
-    (uuid-vec? v))
-  clojure.core.Vec
-  (uuid? [v]
-    (uuid-vec? v))
+
   URI
-  (uuid? [u]
+  (uuidable? [u]
     (uuid-urn-string? (str u)))
   (as-uuid [u]
     (str->uuid (str u)))
+  
   Object
-  (uuid? [_]
+  (uuidable? [_]
     false)
   (as-uuid [_]
-    (exception IllegalArgumentException "Cannot be cast to UUID")))
+    (exception IllegalArgumentException "Cannot be coerced to UUID.")))
 
- (set! *warn-on-reflection* false)
+ 
+(set! *warn-on-reflection* false)
