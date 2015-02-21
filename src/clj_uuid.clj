@@ -277,7 +277,9 @@
                     (bitmop/ldb (bitmop/mask 6 8) +clock-seq+) 0x2)
         clk-low   (bitmop/ldb (bitmop/mask 8 0) +clock-seq+)
         lsb       (bitmop/assemble-bytes
-                    (concat [clk-high clk-low] node/+node-id+))]
+                    (->> node/+node-id+
+                      (cons clk-low)
+                      (cons clk-high)))]
     (UUID. msb lsb)))
 
 

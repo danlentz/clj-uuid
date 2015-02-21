@@ -177,7 +177,7 @@ faster than calling the JVM's built-in static method for generating ids,
 user> (criterium.core/bench (uuid/v1))
 
 Evaluation count : 51250020 in 60 samples of 854167 calls.
-Execution time mean : 1.204272 µs
+Execution time mean :  1.130674 µs
 
 ```
 
