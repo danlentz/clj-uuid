@@ -28,8 +28,11 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Timing and Performance Metric
+;; Conditional Compilation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn java6? []
+  (neg? (compare (System/getProperty "java.version") "1.7")))
 
 (defmacro compile-if
   "Evaluate `exp` and if it returns logical true and doesn't error, expand to
