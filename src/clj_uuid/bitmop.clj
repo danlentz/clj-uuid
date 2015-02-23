@@ -47,10 +47,22 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Bit-masking
+;;
+;; So, much of the pain involved in handling UUID's correctly on the JVM
+;; relates to the fact that there is no primitive unsigned numeric type
+;; that can represent the full range of possible values of the msb and lsb.
+;; Ie., we need to always deal with the unpleasant "am I negative?" approach to
+;; reading (writing) that 64th bit.  To avoid the complexity of all the 
+;; edge cases, we encapsulate the basic primitives of working with
+;; unsigned numbers entirely within the abstraction of "mask" and
+;; "mask offset".  Using these, we built the two fundamental bitwise operations
+;; that are used for most of the UUID calculation: ldb (load-byte) and
+;; dpb (deposit-byte).
+;;
+;; This bitmop library is extremely useful for working with unsigned
+;; binary values on the JVM.  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; {:pre [(not (neg? width)) (not (neg? offset))
-;;        (<= width 64) (< offset 64)]}
 
 (defn ^long mask [^long width ^long offset]
   (if (< (+ width offset) 64)
@@ -80,7 +92,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Fundamental Bitwise Operations
+;; LDB, DPB: Fundamental Bitwise Operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ^long ldb
