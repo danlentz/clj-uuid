@@ -8,7 +8,10 @@ clj-uuid
 * * * * * *
 
 **clj-uuid** is a Clojure library for generation and utilization of
-UUIDs (Universally Unique Identifiers) as described by RFC-4122.
+UUIDs (Universally Unique Identifiers) as described by RFC-4122.  
+The intent of UUIDs is to enable distributed systems to uniquely 
+identify information without significant central coordination.
+
 This library extends the standard Java UUID class to provide true v1
 (time based) and v3/v5 (namespace based) identifier generation.
 Additionally, a number of useful supporting utilities are provided to
@@ -511,7 +514,6 @@ _(function)_    `squuid []`
 Copyright © 2015 Dan Lentz
 
 Distributed under the Eclipse Public License version 1.0 
-
 
 
 
