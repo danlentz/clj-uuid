@@ -11,7 +11,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; This turns out to be surprisingly problematic.  I've tried various
-;; approaches.  The most straightforward is the use of IEEE 802.1 MAC Address:
+;; approaches.  The most straightforward is the use of IEEE 802 MAC Address:
 ;;
 ;;     (.getHardwareAddress
 ;;       (java.net.NetworkInterface/getByInetAddress 
