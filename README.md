@@ -1,14 +1,16 @@
 clj-uuid
 ========
 
+> _The intent of the UUID is to enable distributed systems to uniquely_ 
+> _identify information without significant central coordination._
+> [_Wikipedia: UUID_](http://en.wikipedia.org/wiki/Universally_unique_identifier)
+
+* * * * * *
+
 [![Build Status](https://travis-ci.org/danlentz/clj-uuid.svg?branch=master)]
 (https://travis-ci.org/danlentz/clj-uuid)
 [![Dependency Status](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.2-SNAPSHOT/badge.svg)](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.2-SNAPSHOT)
 
-* * * * * *
-
->> The intent of the UUID is to enable distributed systems to uniquely 
->> identify information without significant central coordination.
 
 **clj-uuid** is a Clojure library for generation and utilization of
 UUIDs (Universally Unique Identifiers) as described by IETF RFC4122.  
