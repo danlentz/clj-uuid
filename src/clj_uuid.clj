@@ -421,6 +421,11 @@
 ;; Predicates
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; NOTE: (not (nil? ...)) avoids returning some generalized boolean value that
+;; might be counterintuitive to the user, since these functions are exposed
+;; as user api.
+
+
 (defn uuid-string? [str]
   (not (nil? (re-matches uuid-regex str))))
 
