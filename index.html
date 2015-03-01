@@ -31,14 +31,22 @@
         <h1>
 <a id="clj-uuid" class="anchor" href="#clj-uuid" aria-hidden="true"><span class="octicon octicon-link"></span></a>clj-uuid</h1>
 
-<p><a href="https://travis-ci.org/danlentz/clj-uuid"><img src="https://travis-ci.org/danlentz/clj-uuid.svg?branch=master" alt="Build Status"></a>
-<a href="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.2-SNAPSHOT"><img src="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.2-SNAPSHOT/badge.svg" alt="Dependency Status"></a></p>
+<blockquote>
+<p><em>"The intent of the UUID is to enable distributed systems to uniquely</em> 
+<em>identify information without significant central coordination."</em>
+-- <a href="http://en.wikipedia.org/wiki/Universally_unique_identifier"><em>Wikipedia/UUID</em></a></p>
+</blockquote>
 
 <hr>
 
+<p><a href="https://travis-ci.org/danlentz/clj-uuid"><img src="https://travis-ci.org/danlentz/clj-uuid.svg?branch=master" alt="Build Status"></a>
+<a href="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.2-SNAPSHOT"><img src="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.2-SNAPSHOT/badge.svg" alt="Dependency Status"></a></p>
+
 <p><strong>clj-uuid</strong> is a Clojure library for generation and utilization of
-UUIDs (Universally Unique Identifiers) as described by RFC-4122.
-This library extends the standard Java UUID class to provide true v1
+UUIDs (Universally Unique Identifiers) as described by
+<a href="http://www.ietf.org/rfc/rfc4122.txt"><strong>IETF RFC4122</strong></a>.</p>
+
+<p>This library extends the standard Java UUID class to provide true v1
 (time based) and v3/v5 (namespace based) identifier generation.
 Additionally, a number of useful supporting utilities are provided to
 support serialization and manipulation of these UUIDs in a simple,
