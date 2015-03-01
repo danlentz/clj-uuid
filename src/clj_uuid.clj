@@ -361,7 +361,7 @@
 
   java.lang.String
   (^bytes as-byte-array [this]
-    (compile-if (neg? (compare (System/getProperty "java.version") "1.7"))
+    (compile-if (java6?)
       (.getBytes this)
       (.getBytes this java.nio.charset.StandardCharsets/UTF_8)))
 
