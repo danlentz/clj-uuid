@@ -260,7 +260,7 @@
   "Generate a v1 (time-based) unique identifier, guaranteed to be unique
   and thread-safe regardless of clock precision or degree of concurrency.
   Creation of v1 UUID's does not require any call to a cryptographic 
-  generator and can be accomplished much more efficiently than v1, v3, v5,
+  generator and can be accomplished much more efficiently than v3, v4, v5,
   or squuid's.  A v1 UUID reveals both the identity of the computer that 
   generated the UUID and the time at which it did so.  Its uniqueness across 
   computers is guaranteed as long as MAC addresses are not duplicated."
