@@ -117,8 +117,12 @@
 ;; Monotonic Clock (guaranteed always increasing value for time)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn monotonic-time []
-  (clock/monotonic-time))
+(defn monotonic-time
+ "Return a monotonic timestamp (guaranteed always increasing)  based on 
+ the number of 100-nanosecond intervals since the adoption of the Gregorian 
+ calendar in the West, 12:00am Friday October 15, 1582 UTC."
+ []
+ (clock/monotonic-time))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -127,40 +131,51 @@
 
 
 (defprotocol UUIDNameBytes
-  (^bytes as-byte-array [x] "extract a byte serialization that
+  "A mechanism intended for user-level extension that defines the
+  decoding rules for the local-part representation for arbitrary
+  Clojure / Java Objects when used for computing namespaced
+  identifiers."
+  
+  (^bytes   as-byte-array [x] "extract a byte serialization that
   represents the 'name' of x, typically unique within a given
   namespace."))
 
+
 (defprotocol UUIDable
-  (^UUID    as-uuid   [x] "coerce the value 'x' to a UUID.")
-  (^Boolean uuidable? [x] "return 'true' if 'x'represents a UUID."))
+  ""
   
+  (^UUID    as-uuid   [x] "coerce the value 'x' to a UUID.")
+  (^Boolean uuidable? [x] "return 'true' if 'x' can be coerced to UUID."))
+
+
 (defprotocol UUIDRfc4122
-  (^long hash-code       [uuid])
-  (^Boolean null?        [uuid])
-  (^Boolean uuid?        [x]
+  ""
+  
+  (^Integer hash-code       [uuid])
+  (^Boolean null?           [uuid])
+  (^Boolean uuid?           [x]
     "return true if 'x' is an instance of java.util.UUID.")
   (^Boolean uuid=  [x y])
-  (^Boolean uuid<  [x y])
-  (^long get-word-high   [uuid])
-  (^long get-word-low    [uuid])
-  (^long   get-version   [uuid])
-  (^String to-string     [uuid])
-  (^String to-hex-string [uuid])
-  (^String to-urn-string [uuid])
-  (^bytes  to-byte-array [uuid])
-  (^URI    to-uri        [uuid])
-  (^long get-time-low    [uuid])
-  (^long get-time-mid    [uuid])
-  (^long get-time-high   [uuid])
-  (^long get-clk-low     [uuid])
-  (^long get-clk-high    [uuid])
-  (get-node-id           [uuid])
-  (get-timestamp         [uuid]))
+  (^Boolean uuid<           [x y])
+  (^long    get-word-high   [uuid])
+  (^long    get-word-low    [uuid])
+  (^long    get-version     [uuid])
+  (^String  to-string       [uuid])
+  (^String  to-hex-string   [uuid])
+  (^String  to-urn-string   [uuid])
+  (^bytes   to-byte-array   [uuid])
+  (^URI     to-uri          [uuid])
+  (^long    get-time-low    [uuid])
+  (^long    get-time-mid    [uuid])
+  (^long    get-time-high   [uuid])
+  (^long    get-clk-low     [uuid])
+  (^long    get-clk-high    [uuid])
+  (get-node-id              [uuid])
+  (get-timestamp            [uuid]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; UniqueIdentifier extended UUID
+;; RFC4122 Unique Identifier extended UUID
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (extend-type UUID
@@ -256,6 +271,7 @@
 ;; in the West, 12:00am Friday October 15, 1582 UTC.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
 (defn ^UUID v1
   "Generate a v1 (time-based) unique identifier, guaranteed to be unique
   and thread-safe regardless of clock precision or degree of concurrency.
@@ -276,11 +292,11 @@
         clk-high  (bitmop/dpb (bitmop/mask 2 6)
                     (bitmop/ldb (bitmop/mask 6 8) +clock-seq+) 0x2)
         clk-low   (bitmop/ldb (bitmop/mask 8 0) +clock-seq+)
-        lsb       (bitmop/assemble-bytes
-                    (->> node/+node-id+
-                      (cons clk-low)
-                      (cons clk-high)))]
+        lsb       (bitmop/dpb (bitmop/mask 8 56)
+                    (bitmop/dpb (bitmop/mask 8 48)
+                      node/+node-id+ clk-low) clk-high)]
     (UUID. msb lsb)))
+
 
 
 

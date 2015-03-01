@@ -1,6 +1,6 @@
 (ns clj-uuid.node
   (:require [clj-uuid.util   :refer [java6? compile-if]])
-  (:require [clj-uuid.bitmop :refer [sb8]])
+  (:require [clj-uuid.bitmop :refer [sb8 assemble-bytes]])
   (:import  [java.net         InetAddress NetworkInterface]
             [java.security    MessageDigest]
             [java.util        Properties]))
@@ -129,5 +129,5 @@
 
 (def node-id   (memoize make-node-id))
 
-(def +node-id+ (node-id))
+(def ^:const +node-id+ (assemble-bytes (cons 0 (cons 0 (node-id)))))
 
