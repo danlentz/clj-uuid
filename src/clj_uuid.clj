@@ -14,10 +14,10 @@
 (set! *warn-on-reflection* true)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; General UUID Representation and Constituent Values
+;; Leach-Salz UUID Representation and Constituent Values (IETF RFC4122)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; The string representation of A UUID has the format:
+;; The string representation of A Leach-Salz UUID has the format:
 ;;
 ;;                                          clock-seq-and-reserved
 ;;                                time-mid  | clock-seq-low
