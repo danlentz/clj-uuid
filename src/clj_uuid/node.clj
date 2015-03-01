@@ -56,7 +56,7 @@
 ;;       0x00  |  0x00 |  0x00 |  0x00 |  0x00 |   0x01      
 ;;                                                      
 ;; Thanks to Datastax and to @jjcomer for submitting the original patch
-;; this current implementation is mostly based on.
+;; from which this current implementation is largely derived.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
  
