@@ -49,7 +49,7 @@
 ;; Bit-masking
 ;;
 ;; So, much of the pain involved in handling UUID's correctly on the JVM
-;; relates to the fact that there is no primitive unsigned numeric type
+;; derives from the fact that there is no primitive unsigned numeric datatype
 ;; that can represent the full range of possible values of the msb and lsb.
 ;; Ie., we need to always deal with the unpleasant "am I negative?" approach to
 ;; reading (writing) that 64th bit.  To avoid the complexity of all the 
@@ -59,8 +59,8 @@
 ;; that are used for most of the UUID calculation: ldb (load-byte) and
 ;; dpb (deposit-byte).
 ;;
-;; This bitmop library is extremely useful for working with unsigned
-;; binary values on the JVM.  
+;; This bitmop library is dead useful for working with unsigned binary
+;; values on the JVM.  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -69,6 +69,7 @@
     (bit-shift-left (dec (bit-shift-left 1 width)) offset)
     (let [x (expt2 offset)]
       (bit-and-not -1 (dec ^long x)))))
+
 
 (declare ^long mask-offset ^long mask-width)
 
@@ -89,6 +90,24 @@
       (if (zero? (bit-and 1 (bit-shift-right m c)))
         c
         (recur m (inc c))))))
+
+
+;;;
+;; (defn- ^long ctz [^long i ^long a ^long r]
+;;   (if (zero? i)
+;;     (if (zero? (bit-and a 1)) (inc r) r)
+;;     (let [j (dec  i) j2 (expt2 j) j4 (expt2 j2)]
+;;       (if (zero? ^long (bit-and  a (dec ^long j4)))
+;;         (let [x  (>>>  a ^long j2)]
+;;           (recur j x  (+  r ^long j2)))
+;;           (recur j a r)))))
+;;
+;; (defn ^long mask-offset [^long m]
+;;   (let [mask-low (unchecked-int m)]
+;;     (if (zero? mask-low)
+;;       (+ 32 (unchecked-long (ctz 5 (>>> m 32) 0)))
+;;       (ctz 5 mask-low 0))))
+;;;
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
