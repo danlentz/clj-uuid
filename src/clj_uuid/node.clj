@@ -6,6 +6,31 @@
             [java.util        Properties]))
 
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; NodeID Representation
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; The representation of NodeID used for consutruction of time-based (v1) UUIDs
+;; is a LIST with the following encoding semantics:
+;;
+;;               SIZE    TYPE      REPRESENTATION
+;;  -----------+------+---------+---------------------------------------------
+;;  node       |    6 |  ub48   |  (<BYTE> <BYTE> <BYTE> <BYTE> <BYTE> <BYTE>)
+;;
+;; The reason that a list of bytes is used is that the v1 lsb computation
+;; requires prepending two other (computed) bytes to the node-id before
+;; bitwise assembly.  A list is an efficient, immutable data structure that
+;; can be continually reused for the calculation by simply 'cons'ing twice to
+;; the head of the list and then quick, linear scan of the resulting eight
+;; bytes to construct the final ^long lsb.  
+;; 
+;;  (cons clock-high (cons clock-low +node-id+))
+;;
+;;  
+;;      ( <BYTE> . <BYTE> . <BYTE> <BYTE> <BYTE> <BYTE> <BYTE> <BYTE>)
+;;
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; NodeID Calculation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
