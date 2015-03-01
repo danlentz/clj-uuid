@@ -77,7 +77,8 @@
 ;; in the above excerpt refers to network transmission order, and we
 ;; 'bit-or' the corresponding bytes:
 ;;                                                      
-;;     hi-byte | byte5 | byte4 | byte3 | byte2 | lo-byte    
+;;     hi-byte | byte5 | byte4 | byte3 | byte2 | lo-byte
+;;    ---------+-------+-------+-------+-------+---------
 ;;       0x00  |  0x00 |  0x00 |  0x00 |  0x00 |   0x01      
 ;;                                                      
 ;; Thanks to Datastax and to @jjcomer for submitting the original patch
