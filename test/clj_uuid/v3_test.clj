@@ -22,7 +22,7 @@
           #uuid "14CDB9B4-DE01-3FAA-AFF5-65BC2F771745"))))
 
 
-(def +v3-null-cases+
+(def +v3-null-ns-cases+
   '((" !\"#$%&'()*+,-./0123456789" #uuid "84527A03-63CA-381A-8AFB-CF4244EF61FE")
     ("!\"#$%&'()*+,-./0123456789:" #uuid "50D816D1-EEBA-3CA5-9C84-2C1C81EA53EF")
     ("\"#$%&'()*+,-./0123456789:;" #uuid "A52D645C-B81C-3DD9-8AC7-E3B9E27B7399")
@@ -123,11 +123,11 @@
 
 (deftest check-v3-null-ns-cases
   (testing "v3 null-ns case-based correctness..."
-    (doseq [case +v3-null-cases+]
+    (doseq [case +v3-null-ns-cases+]
       (is (= (second case) (v3 +null+ (first case)))))))
 
 
-(def +v3-dns-cases+
+(def +v3-dns-ns-cases+
   '((" !\"#$%&'()*+,-./0123456789" #uuid "8502CBB1-B406-39A3-AC93-00AE0DC70F89")
     ("!\"#$%&'()*+,-./0123456789:" #uuid "5CD1F6D6-BDE7-3951-B13A-A09645DC80B4")
     ("\"#$%&'()*+,-./0123456789:;" #uuid "3E5E99E8-0EFB-3F3F-B8A6-873B8EF8F95B")
@@ -228,11 +228,11 @@
 
 (deftest check-v3-dns-ns-cases
   (testing "v3 dns-ns case-based correctness..."
-    (doseq [case +v3-dns-cases+]
+    (doseq [case +v3-dns-ns-cases+]
       (is (= (second case) (v3 +namespace-dns+ (first case)))))))
 
 
-(def +v3-oid-cases+
+(def +v3-oid-ns-cases+
   '((" !\"#$%&'()*+,-./0123456789" #uuid "43D9B705-E75C-31EB-A5AE-89D03DEA6C8A")
     ("!\"#$%&'()*+,-./0123456789:" #uuid "D425D486-816F-310F-9675-D9F0F5568AAD")
     ("\"#$%&'()*+,-./0123456789:;" #uuid "411A971C-E960-3B93-B02D-40E492EAD382")
@@ -333,6 +333,6 @@
 
 (deftest check-v3-oid-ns-cases
   (testing "v3 oid-ns case-based correctness..."
-    (doseq [case +v3-oid-cases+]
+    (doseq [case +v3-oid-ns-cases+]
       (is (= (second case) (v3 +namespace-oid+ (first case)))))))
 
