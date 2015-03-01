@@ -6,8 +6,13 @@
                 identifier generation. Additionally, a number of useful
                 supporting utilities are provided to support serialization
                 and manipulation of these UUIDs in a simple, efficient manner."
+  :author       "Dan Lentz"
   :url          "http://github.com/danlentz/clj-uuid/"
   :license      {:name "Eclipse Public License"
                   :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure                "1.6.0"]
-                 [primitive-math                     "0.1.4"]])
+                 [primitive-math                     "0.1.4"]]
+  :codox    {:output-dir  "doc/api"
+             :src-dir-uri "https://github.com/danlentz/clj-uuid/blob/master/"
+             :src-linenum-anchor-prefix "L"
+             :project {:name "clj-uuid"}})
