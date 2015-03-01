@@ -48,8 +48,15 @@
 ;;     -- [RFC4122:4.5 "Node IDs that do not Identify the Host"]
 ;;
 ;;
-;; We do exactly that.  Thanks to Datastax and to @jjcomer for submitting
-;; the original patch.
+;; We do exactly that.  Taking into account that the term "first octet"
+;; in the above excerpt refers to network transmission order, and we
+;; 'bit-or' the corresponding bytes:
+;;                                                      
+;;     hi-byte | byte5 | byte4 | byte3 | byte2 | lo-byte    
+;;       0x00  |  0x00 |  0x00 |  0x00 |  0x00 |   x01      
+;;                                                      
+;; Thanks to Datastax and to @jjcomer for submitting the original patch
+;; this current implementation is mostly based on.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
  
 
