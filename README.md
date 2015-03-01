@@ -1,9 +1,9 @@
 clj-uuid
 ========
 
-> _The intent of the UUID is to enable distributed systems to uniquely_ 
-> _identify information without significant central coordination._
-> [_Wikipedia: UUID_](http://en.wikipedia.org/wiki/Universally_unique_identifier)
+> _"The intent of the UUID is to enable distributed systems to uniquely_ 
+> _identify information without significant central coordination."_
+> -- [_Wikipedia/UUID_](http://en.wikipedia.org/wiki/Universally_unique_identifier)
 
 * * * * * *
 
