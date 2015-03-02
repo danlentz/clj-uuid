@@ -175,8 +175,8 @@ user> (uuid/v1)
 ```
 
 
-V1 identifiers are the fastest kind of UUID to generate -- about **350%
-faster than calling the JVM's built-in static method for generating UUIDs**,
+V1 identifiers are the fastest kind of UUID to generate -- about _TEN TIMES
+as fast as calling the JVM's built-in static method for generating UUIDs_,
 `#'java.util.UUID/randomUUID`.
 
 
@@ -184,7 +184,7 @@ faster than calling the JVM's built-in static method for generating UUIDs**,
 user> (criterium.core/bench (uuid/v1))
 
 Evaluation count: 139356300 in 60 samples of 2322605 calls.
-Execution time mean: 443.707611 ns
+Execution time mean: 201.153073 ns
 
 
 user> (criterium/bench (java.util.UUID/randomUUID))
