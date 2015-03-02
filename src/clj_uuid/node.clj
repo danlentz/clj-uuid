@@ -1,6 +1,7 @@
 (ns clj-uuid.node
-  (:require [clj-uuid.util   :refer [java6? compile-if]])
-  (:require [clj-uuid.bitmop :refer [sb8 assemble-bytes]])
+  (:require [clj-uuid.util      :refer [java6? compile-if]])
+  (:require [clj-uuid.bitmop    :refer [sb8 assemble-bytes ldb dpb mask]])
+  (:require [clj-uuid.constants :refer [+clock-seq+]])
   (:import  [java.net         InetAddress NetworkInterface]
             [java.security    MessageDigest]
             [java.util        Properties]))
@@ -127,7 +128,13 @@
 ;; Public NodeID API
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def node-id   (memoize make-node-id))
+(def node-id
+  (memoize make-node-id))
 
-(def ^:const +node-id+ (assemble-bytes (cons 0 (cons 0 (node-id)))))
+(def ^:const +node-id+
+  (assemble-bytes (cons 0 (cons 0 (node-id)))))
 
+(def ^:const +v1-lsb+
+  (let [clk-high  (dpb (mask 2 6) (ldb (mask 6 8) +clock-seq+) 0x2)
+        clk-low   (ldb (mask 8 0) +clock-seq+)]
+    (dpb (mask 8 56) (dpb (mask 8 48) +node-id+ clk-low) clk-high)))

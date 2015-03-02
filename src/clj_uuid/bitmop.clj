@@ -55,9 +55,9 @@
 ;; reading (writing) that 64th bit.  To avoid the complexity of all the 
 ;; edge cases, we encapsulate the basic primitives of working with
 ;; unsigned numbers entirely within the abstraction of "mask" and
-;; "mask offset".  Using these, we built the two fundamental bitwise operations
-;; that are used for most of the UUID calculation: ldb (load-byte) and
-;; dpb (deposit-byte).
+;; "mask offset".  Using these, we built the two fundamental unsigned
+;; bitwise operations that are used for most of the UUID calculation:
+;; ldb (load-byte) and dpb (deposit-byte).
 ;;
 ;; This bitmop library is dead useful for working with unsigned binary
 ;; values on the JVM.  

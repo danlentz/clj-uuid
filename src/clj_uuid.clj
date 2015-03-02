@@ -288,14 +288,8 @@
                     (bitmop/ldb (bitmop/mask 12 48) ts) 0x1)
         msb       (bit-or time-high
                    (bit-shift-left time-low 32)
-                   (bit-shift-left time-mid 16))
-        clk-high  (bitmop/dpb (bitmop/mask 2 6)
-                    (bitmop/ldb (bitmop/mask 6 8) +clock-seq+) 0x2)
-        clk-low   (bitmop/ldb (bitmop/mask 8 0) +clock-seq+)
-        lsb       (bitmop/dpb (bitmop/mask 8 56)
-                    (bitmop/dpb (bitmop/mask 8 48)
-                      node/+node-id+ clk-low) clk-high)]
-    (UUID. msb lsb)))
+                   (bit-shift-left time-mid 16))]
+    (UUID. msb node/+v1-lsb+)))
 
 
 
