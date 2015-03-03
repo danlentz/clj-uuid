@@ -118,8 +118,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn monotonic-time
- "Return a monotonic timestamp (guaranteed always increasing)  based on 
- the number of 100-nanosecond intervals since the adoption of the Gregorian 
+ "Return a monotonic timestamp (guaranteed always increasing)  based on
+ the number of 100-nanosecond intervals since the adoption of the Gregorian
  calendar in the West, 12:00am Friday October 15, 1582 UTC."
  []
  (clock/monotonic-time))
@@ -135,7 +135,7 @@
   decoding rules for the local-part representation for arbitrary
   Clojure / Java Objects when used for computing namespaced
   identifiers."
-  
+
   (^bytes   as-byte-array [x] "extract a byte serialization that
   represents the 'name' of x, typically unique within a given
   namespace."))
@@ -143,14 +143,14 @@
 
 (defprotocol UUIDable
   ""
-  
+
   (^UUID    as-uuid   [x] "coerce the value 'x' to a UUID.")
   (^Boolean uuidable? [x] "return 'true' if 'x' can be coerced to UUID."))
 
 
 (defprotocol UUIDRfc4122
   ""
-  
+
   (^Integer hash-code       [uuid])
   (^Boolean null?           [uuid])
   (^Boolean uuid?           [x]
@@ -183,7 +183,7 @@
   UUIDable
   (as-uuid   [u] u)
   (uuidable? [_] true)
-  
+
   UUIDRfc4122
 
   (uuid? [_] true)
@@ -237,9 +237,9 @@
   (get-timestamp [uuid]
     (when (= 1 (get-version uuid))
       (.timestamp uuid)))
-  
+
   UUIDNameBytes
-  
+
   (as-byte-array [this]
     (to-byte-array this)))
 
@@ -275,10 +275,10 @@
 (defn ^UUID v1
   "Generate a v1 (time-based) unique identifier, guaranteed to be unique
   and thread-safe regardless of clock precision or degree of concurrency.
-  Creation of v1 UUID's does not require any call to a cryptographic 
+  Creation of v1 UUID's does not require any call to a cryptographic
   generator and can be accomplished much more efficiently than v3, v4, v5,
-  or squuid's.  A v1 UUID reveals both the identity of the computer that 
-  generated the UUID and the time at which it did so.  Its uniqueness across 
+  or squuid's.  A v1 UUID reveals both the identity of the computer that
+  generated the UUID and the time at which it did so.  Its uniqueness across
   computers is guaranteed as long as MAC addresses are not duplicated."
   []
   (let [ts        (clock/monotonic-time)
@@ -291,7 +291,43 @@
                    (bit-shift-left time-mid 16))]
     (UUID. msb node/+v1-lsb+)))
 
+(defn ^UUID v1-peval-ldb
+  "Generate a v1 (time-based) unique identifier, guaranteed to be unique
+  and thread-safe regardless of clock precision or degree of concurrency.
+  Creation of v1 UUID's does not require any call to a cryptographic
+  generator and can be accomplished much more efficiently than v3, v4, v5,
+  or squuid's.  A v1 UUID reveals both the identity of the computer that
+  generated the UUID and the time at which it did so.  Its uniqueness across
+  computers is guaranteed as long as MAC addresses are not duplicated."
+  []
+  (let [ts        (clock/monotonic-time)
+        time-low  (bitmop/ldb-32-0 ts)
+        time-mid  (bitmop/ldb-16-32 ts)
+        time-high (bitmop/dpb (bitmop/mask 4 12)
+                    (bitmop/ldb-12-48 ts) 0x1)
+        msb       (bit-or time-high
+                   (bit-shift-left time-low 32)
+                   (bit-shift-left time-mid 16))]
+    (UUID. msb node/+v1-lsb+)))
 
+(defn ^UUID v1-peval-both
+  "Generate a v1 (time-based) unique identifier, guaranteed to be unique
+  and thread-safe regardless of clock precision or degree of concurrency.
+  Creation of v1 UUID's does not require any call to a cryptographic
+  generator and can be accomplished much more efficiently than v3, v4, v5,
+  or squuid's.  A v1 UUID reveals both the identity of the computer that
+  generated the UUID and the time at which it did so.  Its uniqueness across
+  computers is guaranteed as long as MAC addresses are not duplicated."
+  []
+  (let [ts        (clock/monotonic-time)
+        time-low  (bitmop/ldb-32-0 ts)
+        time-mid  (bitmop/ldb-16-32 ts)
+        time-high (bitmop/dpb-4-12
+                    (bitmop/ldb-12-48 ts) 0x1)
+        msb       (bit-or time-high
+                   (bit-shift-left time-low 32)
+                   (bit-shift-left time-mid 16))]
+    (UUID. msb node/+v1-lsb+)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -319,7 +355,6 @@
     (UUID.
       (bitmop/dpb (bitmop/mask 4 12) msb 0x4)
       (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SQUUID (sequential) UUID Constructor
@@ -378,7 +413,7 @@
   java.net.URL
   (^bytes as-byte-array [this]
     (as-byte-array (.toString this))))
- 
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -389,12 +424,12 @@
   (MessageDigest/getInstance designator))
 
 (defn- ^bytes digest-bytes  [^String kind ^bytes ns-bytes ^bytes local-bytes]
-  (let [^MessageDigest m (make-digest kind)]    
+  (let [^MessageDigest m (make-digest kind)]
     (.update m ns-bytes)
     (.digest m local-bytes)))
 
 (defn- ^UUID build-digested-uuid [^long version ^bytes arr]
-  {:pre [(or (= version 3) (= version 5))]}   
+  {:pre [(or (= version 3) (= version 5))]}
   (let [msb (bitmop/bytes->long arr 0)
         lsb (bitmop/bytes->long arr 8)]
     (UUID.
@@ -462,7 +497,7 @@
   (uuid? [x] false))
 
 (extend-protocol UUIDable
-  String 
+  String
   (uuidable? [s]
     (or
      (uuid-string?     s)
@@ -475,12 +510,12 @@
     (uuid-urn-string? (str u)))
   (as-uuid [u]
     (str->uuid (str u)))
-  
+
   Object
   (uuidable? [_]
     false)
   (as-uuid [x]
     (exception IllegalArgumentException x "Cannot be coerced to UUID.")))
 
- 
+
 (set! *warn-on-reflection* false)
