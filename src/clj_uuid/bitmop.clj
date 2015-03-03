@@ -52,7 +52,7 @@
 ;; derives from the fact that there is no primitive unsigned numeric datatype
 ;; that can represent the full range of possible values of the msb and lsb.
 ;; Ie., we need to always deal with the unpleasant "am I negative?" approach to
-;; reading (writing) that 64th bit.  To avoid the complexity of all the 
+;; reading (writing) that 64th bit.  To avoid the complexity of all the
 ;; edge cases, we encapsulate the basic primitives of working with
 ;; unsigned numbers entirely within the abstraction of "mask" and
 ;; "mask offset".  Using these, we built the two fundamental unsigned
@@ -60,7 +60,7 @@
 ;; ldb (load-byte) and dpb (deposit-byte).
 ;;
 ;; This bitmop library is dead useful for working with unsigned binary
-;; values on the JVM.  
+;; values on the JVM.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -114,12 +114,38 @@
 ;; LDB, DPB: Fundamental Bitwise Operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defmacro def-ldb [width offset]
+  `(let [bitmask# (long ~(mask width offset))
+         off# (long (mask-offset bitmask#))
+         moff# (long (>>> bitmask# off#))]
+     (defn ^long ~(symbol (str "ldb-" width "-" offset))
+       "Load Byte"
+       [^long num#]
+       (bit-and moff# (bit-shift-right num# off#)))))
+
+(def-ldb 32 0)
+(def-ldb 16 32)
+(def-ldb 12 48)
+
 (defn ^long ldb
   "Load Byte"
   [^long bitmask ^long num]
   (let [off (mask-offset bitmask)]
     (bit-and (>>> bitmask ^long off)
       (bit-shift-right num off))))
+
+(defmacro def-dpb [width offset]
+  `(let [bitmask# (long ~(mask width offset))
+         moff# (long (mask-offset bitmask#))]
+     (defn ^long ~(symbol (str "dpb-" width "-" offset))
+       "deposit byte"
+       [^long num# ^long value#]
+       (bit-or (bit-and-not num# bitmask#)
+               (bit-and bitmask#
+                        (bit-shift-left value# moff#))))))
+
+(def-dpb 4 12)
+(def-dpb 2 62)
 
 (defn ^long dpb
   "Deposit Byte"
