@@ -9,7 +9,7 @@ clj-uuid
 
 [![Build Status](https://travis-ci.org/danlentz/clj-uuid.svg?branch=master)]
 (https://travis-ci.org/danlentz/clj-uuid)
-[![Dependency Status](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.2-SNAPSHOT/badge.svg)](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.2-SNAPSHOT)
+[![Dependency Status](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.3-SNAPSHOT/badge.svg)](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.3-SNAPSHOT)
 
 
 **clj-uuid** is a Clojure library for generation and utilization of
@@ -416,8 +416,8 @@ used in the graph-object database system
 
 ### A Simple Example
 
-Ok, so now you know how to use this nifty new UUID library and your are
-burning up to do somthing awesome with UUID's... But, ah, hmmm... First
+Ok, so now you know how to use this nifty new UUID library and you are
+burning up to do something awesome with UUID's... But, ah, hmmm... First
 you need to figure out what exactly you want to do with them.  Well,
 before you start working on your distributed cloud-based secret
 weapon, here is a simple way you can generate cryptographically

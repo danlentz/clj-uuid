@@ -7,9 +7,11 @@
              [clock     :as clock]
              [node      :as node]])
   (:import [java.security MessageDigest]
-           [java.io ByteArrayOutputStream ObjectOutputStream]
-           [java.net  URI URL]
-           [java.util UUID]))
+           [java.io       ByteArrayOutputStream
+                          ObjectOutputStream]
+           [java.net      URI
+                          URL]
+           [java.util     UUID]))
 
 (set! *warn-on-reflection* true)
 

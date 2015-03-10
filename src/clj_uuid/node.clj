@@ -88,6 +88,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
  
 
+(def ^:private datasources ["java.vendor"
+                            "java.vendor.url"
+                            "java.version"
+                            "os.arch"
+                            "os.name"
+                            "os.version"])
 
 (defn- all-local-addresses []
   (let [^InetAddress local-host (InetAddress/getLocalHost)
@@ -110,9 +116,7 @@
           ^Properties    props  (System/getProperties)
           to-digest (reduce (fn [acc key]
                               (conj acc (.getProperty props key)))
-                      addresses ["java.vendor" "java.vendor.url"
-                                 "java.version" "os.arch"
-                                 "os.name" "os.version"])]
+                      addresses datasources)]
       (doseq [^String d to-digest]
         (compile-if (java6?)
           (.update digest (.getBytes d))
