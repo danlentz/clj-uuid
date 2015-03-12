@@ -39,8 +39,7 @@ identifiers to a wider audience.
 
 With Leiningen:
 
-![Clojars Project](http://clojars.org/danlentz/clj-uuid/latest-version.svg)
-
+[![Clojars Project](http://clojars.org/danlentz/clj-uuid/latest-version.svg)](http://clojars.org/danlentz/clj-uuid)
 
 ### How is it better?
 
@@ -559,6 +558,5 @@ _(function)_    `squuid []`
 Copyright © 2015 Dan Lentz
 
 Distributed under the Eclipse Public License version 1.0 
-
 
 
