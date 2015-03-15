@@ -413,8 +413,8 @@ user> (-> uuid/+namespace-dns+
 This capability can be used to represent uniqueness of a sequence of
 computations in, for example, a transaction system such as the one
 used in the graph-object database system
-[de.setf.resource](http://github.com/lisp/de.setf.resource/) or the
-[CQRS/ES (Command Query Responsibility Segregation / Event Sourcing) Server](http://yuppiechef.github.io/cqrs-server/). 
+[de.setf.resource](http://github.com/lisp/de.setf.resource/) or this
+interesting new [CQRS/ES Server](http://yuppiechef.github.io/cqrs-server/). 
 
 ### A Simple Example
 
@@ -529,7 +529,7 @@ _(function)_    `v4 [^long msb, ^long lsb]`
 >       => #uuid "00000000-0000-0000-0000-000000000000"
 
 
-_(function)_    `v5 [^UUID namespace ^String local-name]`
+_(function)_    `v5 [^UUID namespace ^Object local-name]`
 
 >  Generate a v5 (name based, SHA1 hash) UUID.
 
