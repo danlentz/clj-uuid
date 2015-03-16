@@ -121,8 +121,8 @@
 
 (defn monotonic-time
  "Return a monotonic timestamp (guaranteed always increasing)  based on 
- the number of 100-nanosecond intervals since the adoption of the Gregorian 
- calendar in the West, 12:00am Friday October 15, 1582 UTC."
+ the number of 100-nanosecond intervals elapsed since the adoption of the 
+ Gregorian calendar in the West, 12:00am Friday October 15, 1582 UTC."
  []
  (clock/monotonic-time))
 
@@ -134,20 +134,18 @@
 
 (defprotocol UUIDNameBytes
   "A mechanism intended for user-level extension that defines the
-  decoding rules for the local-part representation for arbitrary
+  decoding rules for the local-part representation of arbitrary
   Clojure / Java Objects when used for computing namespaced
-  identifiers."
-  
+  identifiers."  
   (^bytes   as-byte-array [x] "extract a byte serialization that
   represents the 'name' of x, typically unique within a given
   namespace."))
 
 
 (defprotocol UUIDable
-  "A UUIDable class directly represents a UUID.  Examples of things which
+  "A UUIDable object directly represents a UUID.  Examples of things which
   might be conceptually 'uuidable' include string representation of a
-  UUID in canonical hex format, or an appropriate URN URI."
-  
+  UUID in canonical hex format, or an appropriate URN URI."  
   (^UUID    as-uuid   [x] "coerce the value 'x' to a UUID.")
   (^Boolean uuidable? [x] "return 'true' if 'x' can be coerced to UUID."))
 
