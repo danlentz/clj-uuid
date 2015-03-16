@@ -144,7 +144,9 @@
 
 
 (defprotocol UUIDable
-  ""
+  "A UUIDable class directly represents a UUID.  Examples of things which
+  might be conceptually 'uuidable' include string representation of a
+  UUID in canonical hex format, or an appropriate URN URI."
   
   (^UUID    as-uuid   [x] "coerce the value 'x' to a UUID.")
   (^Boolean uuidable? [x] "return 'true' if 'x' can be coerced to UUID."))
