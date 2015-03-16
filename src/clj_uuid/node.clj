@@ -109,7 +109,6 @@
     (reduce conj network-interfaces
       (map str (InetAddress/getAllByName host-name)))))
 
-
 (defn- make-node-id []
     (let [addresses (all-local-addresses)
           ^MessageDigest digest (MessageDigest/getInstance "MD5")
