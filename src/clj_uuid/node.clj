@@ -1,5 +1,5 @@
 (ns clj-uuid.node
-  (:require [clj-uuid.util      :refer [java6? compile-if]])
+  (:require [clj-uuid.util      :refer [java6? exception compile-if]])
   (:require [clj-uuid.bitmop    :refer [sb8 assemble-bytes ldb dpb mask]])
   (:require [clj-uuid.constants :refer [+clock-seq+]])
   (:import  [java.net         InetAddress NetworkInterface]
@@ -100,12 +100,12 @@
         host-name (.getCanonicalHostName local-host)
         base-addresses #{(str local-host) host-name}
         network-interfaces (reduce (fn [acc ^NetworkInterface ni]
-                                     (apply conj acc
+                                     (concat acc
                                        (map str (enumeration-seq
                                                   (.getInetAddresses ni)))))
                              base-addresses
                              (enumeration-seq
-                               (NetworkInterface/getNetworkInterfaces)))]
+                               (NetworkInterface/getNetworkInterfaces)))]    
     (reduce conj network-interfaces
       (map str (InetAddress/getAllByName host-name)))))
 
@@ -124,7 +124,10 @@
             (.getBytes d java.nio.charset.StandardCharsets/UTF_8))))
       (map bit-or
         [0x00 0x00 0x00 0x00 0x00 0x01]
-        (take 6 (seq (.digest digest))))))
+        (take 6
+          (try (seq (.digest digest))
+               (catch Exception _
+                 (repeatedly 6 (rand-int 256))))))))
 
 
 
