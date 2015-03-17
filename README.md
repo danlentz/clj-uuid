@@ -603,12 +603,14 @@ _(protocol)_    `UUIDRfc4122`
 > _(member)_    `null? [self]`
 >
 >>  Return `true` only if `self` has all 128 bits set ot zero and is 
->>  therefore equal to the null UUID, 00000000-0000-0000-0000-000000000000.
+>>  therefore equal to the null UUID, `00000000-0000-0000-0000-000000000000`.
 >
 > _(member)_    `uuid? [self]`
 >
 >> Return `true` if the class of `self` implements an RFC4122 unique identifier.
 >
+
+
 > _(member)_    `get-variant [self]`
 >
 >>  Return the _variant_ number associated with this UUID.  The variant field 
@@ -641,23 +643,29 @@ _(protocol)_    `UUIDRfc4122`
 >>     0x5   Namespaced (SHA1 Digest)
 >>
 >>  In the canonical representation, `xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx`, 
->>  the four bits of M indicate the UUID version (i.e., the hexadecimal `M` 
+>>  the four bits of `M` indicate the UUID version (i.e., the hexadecimal `M` 
 >>  will be either 1, 2, 3, 4, or 5).
 
 
 ### References
 
-* _A Universally Unique IDentifier (UUID) URN Namespace_  [IETF RFC-4122](http://www.ietf.org/rfc/rfc4122.txt)
+* [IETF RFC-4122](http://www.ietf.org/rfc/rfc4122.txt) _A Universally Unique IDentifier (UUID) URN Namespace_ 
 
-* Wikipedia: [_Universally unique identifier_](http://en.wikipedia.org/wiki/Universally_unique_identifier)
+* [Wikipedia/_Universally unique identifier_](http://en.wikipedia.org/wiki/Universally_unique_identifier)
 
-* Reference Implementation: [CL-UUID](http://www.dardoria.net/software/uuid.html)
+* [CL-UUID](http://www.dardoria.net/software/uuid.html) reference implementation 
 
-* Reference Implementation: [UNICLY](https://github.com/mon-key/unicly)
+* [UNICLY](https://github.com/mon-key/unicly) reference implementation
 
-* [java.util.UUID](http://docs.oracle.com/javase/6/docs/api/java/util/UUID.html)
+*
+  [java.util.UUID](http://docs.oracle.com/javase/6/docs/api/java/util/UUID.html) JavaDoc
 
-* [The web of names, hashes and UUIDs](http://joearms.github.io/2015/03/12/The_web_of_names.html)
+* [Java and Unsigned Primitive Datatypes](http://www.darksleep.com/player/JavaAndUnsignedTypes.html)
+
+* [The web of names, hashes, and UUIDs](http://joearms.github.io/2015/03/12/The_web_of_names.html)
+
+* [Coding Katas Clojure -- Bloom Filters](http://blog.find-method.de/index.php?/archives/200-Coding-katas-Clojure-Bloom-filters.html)
+
 
 ### License
 
