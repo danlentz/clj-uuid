@@ -627,7 +627,6 @@ _(protocol)_    `UUIDRfc4122`
 >
 >>  Return the least significant 64 bits of the 128 bit value of UUID `self`.
 >
-
 > _(member)_    `get-variant [self]`
 >
 >>  Return the _variant_ number associated with this UUID.  The variant field 
@@ -643,8 +642,8 @@ _(protocol)_    `UUIDRfc4122`
 >>  In the canonical representation, `xxxxxxxx-xxxx-xxxx-Nxxx-xxxxxxxxxxxx`,
 >>  the most significant bits of N indicate the variant (depending on the
 >>  variant one, two, or three bits are used). The variant covered by RFC4122
->>  is indicated by the two most significant bits of `N` being 1 0 (i.e., the 
->>  hexadecimal `N` will always be 8, 9, A, or B).
+>>  is indicated by the two most significant bits of `N` being `1 0` (i.e., the 
+>>  hexadecimal `N` will always be `8`, `9`, `A`, or `B`).
 >
 > _(member)_    `get-version [self]`
 >
@@ -661,17 +660,47 @@ _(protocol)_    `UUIDRfc4122`
 >>
 >>  In the canonical representation, `xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx`, 
 >>  the four bits of `M` indicate the UUID version (i.e., the hexadecimal `M` 
->>  will be either 1, 2, 3, 4, or 5).
+>>  will be either `1`, `2`, `3`, `4`, or `5`).
+>
+> _(member)_    `get-time-low [self]`
+>
+>>  Return the 32 bit unsigned value that represents the _time-low_ field
+>>  of the _timestamp_ associated with this UUID.
+>
+> _(member)_    `get-time-mid [self]`
+>
+>>  Return the 16 bit unsigned value that represents the _time-mid_ field
+>>  of the _timestamp_ assocaited with this UUID.
+>
+> _(member)_    `get-time-high [self]`
+>
+>>  Return the 16 bit unsigned value that represents the _time-high_ field
+>>  of the _timestamp_ multiplexed with the _version_ of this UUID.
 >
 > _(member)_    `get-clk-seq [self]`
 >
->>  Return the clock-sequence number associated with this UUID. For time-based
->>  UUID's the 'clock-sequence' value is a somewhat counter-intuitively named 
+>>  Return the _clk-seq_ number associated with this UUID. For time-based
+>>  UUID's the _clock-sequence_ value is a somewhat counter-intuitively named 
 >>  seed-value that is used to reduce the potential that duplicate UUID's 
 >>  might be generated under unusual situations, such as if the system hardware
 >>  clock is set backward in time or if, despite all efforts otherwise, a 
->>  duplicate +node-id+ happens to be generated. This value is initialized to 
+>>  duplicate `+node-id+` happens to be generated. This value is initialized to 
 >>  a random 16-bit number once per lifetime of the system.
+>
+> _(member)_    `get-clk-high [self]`
+>
+>>  Return the 8 bit unsigned value that represents the most significant
+>>  byte of the _clk-seq_ multiplexed with the _variant_ of this UUID.
+>
+> _(member)_    `get-clk-low [self]`
+>
+>>  Return the 8 bit unsigned value that represents the least significant
+>>  byte of the _clk-seq_ associated with this UUID.
+>
+> _(member)_    `get-node-id [self]`
+>
+>>  Return the 48 bit unsigned value that represents the spatially unique
+>>  _node identifier_ associated with this UUID.
 
 
 > _(member)_    `hash-code [self]`

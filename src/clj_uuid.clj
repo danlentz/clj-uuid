@@ -237,16 +237,24 @@
     hexadecimal N will always be 8, 9, A, or B).")
 
   (^long    get-time-low    [uuid]
-    "")
+    "Return the 32 bit unsigned value that represents the `time-low` field
+    of the `timestamp` associated with this UUID.")
 
   (^long    get-time-mid    [uuid]
-    "")
+    "Return the 16 bit unsigned value that represents the `time-mid` field
+    of the `timestamp` assocaited with this UUID.")
 
   (^long    get-time-high   [uuid]
-    "")
-
+    "Return the 16 bit unsigned value that represents the `time-high` field
+    of the `timestamp` multiplexed with the `version` of this UUID.")
+  
+  (^long    get-clk-high    [uuid]
+    "Return the 8 bit unsigned value that represents the most significant
+    byte of the `clk-seq` multiplexed with the `variant` of this UUID.")
+  
   (^long    get-clk-low     [uuid]
-    "")
+    "Return the 8 bit unsigned value that represents the least significant
+    byte of the `clk-seq` associated with this UUID.")
 
   (^short   get-clk-seq     [uuid]
     "Return the clock-sequence number associated with this UUID. For time-based
@@ -257,11 +265,9 @@
      duplicate +node-id+ happens to be generated. This value is initialized to 
      a random 16-bit number once per lifetime of the system.")
 
-  (^long    get-clk-high    [uuid]
-    "")
-
   (get-node-id              [uuid]
-    "")
+    "Return the 48 bit unsigned value that represents the spatially unique 
+    node identifier associated with this UUID.")
 
   (get-timestamp            [uuid]
     "")
