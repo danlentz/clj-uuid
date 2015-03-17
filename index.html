@@ -641,14 +641,14 @@ You truly are diabolical.</p>
 <p><em>(member)</em>    <code>uuid&lt; [self other]</code></p>
 
 <blockquote>
-<p>Directly compare two UUID's for <code>&lt;</code> relation based on the ordinal
+<p>Directly compare two UUID's for <code>&lt;</code> relation based on the ordinality
  semantics defined by [RFC4122:3 "RULES FOR LEXICAL EQUIVALENCE"].</p>
 </blockquote>
 
 <p><em>(member)</em>    <code>uuid&gt; [self other]</code></p>
 
 <blockquote>
-<p>Directly compare two UUID's for <code>&gt;</code> relation based on the ordinal
+<p>Directly compare two UUID's for <code>&gt;</code> relation based on the ordinality
  semantics defined by [RFC4122:3 "RULES FOR LEXICAL EQUIVALENCE"].</p>
 </blockquote>
 
@@ -764,6 +764,50 @@ You truly are diabolical.</p>
 <blockquote>
 <p>Return a suitable 64-bit hash value for <code>self</code>.  Extend for
  specialized hash computation.</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>to-byte-array [self]</code></p>
+
+<blockquote>
+<p>Return an array of 16 bytes that represents <code>self</code> as a decomposed 
+ octet serialization encoded in most-significant-byte first order.</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>to-string [self]</code></p>
+
+<blockquote>
+<p>Return a String object that represents <code>self</code> in the canonical 
+ 36 character hexadecimal string format: </p>
+
+<pre><code>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
+</code></pre>
+</blockquote>
+
+<p><em>(member)</em>    <code>to-hex-string [self]</code></p>
+
+<blockquote>
+<p>Return a String object that represents <code>self</code> as the 32 hexadecimal 
+ characters directly encodong the UUID's 128 bit value: </p>
+
+<pre><code>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+</code></pre>
+</blockquote>
+
+<p><em>(member)</em>    <code>to-urn-string [self]</code></p>
+
+<blockquote>
+<p>Return a String object that represents <code>uuid</code> as a the string 
+ serialization of the URN URI based on the canonical 36 character 
+ hex-string representation: </p>
+
+<pre><code>urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+</code></pre>
+</blockquote>
+
+<p><em>(member)</em>    <code>to-uri [self]</code></p>
+
+<blockquote>
+<p>Return the unique URN URI associated with this UUID.</p>
 </blockquote>
 </blockquote>
 
