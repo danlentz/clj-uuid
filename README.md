@@ -657,8 +657,7 @@ _(protocol)_    `UUIDRfc4122`
 
 * [UNICLY](https://github.com/mon-key/unicly) reference implementation
 
-*
-  [java.util.UUID](http://docs.oracle.com/javase/6/docs/api/java/util/UUID.html) JavaDoc
+* [java.util.UUID](http://docs.oracle.com/javase/6/docs/api/java/util/UUID.html) JavaDoc
 
 * [Java and Unsigned Primitive Datatypes](http://www.darksleep.com/player/JavaAndUnsignedTypes.html)
 
