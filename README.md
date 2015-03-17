@@ -461,7 +461,7 @@ You truly are diabolical.
 
 * * * * * *
 
-#### Well-Known Namespace Identifiers
+#### Namespaces
 
 _(var)_         `+null+`
 
@@ -569,6 +569,21 @@ _(protocol)_    `UUIDNameBytes`
 >
 >>  Extract a byte serialization that represents the 'name' of x, 
 >>  typically unique within a given namespace.
+
+
+_(protocol)_    `UUIDable`
+
+>  A UUIDable object directly represents a UUID.  Examples of things which
+>  might be conceptually 'uuidable' include string representation of a
+>  UUID in canonical hex format, or an appropriate URN URI.
+>
+> _(member)_    `as-uuid [self]`
+>
+>>  Coerce the value of self to a java.util.UUID.
+>
+> _(member)_    `uuidable? [self]`
+>
+>>  Return 'true' if 'x' can be coerced to UUID.
 
 
 ### References
