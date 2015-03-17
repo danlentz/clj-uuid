@@ -39,8 +39,7 @@
 
 <hr>
 
-<p><a href="https://travis-ci.org/danlentz/clj-uuid"><img src="https://travis-ci.org/danlentz/clj-uuid.svg?branch=master" alt="Build Status"></a>
-<a href="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.3-SNAPSHOT"><img src="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.3-SNAPSHOT/badge.svg" alt="Dependency Status"></a></p>
+<p><a href="https://travis-ci.org/danlentz/clj-uuid"><img src="https://travis-ci.org/danlentz/clj-uuid.svg?branch=master" alt="Build Status"></a><a href="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.4"><img src="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.4/badge.svg" alt="Dependency Status"></a></p>
 
 <p><strong>clj-uuid</strong> is a Clojure library for generation and utilization of
 UUIDs (Universally Unique Identifiers) as described by
@@ -458,6 +457,9 @@ You truly are diabolical.</p>
 
 <hr>
 
+<h4>
+<a id="namespaces-1" class="anchor" href="#namespaces-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Namespaces</h4>
+
 <p><em>(var)</em>         <code>+null+</code></p>
 
 <blockquote>
@@ -489,6 +491,9 @@ You truly are diabolical.</p>
 </blockquote>
 
 <hr>
+
+<h4>
+<a id="generators" class="anchor" href="#generators" aria-hidden="true"><span class="octicon octicon-link"></span></a>Generators</h4>
 
 <p><em>(function)</em>    <code>v0 []</code></p>
 
@@ -545,7 +550,7 @@ You truly are diabolical.</p>
 <p><em>(function)</em>    <code>squuid []</code></p>
 
 <blockquote>
-<p>"Generate a SQUUID (sequential, random) unique identifier.  SQUUID's
+<p>Generate a SQUUID (sequential, random) unique identifier.  SQUUID's
  are a nonstandard variation on v4 (random) UUIDs that have the
  desirable property that they increase sequentially over time as well
  as encode retrievably the posix time at which they were generated.
@@ -554,18 +559,139 @@ You truly are diabolical.</p>
  significant 32 bits of the UUID</p>
 </blockquote>
 
+<p><em>(function)</em>    <code>monotonic-time []</code></p>
+
+<blockquote>
+<p>Return a monotonic timestamp (guaranteed always increasing)  based on 
+ the number of 100-nanosecond intervals elapsed since the adoption of the 
+ Gregorian calendar in the West, 12:00am Friday October 15, 1582 UTC.</p>
+</blockquote>
+
 <hr>
+
+<h4>
+<a id="protocols" class="anchor" href="#protocols" aria-hidden="true"><span class="octicon octicon-link"></span></a>Protocols</h4>
+
+<p><em>(protocol)</em>    <code>UUIDNameBytes</code></p>
+
+<blockquote>
+<p>A mechanism intended for user-level extension that defines the
+ decoding rules for the local-part representation of arbitrary
+ Clojure / Java Objects when used for computing namespaced
+ identifiers.</p>
+
+<p><em>(member)</em>    <code>as-byte-array [self]</code></p>
+
+<blockquote>
+<p>Extract a byte serialization that represents the 'name' of x, 
+ typically unique within a given namespace.</p>
+</blockquote>
+</blockquote>
+
+<p><em>(protocol)</em>    <code>UUIDable</code></p>
+
+<blockquote>
+<p>A UUIDable object directly represents a UUID.  Examples of things which
+ might be conceptually 'uuidable' include string representation of a
+ UUID in canonical hex format, or an appropriate URN URI.</p>
+
+<p><em>(member)</em>    <code>as-uuid [self]</code></p>
+
+<blockquote>
+<p>Coerce the value of <code>self</code> to a java.util.UUID.</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>uuidable? [self]</code></p>
+
+<blockquote>
+<p>Return 'true' if <code>self</code> can be coerced to UUID.</p>
+</blockquote>
+</blockquote>
+
+<p><em>(protocol)</em>    <code>UUIDRfc4122</code></p>
+
+<blockquote>
+<p>A protocol that abstracts an unique identifier as described by
+ IETF RFC4122 <a href="http://www.ietf.org/rfc/rfc4122.txt">http://www.ietf.org/rfc/rfc4122.txt</a>. A UUID
+ represents a 128-bit value, however there are variant encoding
+ layouts used to assign and interpret information encoded in
+ those bits.  This is a protocol for  <em>variant 2</em> (<em>Leach-Salz</em>) 
+ UUID's.</p>
+
+<p><em>(member)</em>    <code>hash-code [self]</code></p>
+
+<blockquote>
+<p>Return a suitable 64-bit hash value for <code>self</code>.  Extend for
+ specialized hash computation.</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>null? [self]</code></p>
+
+<blockquote>
+<p>Return <code>true</code> only if <code>self</code> has all 128 bits set ot zero and is 
+ therefore equal to the null UUID, <code>00000000-0000-0000-0000-000000000000</code>.</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>uuid? [self]</code></p>
+
+<blockquote>
+<p>Return <code>true</code> if the class of <code>self</code> implements an RFC4122 unique identifier.</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>get-variant [self]</code></p>
+
+<blockquote>
+<p>Return the <em>variant</em> number associated with this UUID.  The variant field 
+ contains a value which identifies the layout of the UUID.  The bit-layout 
+ implemented by this protocol supports UUID's with a variant value of 0x2,
+ which indicates Leach-Salz layout.  Defined UUID variant values are:</p>
+
+<pre><code>0x0   Null 
+0x2   Leach-Salz
+0x6   Microsoft 
+0x7   Reserved for future assignment
+</code></pre>
+
+<p>In the canonical representation, <code>xxxxxxxx-xxxx-xxxx-Nxxx-xxxxxxxxxxxx</code>,
+ the most significant bits of N indicate the variant (depending on the
+ variant one, two, or three bits are used). The variant covered by RFC4122
+ is indicated by the two most significant bits of <code>N</code> being 1 0 (i.e., the 
+ hexadecimal <code>N</code> will always be 8, 9, A, or B).</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>get-version [self]</code></p>
+
+<blockquote>
+<p>Return the <em>version</em> number associated with this UUID.  The version
+ field contains a value which describes the nature of the UUID.  There
+ are five versions of Leach-Salz UUID, plus the null UUID:</p>
+
+<pre><code>0x0   Null
+0x1   Time based
+0x2   DCE security with POSIX UID
+0x3   Namespaced (MD5 Digest)
+0x4   Cryptographic random
+0x5   Namespaced (SHA1 Digest)
+</code></pre>
+
+<p>In the canonical representation, <code>xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx</code>, 
+ the four bits of <code>M</code> indicate the UUID version (i.e., the hexadecimal <code>M</code> 
+ will be either 1, 2, 3, 4, or 5).</p>
+</blockquote>
+</blockquote>
 
 <h3>
 <a id="references" class="anchor" href="#references" aria-hidden="true"><span class="octicon octicon-link"></span></a>References</h3>
 
 <ul>
-<li><p><em>A Universally Unique IDentifier (UUID) URN Namespace</em>  <a href="http://www.ietf.org/rfc/rfc4122.txt">IETF RFC-4122</a></p></li>
-<li><p>Wikipedia: <a href="http://en.wikipedia.org/wiki/Universally_unique_identifier"><em>Universally unique identifier</em></a></p></li>
-<li><p>Reference Implementation: <a href="http://www.dardoria.net/software/uuid.html">CL-UUID</a></p></li>
-<li><p>Reference Implementation: <a href="https://github.com/mon-key/unicly">UNICLY</a></p></li>
-<li><p><a href="http://docs.oracle.com/javase/6/docs/api/java/util/UUID.html">java.util.UUID</a></p></li>
-<li><p><a href="http://joearms.github.io/2015/03/12/The_web_of_names.html">The web of names, hashes and UUIDs</a></p></li>
+<li><p><a href="http://www.ietf.org/rfc/rfc4122.txt">IETF RFC-4122</a> <em>A Universally Unique IDentifier (UUID) URN Namespace</em> </p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Universally_unique_identifier">Wikipedia/<em>Universally unique identifier</em></a></p></li>
+<li><p><a href="http://www.dardoria.net/software/uuid.html">CL-UUID</a> reference implementation </p></li>
+<li><p><a href="https://github.com/mon-key/unicly">UNICLY</a> reference implementation</p></li>
+<li><p><a href="http://docs.oracle.com/javase/6/docs/api/java/util/UUID.html">java.util.UUID</a> JavaDoc</p></li>
+<li><p><a href="http://www.darksleep.com/player/JavaAndUnsignedTypes.html">Java and Unsigned Primitive Datatypes</a></p></li>
+<li><p><a href="http://joearms.github.io/2015/03/12/The_web_of_names.html">The web of names, hashes, and UUIDs</a></p></li>
+<li><p><a href="http://blog.find-method.de/index.php?/archives/200-Coding-katas-Clojure-Bloom-filters.html">Coding Katas Clojure -- Bloom Filters</a></p></li>
 </ul>
 
 <h3>
