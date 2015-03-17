@@ -1,19 +1,33 @@
 (ns clj-uuid.node
   (:require [clj-uuid.util      :refer [java6? exception compile-if]])
   (:require [clj-uuid.bitmop    :refer [sb8 assemble-bytes ldb dpb mask]])
-  (:require [clj-uuid.constants :refer [+clock-seq+]])
-  (:import  [java.net         InetAddress NetworkInterface]
-            [java.security    MessageDigest]
-            [java.util        Properties]))
-
+  (:require [clj-uuid.constants :refer :all])
+  (:import  [java.net           InetAddress
+                                NetworkInterface]
+            [java.security      MessageDigest]
+            [java.util          Properties]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; NodeID Representation
+;; Clock Sequence                            [RFC4122:4.1.5 "CLOCK SEQUENCE"] ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; For time-based UUID's the "clock-sequence" value is a somewhat counter-
+;; intuitively named value that is used to reduce the potential that duplicate
+;; UUID's might be generated under unusual situations, such as if the system
+;; hardware clock is set backward in time or if, despite all efforts otherwise,
+;; a duplecate +node-id+ (see below) happens to be generated. This value is
+;; initialized to a random 16-bit number once per lifetime of the system.
+
+(defonce +clock-sequence+ (inc (rand-int 0xffff)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; NodeID Representation                               [RFC4122:4.1.6 "NODE"] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; The representation of NodeID used for consutruction of time-based (v1) UUIDs
-;; is a LIST with the following encoding semantics:
+;; is a list with the following encoding semantics:
 ;;
 ;;               SIZE    TYPE      REPRESENTATION
 ;;  -----------+------+---------+---------------------------------------------
@@ -33,7 +47,7 @@
 ;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; NodeID Calculation
+;; NodeID Calculation  [RFC4122:4.5 "NODE IDS THAT DO NOT IDENTIFY THE HOST"] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; This turns out to be surprisingly problematic.  I've tried various
@@ -141,6 +155,6 @@
   (assemble-bytes (cons 0 (cons 0 (node-id)))))
 
 (def ^:const +v1-lsb+
-  (let [clk-high  (dpb (mask 2 6) (ldb (mask 6 8) +clock-seq+) 0x2)
-        clk-low   (ldb (mask 8 0) +clock-seq+)]
+  (let [clk-high  (dpb (mask 2 6) (ldb (mask 6 8) +clock-sequence+) 0x2)
+        clk-low   (ldb (mask 8 0) +clock-sequence+)]
     (dpb (mask 8 56) (dpb (mask 8 48) +node-id+ clk-low) clk-high)))
