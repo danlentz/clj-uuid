@@ -192,9 +192,60 @@ Execution time mean : 2.012861 µs
 
 ```
 
-##### Temporal Order
+##### Sequential (Temporal) Namespace
+
+v1 UUID's retrievably encode the time of their creation.  The native
+representation of this timestamp is as a 60 bit value indicating the
+number of 100 nanosecond intervals since the Gregorian epoch:
 
 
+```clojure
+
+user> (uuid/get-timestamp (uuid/v1))
+
+;;  => 136459064897650000
+
+
+user> (map uuid/get-timestamp (repeatedly 10 uuid/v1))
+
+;;  => (136459065592300000
+;;      136459065592310000
+;;      136459065592320000
+;;      136459065592340000
+;;      136459065592340001 <-+ subcounter ensures unique timestamp
+;;      136459065592350000   | even when the resolution of the 
+;;      136459065592350001 <-+ system clock is insufficiently
+;;      136459065592370000   | granular to provide uniqueness.
+;;      136459065592370001 <-+
+;;      136459065592380000)
+```
+
+Clearly, that is pretty useful.  We can look at any two time-based
+UUID's and compare their timestamps relative to one another.  We can
+also look at the absolute timestamp values of time-based UUID's using the
+ideomatic Clojure representation of timestamp values:
+
+
+```clojure
+
+user> (uuid/get-instant (uuid/v1))
+
+;;  => #inst "2015-03-17T17:51:15.970-00:00"
+
+
+user> (map uuid/get-instant (repeatedly 10 uuid/v1))
+
+;;  => (#inst "2015-03-17T17:51:53.800-00:00" <-+ Note, however, 
+;;      #inst "2015-03-17T17:51:53.800-00:00" <-+ insufficient clock precision
+;;      #inst "2015-03-17T17:51:53.802-00:00"   | to distinguish betweem
+;;      #inst "2015-03-17T17:51:53.803-00:00" <-+ absolute timestamp values
+;;      #inst "2015-03-17T17:51:53.803-00:00" <-+
+;;      #inst "2015-03-17T17:51:53.804-00:00"
+;;      #inst "2015-03-17T17:51:53.807-00:00"
+;;      #inst "2015-03-17T17:51:53.808-00:00"
+;;      #inst "2015-03-17T17:51:53.812-00:00"
+;;      #inst "2015-03-17T17:51:53.814-00:00")
+```
 
 
 #### Cryptographically Random (v4) Identifiers
