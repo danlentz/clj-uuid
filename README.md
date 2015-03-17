@@ -579,11 +579,37 @@ _(protocol)_    `UUIDable`
 >
 > _(member)_    `as-uuid [self]`
 >
->>  Coerce the value of self to a java.util.UUID.
+>>  Coerce the value of `self` to a java.util.UUID.
 >
 > _(member)_    `uuidable? [self]`
 >
->>  Return 'true' if 'x' can be coerced to UUID.
+>>  Return 'true' if `self` can be coerced to UUID.
+
+
+_(protocol)_    `UUIDRfc4122`
+
+>  A protocol that abstracts an Leach-Salz UUID as described by
+>  IETF RFC4122 <http://www.ietf.org/rfc/rfc4122.txt>. A UUID
+>  represents a 128-bit value, however there are variant encoding
+>  layouts used to assign and interpret information encoded in
+>  those bits.  This is a protocol for  _variant 2_ (*Leach-Salz*) 
+>  UUID's.
+>
+> _(member)_    `hash-code [self]`
+>
+>>  Return a suitable 64-bit hash value for `self`.  Extend for
+>>  specialized hash computation.
+>
+> _(member)_    `null? [self]`
+>
+>>  Return `true` only if `self` has all 128 bits set ot zero and is 
+>>  therefore equal to the null UUID, 00000000-0000-0000-0000-000000000000.
+>
+> _(member)_    `uuid? [self]`
+>
+>> Return `true` if the class of `self` implements an RFC4122 unique identifier.
+
+
 
 
 ### References
