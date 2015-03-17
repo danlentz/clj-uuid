@@ -190,11 +190,11 @@
     semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].")
 
   (^boolean uuid<           [x y]
-    "Directly compare two UUID's for < relation based on the ordinal
+    "Directly compare two UUID's for < relation based on the ordinality
     semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].")
 
   (^boolean uuid>           [x y]
-    "Directly compare two UUID's for > relation based on the ordinal
+    "Directly compare two UUID's for > relation based on the ordinality
     semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].")
 
   (^long    get-word-high   [uuid]
@@ -258,12 +258,12 @@
 
   (^short   get-clk-seq     [uuid]
     "Return the clock-sequence number associated with this UUID. For time-based
-     UUID's the 'clock-sequence' value is a somewhat counter-intuitively named 
-     seed-value that is used to reduce the potential that duplicate UUID's 
-     might be generated under unusual situations, such as if the system hardware
-     clock is set backward in time or if, despite all efforts otherwise, a 
-     duplicate +node-id+ happens to be generated. This value is initialized to 
-     a random 16-bit number once per lifetime of the system.")
+    UUID's the 'clock-sequence' value is a somewhat counter-intuitively named 
+    seed-value that is used to reduce the potential that duplicate UUID's 
+    might be generated under unusual situations, such as if the system hardware
+    clock is set backward in time or if, despite all efforts otherwise, a 
+    duplicate +node-id+ happens to be generated. This value is initialized to 
+    a random 16-bit number once per lifetime of the system.")
 
   (get-node-id              [uuid]
     "Return the 48 bit unsigned value that represents the spatially unique 
@@ -273,23 +273,30 @@
     "")
 
   (^bytes   to-byte-array   [uuid]
-    "")
+    "Return an array of 16 bytes that represents `uuid` as a decomposed 
+    octet serialization encoded in most-significant-byte first order.")
 
   (^String  to-string       [uuid]
     "Return a String object that represents `uuid` in the canonical 
     36 character hex-string format: 
 
-        xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.")
+        xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
 
   (^String  to-hex-string   [uuid]
-    "")
+    "Return a String object that represents `uuid` as the 32 hexadecimal 
+    characters directly encodong the UUID's 128 bit value: 
+
+        xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
 
   (^String  to-urn-string   [uuid]
-    "")
+    "Return a String object that represents `uuid` as a the string 
+    serialization of the URN URI based on the canonical 36 character 
+    hex-string representation: 
+
+        urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
 
   (^URI     to-uri          [uuid]
-
-    ""))
+    "Return the unique URN URI associated with this UUID."))
 
 
 

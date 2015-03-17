@@ -611,12 +611,12 @@ _(protocol)_    `UUIDRfc4122`
 >
 > _(member)_    `uuid< [self other]`
 >
->>  Directly compare two UUID's for `<` relation based on the ordinal
+>>  Directly compare two UUID's for `<` relation based on the ordinality
 >>  semantics defined by [RFC4122:3 "RULES FOR LEXICAL EQUIVALENCE"].
 >
 > _(member)_    `uuid> [self other]`
 >
->>  Directly compare two UUID's for `>` relation based on the ordinal
+>>  Directly compare two UUID's for `>` relation based on the ordinality
 >>  semantics defined by [RFC4122:3 "RULES FOR LEXICAL EQUIVALENCE"].
 >
 > _(member)_    `get-word-high [self]`
@@ -701,12 +701,42 @@ _(protocol)_    `UUIDRfc4122`
 >
 >>  Return the 48 bit unsigned value that represents the spatially unique
 >>  _node identifier_ associated with this UUID.
-
-
+>
 > _(member)_    `hash-code [self]`
 >
 >>  Return a suitable 64-bit hash value for `self`.  Extend for
 >>  specialized hash computation.
+>
+> _(member)_    `to-byte-array [self]`
+>
+>>  Return an array of 16 bytes that represents `self` as a decomposed 
+>>  octet serialization encoded in most-significant-byte first order.
+>
+> _(member)_    `to-string [self]`
+>
+>>  Return a String object that represents `self` in the canonical 
+>>  36 character hexadecimal string format: 
+>>
+>>     xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
+>
+> _(member)_    `to-hex-string [self]`
+>
+>>  Return a String object that represents `self` as the 32 hexadecimal 
+>>  characters directly encodong the UUID's 128 bit value: 
+>>
+>>     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+>
+> _(member)_    `to-urn-string [self]`
+>
+>>  Return a String object that represents `uuid` as a the string 
+>>  serialization of the URN URI based on the canonical 36 character 
+>>  hex-string representation: 
+>>
+>>     urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+>
+> _(member)_    `to-uri [self]`
+>
+>>  Return the unique URN URI associated with this UUID.
 
 
 
