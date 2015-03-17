@@ -618,13 +618,6 @@ You truly are diabolical.</p>
  those bits.  This is a protocol for  <em>variant 2</em> (<em>Leach-Salz</em>) 
  UUID's.</p>
 
-<p><em>(member)</em>    <code>hash-code [self]</code></p>
-
-<blockquote>
-<p>Return a suitable 64-bit hash value for <code>self</code>.  Extend for
- specialized hash computation.</p>
-</blockquote>
-
 <p><em>(member)</em>    <code>null? [self]</code></p>
 
 <blockquote>
@@ -636,6 +629,39 @@ You truly are diabolical.</p>
 
 <blockquote>
 <p>Return <code>true</code> if the class of <code>self</code> implements an RFC4122 unique identifier.</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>uuid= [self other]</code></p>
+
+<blockquote>
+<p>Directly compare two UUID's for <code>=</code> relation based on the equality
+ semantics defined by [RFC4122:3 "RULES FOR LEXICAL EQUIVALENCE"].</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>uuid&lt; [self other]</code></p>
+
+<blockquote>
+<p>Directly compare two UUID's for <code>&lt;</code> relation based on the ordinal
+ semantics defined by [RFC4122:3 "RULES FOR LEXICAL EQUIVALENCE"].</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>uuid&gt; [self other]</code></p>
+
+<blockquote>
+<p>Directly compare two UUID's for <code>&gt;</code> relation based on the ordinal
+ semantics defined by [RFC4122:3 "RULES FOR LEXICAL EQUIVALENCE"].</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>get-word-high [self]</code></p>
+
+<blockquote>
+<p>Return the most significant 64 bits of the 128 bit value of UUID <code>self</code>.</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>get-word-low [self]</code></p>
+
+<blockquote>
+<p>Return the least significant 64 bits of the 128 bit value of UUID <code>self</code>.</p>
 </blockquote>
 
 <p><em>(member)</em>    <code>get-variant [self]</code></p>
@@ -655,8 +681,8 @@ You truly are diabolical.</p>
 <p>In the canonical representation, <code>xxxxxxxx-xxxx-xxxx-Nxxx-xxxxxxxxxxxx</code>,
  the most significant bits of N indicate the variant (depending on the
  variant one, two, or three bits are used). The variant covered by RFC4122
- is indicated by the two most significant bits of <code>N</code> being 1 0 (i.e., the 
- hexadecimal <code>N</code> will always be 8, 9, A, or B).</p>
+ is indicated by the two most significant bits of <code>N</code> being <code>1 0</code> (i.e., the 
+ hexadecimal <code>N</code> will always be <code>8</code>, <code>9</code>, <code>A</code>, or <code>B</code>).</p>
 </blockquote>
 
 <p><em>(member)</em>    <code>get-version [self]</code></p>
@@ -676,7 +702,68 @@ You truly are diabolical.</p>
 
 <p>In the canonical representation, <code>xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx</code>, 
  the four bits of <code>M</code> indicate the UUID version (i.e., the hexadecimal <code>M</code> 
- will be either 1, 2, 3, 4, or 5).</p>
+ will be either <code>1</code>, <code>2</code>, <code>3</code>, <code>4</code>, or <code>5</code>).</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>get-time-low [self]</code></p>
+
+<blockquote>
+<p>Return the 32 bit unsigned value that represents the <em>time-low</em> field
+ of the <em>timestamp</em> associated with this UUID.</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>get-time-mid [self]</code></p>
+
+<blockquote>
+<p>Return the 16 bit unsigned value that represents the <em>time-mid</em> field
+ of the <em>timestamp</em> assocaited with this UUID.</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>get-time-high [self]</code></p>
+
+<blockquote>
+<p>Return the 16 bit unsigned value that represents the <em>time-high</em> field
+ of the <em>timestamp</em> multiplexed with the <em>version</em> of this UUID.</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>get-clk-seq [self]</code></p>
+
+<blockquote>
+<p>Return the <em>clk-seq</em> number associated with this UUID. For time-based
+ UUID's the <em>clock-sequence</em> value is a somewhat counter-intuitively named 
+ seed-value that is used to reduce the potential that duplicate UUID's 
+ might be generated under unusual situations, such as if the system hardware
+ clock is set backward in time or if, despite all efforts otherwise, a 
+ duplicate <code>+node-id+</code> happens to be generated. This value is initialized to 
+ a random 16-bit number once per lifetime of the system.</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>get-clk-high [self]</code></p>
+
+<blockquote>
+<p>Return the 8 bit unsigned value that represents the most significant
+ byte of the <em>clk-seq</em> multiplexed with the <em>variant</em> of this UUID.</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>get-clk-low [self]</code></p>
+
+<blockquote>
+<p>Return the 8 bit unsigned value that represents the least significant
+ byte of the <em>clk-seq</em> associated with this UUID.</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>get-node-id [self]</code></p>
+
+<blockquote>
+<p>Return the 48 bit unsigned value that represents the spatially unique
+ <em>node identifier</em> associated with this UUID.</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>hash-code [self]</code></p>
+
+<blockquote>
+<p>Return a suitable 64-bit hash value for <code>self</code>.  Extend for
+ specialized hash computation.</p>
 </blockquote>
 </blockquote>
 
