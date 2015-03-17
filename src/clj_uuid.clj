@@ -167,7 +167,7 @@
 
 
 (defprotocol UUIDRfc4122
-  "A protocol that abstracts an Leach-Salz UUID as described by
+  "A protocol that abstracts an unique identifier as described by
   IETF RFC4122 <http://www.ietf.org/rfc/rfc4122.txt>. A UUID
   represents a 128-bit value, however there are variant encoding
   layouts used to assign and interpret information encoded in
@@ -186,22 +186,25 @@
     "Return `true` if `x` implements an RFC4122 unique identifier.")
 
   (^boolean uuid=           [x y]
-    "Directly compare two UUID's for = relation.")
+    "Directly compare two UUID's for = relation based on the equality
+    semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].")
 
   (^boolean uuid<           [x y]
-    "Directly compare two UUID's for < relation.")
+    "Directly compare two UUID's for < relation based on the ordinal
+    semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].")
 
   (^boolean uuid>           [x y]
-    "Directly compare two UUID's for > relation.")
+    "Directly compare two UUID's for > relation based on the ordinal
+    semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].")
 
   (^long    get-word-high   [uuid]
     "Return the most significant 64 bits of UUID's 128 bit value.")
 
   (^long    get-word-low    [uuid]
-    "Return the most significant 64 bits of UUID's 128 bit value.")
+    "Return the least significant 64 bits of UUID's 128 bit value.")
 
   (^int     get-version     [uuid]
-    "Return the _version_ number associated with this UUID.  The version
+    "Return the version number associated with this UUID.  The version
     field contains a value which describes the nature of the UUID.  There
     are five versions of Leach-Salz UUID, plus the null UUID:
 
@@ -217,7 +220,7 @@
     will be either 1, 2, 3, 4, or 5).")
 
   (^int     get-variant     [uuid]
-    "Return the _variant_ number associated with this UUID.  The variant field 
+    "Return the variant number associated with this UUID.  The variant field 
     contains a value which identifies the layout of the UUID.  The bit-layout 
     implemented by this protocol supports UUID's with a variant value of 0x2,
     which indicates Leach-Salz layout.  Defined UUID variant values are:
@@ -246,7 +249,13 @@
     "")
 
   (^short   get-clk-seq     [uuid]
-    "")
+    "Return the clock-sequence number associated with this UUID. For time-based
+     UUID's the 'clock-sequence' value is a somewhat counter-intuitively named 
+     seed-value that is used to reduce the potential that duplicate UUID's 
+     might be generated under unusual situations, such as if the system hardware
+     clock is set backward in time or if, despite all efforts otherwise, a 
+     duplicate +node-id+ happens to be generated. This value is initialized to 
+     a random 16-bit number once per lifetime of the system.")
 
   (^long    get-clk-high    [uuid]
     "")

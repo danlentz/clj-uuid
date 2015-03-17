@@ -595,11 +595,6 @@ _(protocol)_    `UUIDRfc4122`
 >  those bits.  This is a protocol for  _variant 2_ (*Leach-Salz*) 
 >  UUID's.
 >
-> _(member)_    `hash-code [self]`
->
->>  Return a suitable 64-bit hash value for `self`.  Extend for
->>  specialized hash computation.
->
 > _(member)_    `null? [self]`
 >
 >>  Return `true` only if `self` has all 128 bits set ot zero and is 
@@ -611,20 +606,27 @@ _(protocol)_    `UUIDRfc4122`
 >
 > _(member)_    `uuid= [self other]`
 >
->>  Directly compare two UUID's for = relation based on the equality
+>>  Directly compare two UUID's for `=` relation based on the equality
 >>  semantics defined by [RFC4122:3 "RULES FOR LEXICAL EQUIVALENCE"].
 >
 > _(member)_    `uuid< [self other]`
 >
->>  Directly compare two UUID's for < relation based on the ordinal
+>>  Directly compare two UUID's for `<` relation based on the ordinal
 >>  semantics defined by [RFC4122:3 "RULES FOR LEXICAL EQUIVALENCE"].
 >
 > _(member)_    `uuid> [self other]`
 >
->>  Directly compare two UUID's for > relation based on the ordinal
+>>  Directly compare two UUID's for `>` relation based on the ordinal
 >>  semantics defined by [RFC4122:3 "RULES FOR LEXICAL EQUIVALENCE"].
 >
-
+> _(member)_    `get-word-high [self]`
+>
+>>  Return the most significant 64 bits of the 128 bit value of UUID `self`.
+>
+> _(member)_    `get-word-low [self]`
+>
+>>  Return the least significant 64 bits of the 128 bit value of UUID `self`.
+>
 
 > _(member)_    `get-variant [self]`
 >
@@ -660,6 +662,23 @@ _(protocol)_    `UUIDRfc4122`
 >>  In the canonical representation, `xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx`, 
 >>  the four bits of `M` indicate the UUID version (i.e., the hexadecimal `M` 
 >>  will be either 1, 2, 3, 4, or 5).
+>
+> _(member)_    `get-clk-seq [self]`
+>
+>>  Return the clock-sequence number associated with this UUID. For time-based
+>>  UUID's the 'clock-sequence' value is a somewhat counter-intuitively named 
+>>  seed-value that is used to reduce the potential that duplicate UUID's 
+>>  might be generated under unusual situations, such as if the system hardware
+>>  clock is set backward in time or if, despite all efforts otherwise, a 
+>>  duplicate +node-id+ happens to be generated. This value is initialized to 
+>>  a random 16-bit number once per lifetime of the system.
+
+
+> _(member)_    `hash-code [self]`
+>
+>>  Return a suitable 64-bit hash value for `self`.  Extend for
+>>  specialized hash computation.
+
 
 
 ### References
