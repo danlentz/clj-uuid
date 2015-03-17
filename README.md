@@ -588,7 +588,7 @@ _(protocol)_    `UUIDable`
 
 _(protocol)_    `UUIDRfc4122`
 
->  A protocol that abstracts an Leach-Salz UUID as described by
+>  A protocol that abstracts an unique identifier as described by
 >  IETF RFC4122 <http://www.ietf.org/rfc/rfc4122.txt>. A UUID
 >  represents a 128-bit value, however there are variant encoding
 >  layouts used to assign and interpret information encoded in
@@ -608,8 +608,41 @@ _(protocol)_    `UUIDRfc4122`
 > _(member)_    `uuid? [self]`
 >
 >> Return `true` if the class of `self` implements an RFC4122 unique identifier.
-
-
+>
+> _(member)_    `get-variant [self]`
+>
+>>  Return the _variant_ number associated with this UUID.  The variant field 
+>>  contains a value which identifies the layout of the UUID.  The bit-layout 
+>>  implemented by this protocol supports UUID's with a variant value of 0x2,
+>>  which indicates Leach-Salz layout.  Defined UUID variant values are:
+>>
+>>     0x0   Null 
+>>     0x2   Leach-Salz
+>>     0x6   Microsoft 
+>>     0x7   Reserved for future assignment
+>>
+>>  In the canonical representation, `xxxxxxxx-xxxx-xxxx-Nxxx-xxxxxxxxxxxx`,
+>>  the most significant bits of N indicate the variant (depending on the
+>>  variant one, two, or three bits are used). The variant covered by RFC4122
+>>  is indicated by the two most significant bits of `N` being 1 0 (i.e., the 
+>>  hexadecimal `N` will always be 8, 9, A, or B).
+>
+> _(member)_    `get-version [self]`
+>
+>>  Return the _version_ number associated with this UUID.  The version
+>>  field contains a value which describes the nature of the UUID.  There
+>>  are five versions of Leach-Salz UUID, plus the null UUID:
+>>
+>>     0x0   Null
+>>     0x1   Time based
+>>     0x2   DCE security with POSIX UID
+>>     0x3   Namespaced (MD5 Digest)
+>>     0x4   Cryptographic random
+>>     0x5   Namespaced (SHA1 Digest)
+>>
+>>  In the canonical representation, `xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx`, 
+>>  the four bits of M indicate the UUID version (i.e., the hexadecimal `M` 
+>>  will be either 1, 2, 3, 4, or 5).
 
 
 ### References
