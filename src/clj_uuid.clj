@@ -15,10 +15,11 @@
 
 (set! *warn-on-reflection* true)
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Leach-Salz UUID Representation and Constituent Values (IETF RFC4122)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
+
 ;; The string representation of A Leach-Salz UUID has the format:
 ;;
 ;;                                          clock-seq-and-reserved
@@ -57,11 +58,7 @@
 ;;  clock-low      1    ub8     [<BYTE>]
 ;;  node           6   ub48     [<BYTE> <BYTE> <BYTE> <BYTE> <BYTE> <BYTE>]
 ;;
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 8-bit Bytes mapping into 128-bit unsigned integer values
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;; Or, as 8-bit bytes mapping into 128-bit unsigned integer values:
 ;;
 ;;  (0 7)   (8 15)  (16 23) (24 31)  ;; time-low
 ;;  (32 39) (40 47)                  ;; time-mid
@@ -71,6 +68,8 @@
 ;;  (72 79)                          ;; clock-seq-low
 ;;  (80 87)   (88 95)   (96 103)     ;;
 ;;  (104 111) (112 119) (120 127)    ;; node
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; UUID Version and Variant
@@ -95,19 +94,26 @@
 ;; <http://en.wikipedia.org/wiki/Universally_unique_identifier>
 
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; The NULL (variant 0) UUID
+;; The NULL (variant 0) UUID                       [RFC4122:4.1.7 "NIL UUID"] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; "The [null] UUID is a special form of UUID that is specified to have 
+;; all 128 bits set to zero."
+
 
 (def ^:const +null+           #uuid "00000000-0000-0000-0000-000000000000")
 
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Well-Known UUIDs
-;;
+;; Well-Known UUIDs                 [RFC4122:Appendix-C "SOME NAMESPACE IDs"] ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; The following UUID's are the canonical top-level namespace identifiers
-;; described by RFC4122 Appendix C.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; defined in RFC4122 Appendix C.
+
 
 (def ^:const +namespace-dns+  #uuid "6ba7b810-9dad-11d1-80b4-00c04fd430c8")
 (def ^:const +namespace-url+  #uuid "6ba7b811-9dad-11d1-80b4-00c04fd430c8")
@@ -115,16 +121,19 @@
 (def ^:const +namespace-x500+ #uuid "6ba7b814-9dad-11d1-80b4-00c04fd430c8")
 
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Monotonic Clock (guaranteed always increasing value for time)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
 (defn monotonic-time
- "Return a monotonic timestamp (guaranteed always increasing)  based on 
- the number of 100-nanosecond intervals elapsed since the adoption of the 
- Gregorian calendar in the West, 12:00am Friday October 15, 1582 UTC."
+ "Return a monotonic timestamp (guaranteed always increasing) based on
+ the number of 100-nanosecond intervals elapsed since the adoption of
+ the Gregorian calendar in the West, 12:00am Friday October 15, 1582 UTC."
  []
  (clock/monotonic-time))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -136,116 +145,236 @@
   "A mechanism intended for user-level extension that defines the
   decoding rules for the local-part representation of arbitrary
   Clojure / Java Objects when used for computing namespaced
-  identifiers."  
-  (^bytes   as-byte-array [x] "extract a byte serialization that
-  represents the 'name' of x, typically unique within a given
-  namespace."))
+  identifiers."
+  
+  (^bytes   as-byte-array [x]
+    "Extract a byte serialization that represents the 'name' of x, 
+    typically unique within a given namespace."))
+
 
 
 (defprotocol UUIDable
   "A UUIDable object directly represents a UUID.  Examples of things which
   might be conceptually 'uuidable' include string representation of a
-  UUID in canonical hex format, or an appropriate URN URI."  
-  (^UUID    as-uuid   [x] "coerce the value 'x' to a UUID.")
-  (^Boolean uuidable? [x] "return 'true' if 'x' can be coerced to UUID."))
+  UUID in canonical hex format, or an appropriate URN URI."
+  
+  (^UUID    as-uuid   [x]
+    "Coerce the value 'x' to a UUID.")
+  
+  (^Boolean uuidable? [x]
+    "Return 'true' if 'x' can be coerced to UUID."))
+
 
 
 (defprotocol UUIDRfc4122
-  ""
+  "A protocol that abstracts an Leach-Salz UUID as described by
+  IETF RFC4122 <http://www.ietf.org/rfc/rfc4122.txt>. A UUID
+  represents a 128-bit value, however there are variant encoding
+  layouts used to assign and interpret information encoded in
+  those bits.  This is a protocol for  _variant 2_ (*Leach-Salz*) 
+  UUID's."
   
-  (^Integer hash-code       [uuid])
-  (^Boolean null?           [uuid])
-  (^Boolean uuid?           [x]
-    "return true if 'x' is an instance of java.util.UUID.")
-  (^Boolean uuid=  [x y])
-  (^Boolean uuid<           [x y])
-  (^long    get-word-high   [uuid])
-  (^long    get-word-low    [uuid])
-  (^long    get-version     [uuid])
-  (^String  to-string       [uuid])
-  (^String  to-hex-string   [uuid])
-  (^String  to-urn-string   [uuid])
-  (^bytes   to-byte-array   [uuid])
-  (^URI     to-uri          [uuid])
-  (^long    get-time-low    [uuid])
-  (^long    get-time-mid    [uuid])
-  (^long    get-time-high   [uuid])
-  (^long    get-clk-low     [uuid])
-  (^long    get-clk-high    [uuid])
-  (get-node-id              [uuid])
-  (get-timestamp            [uuid]))
+  (^long    hash-code       [uuid]
+    "Return a suitable 64-bit hash value for `uuid`.  Extend with 
+    specialized hash computation.")
+
+  (^boolean null?           [uuid]
+    "Return `true` only if `uuid` has all 128 bits set ot zero and is 
+    therefore equal to the null UUID, 00000000-0000-0000-0000-000000000000.")
+
+  (^boolean uuid?           [x]
+    "Return `true` if `x` implements an RFC4122 unique identifier.")
+
+  (^boolean uuid=           [x y]
+    "Directly compare two UUID's for = relation.")
+
+  (^boolean uuid<           [x y]
+    "Directly compare two UUID's for < relation.")
+
+  (^boolean uuid>           [x y]
+    "Directly compare two UUID's for > relation.")
+
+  (^long    get-word-high   [uuid]
+    "Return the most significant 64 bits of UUID's 128 bit value.")
+
+  (^long    get-word-low    [uuid]
+    "Return the most significant 64 bits of UUID's 128 bit value.")
+
+  (^int     get-version     [uuid]
+    "Return the _version_ number associated with this UUID.  The version
+    field contains a value which describes the nature of the UUID.  There
+    are five versions of Leach-Salz UUID, plus the null UUID:
+
+    0x0   Null
+    0x1   Time based
+    0x2   DCE security with POSIX UID
+    0x3   Namespaced (MD5 Digest)
+    0x4   Cryptographic random
+    0x5   Namespaced (SHA1 Digest)
+
+    In the canonical representation, xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx, 
+    the four bits of M indicate the UUID version (i.e., the hexadecimal M 
+    will be either 1, 2, 3, 4, or 5).")
+
+  (^int     get-variant     [uuid]
+    "Return the _variant_ number associated with this UUID.  The variant field 
+    contains a value which identifies the layout of the UUID.  The bit-layout 
+    implemented by this protocol supports UUID's with a variant value of 0x2,
+    which indicates Leach-Salz layout.  Defined UUID variant values are:
+
+    0x0   Null 
+    0x2   Leach-Salz
+    0x6   Microsoft 
+    0x7   Reserved for future assignment
+
+    In the canonical representation, xxxxxxxx-xxxx-xxxx-Nxxx-xxxxxxxxxxxx,
+    the most significant bits of N indicate the variant (depending on the
+    variant one, two, or three bits are used). The variant covered by RFC4122
+    is indicated by the two most significant bits of N being 1 0 (i.e., the 
+    hexadecimal N will always be 8, 9, A, or B).")
+
+  (^long    get-time-low    [uuid]
+    "")
+
+  (^long    get-time-mid    [uuid]
+    "")
+
+  (^long    get-time-high   [uuid]
+    "")
+
+  (^long    get-clk-low     [uuid]
+    "")
+
+  (^short   get-clk-seq     [uuid]
+    "")
+
+  (^long    get-clk-high    [uuid]
+    "")
+
+  (get-node-id              [uuid]
+    "")
+
+  (get-timestamp            [uuid]
+    "")
+
+  (^bytes   to-byte-array   [uuid]
+    "")
+
+  (^String  to-string       [uuid]
+    "Return a String object that represents `uuid` in the canonical 
+    36 character hex-string format: 
+
+        xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.")
+
+  (^String  to-hex-string   [uuid]
+    "")
+
+  (^String  to-urn-string   [uuid]
+    "")
+
+  (^URI     to-uri          [uuid]
+
+    ""))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; RFC4122 Unique Identifier extended UUID
+;; RFC4122 Unique Identifier extended java.util.UUID
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 (extend-type UUID
 
   UUIDable
+
   (as-uuid   [u] u)
   (uuidable? [_] true)
+
   
   UUIDRfc4122
 
   (uuid? [_] true)
+
   (uuid= [x ^UUID y]
     (.equals x y))
+
   (uuid< [x ^UUID y]
     (let [xh (.getMostSignificantBits x)
           yh (.getMostSignificantBits y)]
       (or (< xh yh)
         (and (= xh yh) (< (.getLeastSignificantBits x)
                          (.getLeastSignificantBits y))))))
+
+  (uuid> [x ^UUID y]
+    (let [xh (.getMostSignificantBits x)
+          yh (.getMostSignificantBits y)]
+      (or (> xh yh)
+        (and (= xh yh) (> (.getLeastSignificantBits x)
+                         (.getLeastSignificantBits y))))))
+
   (get-word-high [uuid]
     (.getMostSignificantBits uuid))
+
   (get-word-low [uuid]
     (.getLeastSignificantBits uuid))
+
   (null? [uuid]
-    (= 0 (get-word-high uuid) (get-word-low uuid)))
+    (= 0 (.getMostSignificantBits uuid) (.getLeastSignificantBits uuid)))
+
   (to-byte-array [uuid]
     (let [arr (byte-array 16)]
       (bitmop/long->bytes (.getMostSignificantBits  uuid) arr 0)
       (bitmop/long->bytes (.getLeastSignificantBits uuid) arr 8)
       arr))
+
   (hash-code [uuid]
-    (.hashCode uuid))
+    (long (.hashCode uuid)))
+  
   (get-version [uuid]
     (.version uuid))
+
   (to-string [uuid]
     (.toString uuid))
+
   (to-urn-string [uuid]
     (str "urn:uuid:" (to-string uuid)))
+
   (to-uri [uuid]
     (URI/create (to-urn-string uuid)))
+
   (get-time-low [uuid]
     (bitmop/ldb (bitmop/mask 32 0)
-      (bit-shift-right (get-word-high uuid) 32)))
+      (bit-shift-right (.getMostSignificantBits uuid) 32)))
+
   (get-time-mid [uuid]
     (bitmop/ldb (bitmop/mask 16 16)
-      (get-word-high uuid)))
+      (.getMostSignificantBits uuid)))
+
   (get-time-high [uuid]
     (bitmop/ldb (bitmop/mask 16 0)
-      (get-word-high uuid)))
+      (.getMostSignificantBits uuid)))
+  
   (get-clk-low [uuid]
     (bitmop/ldb (bitmop/mask 8 0)
-      (bit-shift-right (get-word-low uuid) 56)))
+      (bit-shift-right (.getLeastSignificantBits uuid) 56)))
+
   (get-clk-high [uuid]
     (bitmop/ldb (bitmop/mask 8 48)
-      (get-word-low uuid)))
+      (.getLeastSignificantBits uuid)))
+
   (get-node-id [uuid]
     (bitmop/ldb (bitmop/mask 48 0)
-      (get-word-low uuid)))
+      (.getLeastSignificantBits uuid)))
+
   (get-timestamp [uuid]
     (when (= 1 (get-version uuid))
       (.timestamp uuid)))
+
   
   UUIDNameBytes
   
   (as-byte-array [this]
     (to-byte-array this)))
-
-
 
 
 
@@ -264,15 +393,15 @@
   +null+)
 
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; V1 UUID Constructor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Concatenate the UUID version with the MAC address of the computer that is
 ;; generating the UUID, and with a monotonic timestamp based on the number
 ;; of 100-nanosecond intervals since the adoption of the Gregorian calendar
 ;; in the West, 12:00am Friday October 15, 1582 UTC.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defn ^UUID v1
   "Generate a v1 (time-based) unique identifier, guaranteed to be unique
@@ -292,7 +421,6 @@
                    (bit-shift-left time-low 32)
                    (bit-shift-left time-mid 16))]
     (UUID. msb node/+v1-lsb+)))
-
 
 
 
@@ -323,6 +451,7 @@
       (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
 
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SQUUID (sequential) UUID Constructor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -346,16 +475,15 @@
 
 
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; "Local-Part" Representation
-;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; The following represent a default set of local-part encoding rules.  As a
 ;; default, a plain byte-array will be passed through unchanged and a
 ;; generic java.lang.Object is represented by the bytes of its serialization.
 ;; Strings are represented using UTF8 encoding.  URL's are digested as the
 ;; UTF bytes of their string representation.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def ^:private ByteArray (class (byte-array 0)))
 
@@ -404,10 +532,10 @@
      (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
 
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Namespaced UUIDs
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defn ^UUID v3
   "Generate a v3 (name based, MD5 hash) UUID. 'context' must be UUIDable."
@@ -416,7 +544,6 @@
     (digest-bytes +md5+
       (to-byte-array (as-uuid context))
       (as-byte-array local-part))))
-
 
 
 (defn ^UUID v5
@@ -447,6 +574,7 @@
 (defn uuid-vec? [v]
   (and (= (count v) 16)
     (every? #(and (integer? %) (>= -128  %) (<=  127  %)) v)))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

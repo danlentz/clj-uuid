@@ -461,6 +461,8 @@ You truly are diabolical.
 
 * * * * * *
 
+#### Well-Known Namespace Identifiers
+
 _(var)_         `+null+`
 
 > `#uuid "00000000-0000-0000-0000-000000000000"`
@@ -486,6 +488,8 @@ _(var)_         `+namespace-x500+`
 > `#uuid "6ba7b814-9dad-11d1-80b4-00c04fd430c8"`
 
 * * * * * *
+
+#### Generators
 
 _(function)_    `v0 []`
 
@@ -535,7 +539,7 @@ _(function)_    `v5 [^UUID namespace ^Object local-name]`
 
 _(function)_    `squuid []`
 
-> "Generate a SQUUID (sequential, random) unique identifier.  SQUUID's
+>  Generate a SQUUID (sequential, random) unique identifier.  SQUUID's
 >  are a nonstandard variation on v4 (random) UUIDs that have the
 >  desirable property that they increase sequentially over time as well
 >  as encode retrievably the posix time at which they were generated.
@@ -543,7 +547,29 @@ _(function)_    `squuid []`
 >  time (seconds since 12:00am January 1, 1970 UTC) with the most
 >  significant 32 bits of the UUID
   
+
+_(function)_    `monotonic-time []`
+
+>  Return a monotonic timestamp (guaranteed always increasing)  based on 
+>  the number of 100-nanosecond intervals elapsed since the adoption of the 
+>  Gregorian calendar in the West, 12:00am Friday October 15, 1582 UTC.
+
 * * * * * *
+
+#### Protocols
+
+_(protocol)_    `UUIDNameBytes`
+
+>  A mechanism intended for user-level extension that defines the
+>  decoding rules for the local-part representation of arbitrary
+>  Clojure / Java Objects when used for computing namespaced
+>  identifiers.
+>
+> _(member)_    `as-byte-array [self]`
+>
+>>  Extract a byte serialization that represents the 'name' of x, 
+>>  typically unique within a given namespace.
+
 
 ### References
 
