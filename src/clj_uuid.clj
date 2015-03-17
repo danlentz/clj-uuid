@@ -18,9 +18,9 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Leach-Salz UUID Representation and Constituent Values (IETF RFC4122)
+;; Leach-Salz UUID Representation     [RFC4122:4.1.2 "LAYOUT AND BYTE ORDER"] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;;
 ;; The string representation of A Leach-Salz UUID has the format:
 ;;
 ;;                                          clock-seq-and-reserved
@@ -73,9 +73,9 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; UUID Version and Variant
+;; UUID Variant                                     [RFC4122:4.1.1 "VARIANT"] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;;
 ;; The variant indicates the layout of the UUID. The UUID specification
 ;; covers one particular variant. Other variants are reserved or exist
 ;; for backward compatibility reasons (e.g., for values assigned before
@@ -83,16 +83,30 @@
 ;; different variant is the null UUID, which is a UUID that has all 128
 ;; bits set to zero.
 ;;
-;; In the canonical representation, xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx,
-;; the most significant bits of N indicates the variant (depending on the
-;; variant one, two, or three bits are used). The variant covered by the
-;; UUID specification is indicated by the two most significant bits of N
-;; being 1 0 (i.e., the hexadecimal N will always be 8, 9, A, or B).
+;; In the canonical representation:
 ;;
-;; The variant covered by the UUID specification has five versions. For this
-;; variant, the four bits of M indicates the UUID version (i.e., the
-;; hexadecimal M will be either 1, 2, 3, 4, or 5).
-;; <http://en.wikipedia.org/wiki/Universally_unique_identifier>
+;;    xxxxxxxx-xxxx-xxxx-Nxxx-xxxxxxxxxxxx
+;;
+;; the most significant bits of N indicate the variant (depending on the
+;; variant one, two, or three bits are used). The variant covered by the
+;; RFC4122 is indicated by the two most significant bits of N being 1 0
+;; (i.e., the hexadecimal N will always be 8, 9, A, or B).
+;;
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; UUID Version                                     [RFC4122:4.1.3 "VERSION"] ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; The Leach-Salz UUID variant has five defined versions. In the canonical
+;; representation:
+;;
+;;    xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx
+;;
+;; the four bits of M indicates the UUID version (i.e., the hexadecimal
+;; digit M will be either 1, 2, 3, 4, or 5).
+
 
 
 
@@ -424,7 +438,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; V0 UUID Constructor
+;; V0 UUID Constructor                             [RFC4122:4.1.7 "NIL UUID"] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ^UUID null
@@ -440,7 +454,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; V1 UUID Constructor
+;; V1 UUID Constructor                   [RFC4122:4.2.2 "GENERATION DETAILS"] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Concatenate the UUID version with the MAC address of the computer that is
@@ -470,7 +484,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; V4 (random) UUID Constructor
+;; V4 (random) UUID Constructor     [RFC4122:4.4 "ALGORITHM FOR CREATING..."] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ^UUID v4
@@ -579,11 +593,27 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Namespaced UUIDs
+;; Namespaced UUIDs [RFC4122:4.3  "ALGORITHM FOR CREATING A NAME BASED UUID"] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ^UUID v3
-  "Generate a v3 (name based, MD5 hash) UUID. 'context' must be UUIDable."
+  "Generate a v3 (name based, MD5 hash) UUID. 'context' must be UUIDable.
+  v3 identifiers are intended for generating UUID's from names that are 
+  drawn from, and unique within, some namespace.  The concept of name and 
+  namespace should be broadly construed, and not limited to textual names.
+  The requiremens for a v3 UUID are as follows:
+
+  * v3 UUID's generated at different times from the same name in the same
+    namespace MUST be equal.
+
+  * v3 UUID's generated from two different names in the same namespace
+    SHOULD be distinct with a high degree of certainty.
+
+  * v3 UUID's generated from the same name in two different namespaces
+    SHOULD be distinct with a high degree of certainty.
+
+  * If two v3 UUID's are equal, then there is a high degree of certainty
+    that they were generated from the same name in the same namespace."
   [context local-part]
   (build-digested-uuid 3
     (digest-bytes +md5+
@@ -592,7 +622,23 @@
 
 
 (defn ^UUID v5
-  "Generate a v5 (name based, SHA1 hash) UUID. 'context' must be UUIDable."
+  "Generate a v5 (name based, SHA1 hash) UUID. 'context' must be UUIDable.
+  v5 identifiers are intended for generating UUID's from names that are 
+  drawn from, and unique within, some namespace.  The concept of name and 
+  namespace should be broadly construed, and not limited to textual names.
+  The requiremens for a v5 UUID are as follows:
+
+  * v5 UUID's generated at different times from the same name in the same
+    namespace MUST be equal.
+
+  * v5 UUID's generated from two different names in the same namespace
+    SHOULD be distinct with a high degree of certainty.
+
+  * v5 UUID's generated from the same name in two different namespaces
+    SHOULD be distinct with a high degree of certainty.
+
+  * If two v5 UUID's are equal, then there is a high degree of certainty
+    that they were generated from the same name in the same namespace."
   [context local-part]
   (build-digested-uuid 5
     (digest-bytes +sha1+
