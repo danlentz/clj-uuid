@@ -607,7 +607,22 @@ _(protocol)_    `UUIDRfc4122`
 >
 > _(member)_    `uuid? [self]`
 >
->> Return `true` if the class of `self` implements an RFC4122 unique identifier.
+>>  Return `true` if the class of `self` implements an RFC4122 unique identifier.
+>
+> _(member)_    `uuid= [self other]`
+>
+>>  Directly compare two UUID's for = relation based on the equality
+>>  semantics defined by [RFC4122:3 "RULES FOR LEXICAL EQUIVALENCE"].
+>
+> _(member)_    `uuid< [self other]`
+>
+>>  Directly compare two UUID's for < relation based on the ordinal
+>>  semantics defined by [RFC4122:3 "RULES FOR LEXICAL EQUIVALENCE"].
+>
+> _(member)_    `uuid> [self other]`
+>
+>>  Directly compare two UUID's for > relation based on the ordinal
+>>  semantics defined by [RFC4122:3 "RULES FOR LEXICAL EQUIVALENCE"].
 >
 
 
