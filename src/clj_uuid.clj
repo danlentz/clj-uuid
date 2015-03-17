@@ -367,6 +367,9 @@
   (get-version [uuid]
     (.version uuid))
 
+  (get-variant [uuid]
+    (.variant uuid))
+    
   (to-string [uuid]
     (.toString uuid))
 
@@ -396,6 +399,10 @@
     (bitmop/ldb (bitmop/mask 8 48)
       (.getLeastSignificantBits uuid)))
 
+  (get-clk-seq  [uuid]
+    (when (= 1 (.version uuid))
+      (.clockSequence uuid)))
+
   (get-node-id [uuid]
     (bitmop/ldb (bitmop/mask 48 0)
       (.getLeastSignificantBits uuid)))
@@ -403,6 +410,10 @@
   (get-timestamp [uuid]
     (when (= 1 (get-version uuid))
       (.timestamp uuid)))
+
+  (get-instant   [uuid]
+    (when-let [ts (get-timestamp uuid)]
+      (new java.util.Date (long (clock/posix-time ts)))))
 
   
   UUIDNameBytes
