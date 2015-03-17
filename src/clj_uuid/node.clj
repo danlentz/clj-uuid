@@ -137,11 +137,7 @@
             (.getBytes d java.nio.charset.StandardCharsets/UTF_8))))
       (map bit-or
         [0x00 0x00 0x00 0x00 0x00 0x01]
-        (take 6
-          (try (seq (.digest digest))
-               (catch Exception _
-                 (repeatedly 6 (rand-int 256))))))))
-
+        (take 6 (seq (.digest digest))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
