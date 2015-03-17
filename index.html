@@ -701,8 +701,27 @@ You truly are diabolical.</p>
 </code></pre>
 
 <p>In the canonical representation, <code>xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx</code>, 
- the four bits of <code>M</code> indicate the UUID version (i.e., the hexadecimal <code>M</code> 
+ the four bits of <code>M</code> indicate the UUID version (i.e., the hexadecimal <code>M</code>
  will be either <code>1</code>, <code>2</code>, <code>3</code>, <code>4</code>, or <code>5</code>).</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>get-timetamp [self]</code></p>
+
+<blockquote>
+<p>Return the 60 bit unsigned value that represents a temporally unique
+ timestamp associated with this UUID.  For time-based (v1) UUID's the
+ result encodes the number of 100 nanosecond intervals since the
+ adoption of the Gregorian calendar: <em>12:00am Friday October 15, 1582 UTC</em>.
+ For non-time-based (v3, v4, v5, squuid) UUID's, always returns <code>nil</code>.</p>
+</blockquote>
+
+<p><em>(member)</em>    <code>get-instant [self]</code></p>
+
+<blockquote>
+<p>For time-based (v1) UUID's, return a <code>java.util.Date</code> object that represents
+ the system time at which this UUID was generated. NOTE: the returned
+ value may not necessarily be temporally unique. For non-time-based 
+ (v3, v4, v5, squuid) UUID's, always returns <code>nil</code>.</p>
 </blockquote>
 
 <p><em>(member)</em>    <code>get-time-low [self]</code></p>
@@ -730,12 +749,13 @@ You truly are diabolical.</p>
 
 <blockquote>
 <p>Return the <em>clk-seq</em> number associated with this UUID. For time-based
- UUID's the <em>clock-sequence</em> value is a somewhat counter-intuitively named 
+ (v1) UUID's the <em>clock-sequence</em> value is a somewhat counter-intuitively named 
  seed-value that is used to reduce the potential that duplicate UUID's 
  might be generated under unusual situations, such as if the system hardware
  clock is set backward in time or if, despite all efforts otherwise, a 
  duplicate <code>+node-id+</code> happens to be generated. This value is initialized to 
- a random 16-bit number once per lifetime of the system.</p>
+ a random 16-bit number once per lifetime of the system.  For non-time-based
+ (v3, v4, v5, squuid) UUID's, always returns <code>nil</code>.</p>
 </blockquote>
 
 <p><em>(member)</em>    <code>get-clk-high [self]</code></p>
@@ -779,7 +799,7 @@ You truly are diabolical.</p>
 <p>Return a String object that represents <code>self</code> in the canonical 
  36 character hexadecimal string format: </p>
 
-<pre><code>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
+<pre><code>"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 </code></pre>
 </blockquote>
 
@@ -789,7 +809,7 @@ You truly are diabolical.</p>
 <p>Return a String object that represents <code>self</code> as the 32 hexadecimal 
  characters directly encodong the UUID's 128 bit value: </p>
 
-<pre><code>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+<pre><code>"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 </code></pre>
 </blockquote>
 
@@ -800,7 +820,7 @@ You truly are diabolical.</p>
  serialization of the URN URI based on the canonical 36 character 
  hex-string representation: </p>
 
-<pre><code>urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+<pre><code>"urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 </code></pre>
 </blockquote>
 
