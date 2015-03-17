@@ -20,7 +20,7 @@
 ;; 12219292800 seconds
 
 ;; we pad to achieve the rfc4122 compat and support atomic incremental
-;; uuids-this-second subcounter on the low order bits, guarantee that
+;; timestamps-this-tick subcounter on the low order bits, guarantee that
 ;; never collides regardless of clock precision:
 ;;
 ;; 113914335216380000  (+ (* (universal-time) 10000) 100103040000000000)
@@ -54,16 +54,16 @@
            (* (+ 2208988800000 (.millis new-state)) 10000))))))
 
 
-(defn universal-time
-  ([]
-   (universal-time (System/currentTimeMillis)))
-  ([^long millis]
-   (+ (quot millis 1000) 2208988800)))
-
 (defn posix-time
   ([]
    (posix-time (System/currentTimeMillis)))
-  ([^long millis]
-   (quot millis 1000)))
+  ([^long gregorian]
+   (- (quot gregorian 10000) 12219292800000)))
+
+(defn universal-time
+  ([]
+   (universal-time (monotonic-time)))
+  ([^long gregorian]
+   (+ (posix-time gregorian) 2208988800)))
   
 (set! *warn-on-reflection* false)

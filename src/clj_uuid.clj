@@ -11,7 +11,8 @@
                           ObjectOutputStream]
            [java.net      URI
                           URL]
-           [java.util     UUID]))
+           [java.util     UUID
+                          Date]))
 
 (set! *warn-on-reflection* true)
 
@@ -258,19 +259,30 @@
 
   (^short   get-clk-seq     [uuid]
     "Return the clock-sequence number associated with this UUID. For time-based
-    UUID's the 'clock-sequence' value is a somewhat counter-intuitively named 
-    seed-value that is used to reduce the potential that duplicate UUID's 
+    (v1) UUID's the 'clock-sequence' value is a somewhat counter-intuitively 
+    named seed-value that is used to reduce the potential that duplicate UUID's 
     might be generated under unusual situations, such as if the system hardware
     clock is set backward in time or if, despite all efforts otherwise, a 
-    duplicate +node-id+ happens to be generated. This value is initialized to 
-    a random 16-bit number once per lifetime of the system.")
+    duplicate node-id happens to be generated. This value is initialized to 
+    a random 16-bit number once per lifetime of the system.  For non-time-based
+    (v3, v4, v5, squuid) UUID's, always returns `nil`.")
 
-  (get-node-id              [uuid]
+  (^long get-node-id        [uuid]
     "Return the 48 bit unsigned value that represents the spatially unique 
     node identifier associated with this UUID.")
 
-  (get-timestamp            [uuid]
-    "")
+  (^long get-timestamp      [uuid]
+    "Return the 60 bit unsigned value that represents a temporally unique
+    timestamp associated with this UUID.  For time-based (v1) UUID's the
+    result encodes the number of 100 nanosecond intervals since the
+    adoption of the Gregorian calendar: 12:00am Friday October 15, 1582 UTC.
+    For non-time-based (v3, v4, v5, squuid) UUID's, always returns `nil`.")
+
+  (^Date get-instant        [uuid]
+    "For time-based (v1) UUID's, return a java.util.Date object that represents
+    the system time at which this UUID was generated. NOTE: the returned
+    value may not necessarily be temporally unique. For non-time-based 
+    (v3, v4, v5, squuid) UUID's, always returns `nil`.")
 
   (^bytes   to-byte-array   [uuid]
     "Return an array of 16 bytes that represents `uuid` as a decomposed 

@@ -659,8 +659,23 @@ _(protocol)_    `UUIDRfc4122`
 >>     0x5   Namespaced (SHA1 Digest)
 >>
 >>  In the canonical representation, `xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx`, 
->>  the four bits of `M` indicate the UUID version (i.e., the hexadecimal `M` 
+>>  the four bits of `M` indicate the UUID version (i.e., the hexadecimal `M`
 >>  will be either `1`, `2`, `3`, `4`, or `5`).
+>
+> _(member)_    `get-timetamp [self]`
+>
+>>  Return the 60 bit unsigned value that represents a temporally unique
+>>  timestamp associated with this UUID.  For time-based (v1) UUID's the
+>>  result encodes the number of 100 nanosecond intervals since the
+>>  adoption of the Gregorian calendar: _12:00am Friday October 15, 1582 UTC_.
+>>  For non-time-based (v3, v4, v5, squuid) UUID's, always returns `nil`.
+>
+> _(member)_    `get-instant [self]`
+>
+>>  For time-based (v1) UUID's, return a `java.util.Date` object that represents
+>>  the system time at which this UUID was generated. NOTE: the returned
+>>  value may not necessarily be temporally unique. For non-time-based 
+>>  (v3, v4, v5, squuid) UUID's, always returns `nil`.
 >
 > _(member)_    `get-time-low [self]`
 >
@@ -680,12 +695,13 @@ _(protocol)_    `UUIDRfc4122`
 > _(member)_    `get-clk-seq [self]`
 >
 >>  Return the _clk-seq_ number associated with this UUID. For time-based
->>  UUID's the _clock-sequence_ value is a somewhat counter-intuitively named 
+>>  (v1) UUID's the _clock-sequence_ value is a somewhat counter-intuitively named 
 >>  seed-value that is used to reduce the potential that duplicate UUID's 
 >>  might be generated under unusual situations, such as if the system hardware
 >>  clock is set backward in time or if, despite all efforts otherwise, a 
 >>  duplicate `+node-id+` happens to be generated. This value is initialized to 
->>  a random 16-bit number once per lifetime of the system.
+>>  a random 16-bit number once per lifetime of the system.  For non-time-based
+>>  (v3, v4, v5, squuid) UUID's, always returns `nil`.
 >
 > _(member)_    `get-clk-high [self]`
 >
@@ -717,14 +733,14 @@ _(protocol)_    `UUIDRfc4122`
 >>  Return a String object that represents `self` in the canonical 
 >>  36 character hexadecimal string format: 
 >>
->>     xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
+>>     "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 >
 > _(member)_    `to-hex-string [self]`
 >
 >>  Return a String object that represents `self` as the 32 hexadecimal 
 >>  characters directly encodong the UUID's 128 bit value: 
 >>
->>     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+>>     "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 >
 > _(member)_    `to-urn-string [self]`
 >
@@ -732,7 +748,7 @@ _(protocol)_    `UUIDRfc4122`
 >>  serialization of the URN URI based on the canonical 36 character 
 >>  hex-string representation: 
 >>
->>     urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+>>     "urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 >
 > _(member)_    `to-uri [self]`
 >
