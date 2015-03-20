@@ -388,29 +388,29 @@
     (.toString uuid))
 
   (to-urn-string [uuid]
-    (str "urn:uuid:" (to-string uuid)))
+    (str "urn:uuid:" (.toString uuid)))
 
   (to-uri [uuid]
     (URI/create (to-urn-string uuid)))
 
   (get-time-low [uuid]
-    (bitmop/ldb (bitmop/mask 32 0)
+    (bitmop/ldb #=(bitmop/mask 32 0)
       (bit-shift-right (.getMostSignificantBits uuid) 32)))
 
   (get-time-mid [uuid]
-    (bitmop/ldb (bitmop/mask 16 16)
+    (bitmop/ldb #=(bitmop/mask 16 16)
       (.getMostSignificantBits uuid)))
 
   (get-time-high [uuid]
-    (bitmop/ldb (bitmop/mask 16 0)
+    (bitmop/ldb #=(bitmop/mask 16 0)
       (.getMostSignificantBits uuid)))
   
   (get-clk-low [uuid]
-    (bitmop/ldb (bitmop/mask 8 0)
+    (bitmop/ldb #=(bitmop/mask 8 0)
       (bit-shift-right (.getLeastSignificantBits uuid) 56)))
 
   (get-clk-high [uuid]
-    (bitmop/ldb (bitmop/mask 8 48)
+    (bitmop/ldb #=(bitmop/mask 8 48)
       (.getLeastSignificantBits uuid)))
 
   (get-clk-seq  [uuid]
@@ -418,11 +418,11 @@
       (.clockSequence uuid)))
 
   (get-node-id [uuid]
-    (bitmop/ldb (bitmop/mask 48 0)
+    (bitmop/ldb #=(bitmop/mask 48 0)
       (.getLeastSignificantBits uuid)))
 
   (get-timestamp [uuid]
-    (when (= 1 (get-version uuid))
+    (when (= 1 (.version uuid))
       (.timestamp uuid)))
 
   (get-instant   [uuid]
@@ -472,10 +472,10 @@
   computers is guaranteed as long as MAC addresses are not duplicated."
   []
   (let [ts        (clock/monotonic-time)
-        time-low  (bitmop/ldb (bitmop/mask 32  0)  ts)
-        time-mid  (bitmop/ldb (bitmop/mask 16 32)  ts)
-        time-high (bitmop/dpb (bitmop/mask 4  12)
-                    (bitmop/ldb (bitmop/mask 12 48) ts) 0x1)
+        time-low  (bitmop/ldb #=(bitmop/mask 32  0)  ts)
+        time-mid  (bitmop/ldb #=(bitmop/mask 16 32)  ts)
+        time-high (bitmop/dpb #=(bitmop/mask 4  12)
+                    (bitmop/ldb #=(bitmop/mask 12 48) ts) 0x1)
         msb       (bit-or time-high
                    (bit-shift-left time-low 32)
                    (bit-shift-left time-mid 16))]
@@ -506,8 +506,8 @@
     (UUID/randomUUID))
   ([^long msb ^long lsb]
     (UUID.
-      (bitmop/dpb (bitmop/mask 4 12) msb 0x4)
-      (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
+      (bitmop/dpb #=(bitmop/mask 4 12) msb 0x4)
+      (bitmop/dpb #=(bitmop/mask 2 62) lsb 0x2))))
 
 
 
@@ -587,8 +587,8 @@
   (let [msb (bitmop/bytes->long arr 0)
         lsb (bitmop/bytes->long arr 8)]
     (UUID.
-     (bitmop/dpb (bitmop/mask 4 12) msb version)
-     (bitmop/dpb (bitmop/mask 2 62) lsb 0x2))))
+     (bitmop/dpb #=(bitmop/mask 4 12) msb version)
+     (bitmop/dpb #=(bitmop/mask 2 62) lsb 0x2))))
 
 
 

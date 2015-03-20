@@ -129,7 +129,7 @@
       (bit-shift-left value (mask-offset bitmask)))))
 
 (defn ^long bit-count [^long x]
-  (let [n (ldb (mask 63 0) x) s (if (neg? x) 1 0)]
+  (let [n (ldb #=(mask 63 0) x) s (if (neg? x) 1 0)]
     (loop [c s i 0]
       (if (zero? (bit-shift-right n i))
         c
