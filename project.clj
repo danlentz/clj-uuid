@@ -1,4 +1,4 @@
-(defproject danlentz/clj-uuid "0.1.5"
+(defproject danlentz/clj-uuid "0.1.6"
   :description  "A Clojure library for generation and utilization of
                 UUIDs (Universally Unique Identifiers) as described by
                 RFC-4122. This library extends the standard Java UUID class
@@ -7,7 +7,7 @@
                 supporting utilities are provided to support serialization
                 and manipulation of these UUIDs in a simple, efficient manner."
   :author       "Dan Lentz"
-  :url          "http://github.com/danlentz/clj-uuid/"
+  :url          "https://github.com/danlentz/clj-uuid"
   :license      {:name "Eclipse Public License"
                   :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure                "1.6.0"]
