@@ -13,8 +13,6 @@
 ;; implementation detail of clj-uuid and used with appropriate external
 ;; checks in place.
 
-(set! *warn-on-reflection* true)
-
 ;; Primitive Type  |  Size   |  Minimum  |     Maximum    |  Wrapper Type
 ;;-----------------------------------------------------------------------
 ;; boolean         |1?8 bits |   false   |     true       |  Boolean
@@ -223,7 +221,3 @@
   (if (number? thing)
     (hex (map ub8 (long->bytes thing)))
     (apply str (map octet-hex thing))))
-
-
-
-(set! *warn-on-reflection* false)

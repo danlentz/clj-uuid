@@ -14,9 +14,6 @@
            [java.util     UUID
                           Date]))
 
-(set! *warn-on-reflection* true)
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Leach-Salz UUID Representation     [RFC4122:4.1.2 "LAYOUT AND BYTE ORDER"] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -702,6 +699,3 @@
     false)
   (as-uuid [x]
     (exception IllegalArgumentException x "Cannot be coerced to UUID.")))
-
- 
-(set! *warn-on-reflection* false)

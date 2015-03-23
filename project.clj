@@ -15,4 +15,5 @@
   :codox    {:output-dir  "doc/api"
              :src-dir-uri "https://github.com/danlentz/clj-uuid/blob/master/"
              :src-linenum-anchor-prefix "L"
-             :project {:name "clj-uuid"}})
+             :project {:name "clj-uuid"}}
+  :global-vars {*warn-on-reflection* true})
