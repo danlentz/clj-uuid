@@ -1,5 +1,4 @@
 (ns clj-uuid.util
-  (:use [clojure.core])
   (:import (java.util UUID)))
 
 
