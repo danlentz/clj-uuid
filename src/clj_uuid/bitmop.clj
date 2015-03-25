@@ -13,8 +13,6 @@
 ;; implementation detail of clj-uuid and used with appropriate external
 ;; checks in place.
 
-(set! *warn-on-reflection* true)
-
 ;; Primitive Type  |  Size   |  Minimum  |     Maximum    |  Wrapper Type
 ;;-----------------------------------------------------------------------
 ;; boolean         |1?8 bits |   false   |     true       |  Boolean
@@ -34,7 +32,9 @@
 
 ;; {:pre [(not (neg? pow)) (< pow 64)]}
 
-(defn ^long expt2 [^long pow]
+(defn expt2
+  ^long
+  [^long pow]
   (bit-set 0 pow))
 
 
@@ -64,16 +64,20 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defn ^long mask [^long width ^long offset]
+(defn mask
+  ^long
+  [^long width ^long offset]
   (if (< (+ width offset) 64)
     (bit-shift-left (dec (bit-shift-left 1 width)) offset)
     (let [x (expt2 offset)]
-      (bit-and-not -1 (dec ^long x)))))
+      (bit-and-not -1 (dec x)))))
 
 
-(declare ^long mask-offset ^long mask-width)
+(declare mask-offset mask-width)
 
-(defn ^long mask-offset [^long m]
+(defn mask-offset
+  ^long
+  [^long m]
   (cond
     (zero? m) 0
     (neg?  m) (- 64 ^long (mask-width m))
@@ -82,10 +86,12 @@
                   c
                   (recur (inc c))))))
 
-(defn ^long mask-width [^long m]
+(defn mask-width
+  ^long
+  [^long m]
   (if (neg? m)
     (let [x (mask-width (- (inc m)))]
-      (- 64  ^long x))
+      (- 64 x))
     (loop [m (bit-shift-right m (mask-offset m)) c 0]
       (if (zero? (bit-and 1 (bit-shift-right m c)))
         c
@@ -114,21 +120,25 @@
 ;; LDB, DPB: Fundamental Bitwise Operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn ^long ldb
+(defn ldb
   "Load Byte"
+  ^long
   [^long bitmask ^long num]
   (let [off (mask-offset bitmask)]
-    (bit-and (>>> bitmask ^long off)
+    (bit-and (>>> bitmask off)
       (bit-shift-right num off))))
 
-(defn ^long dpb
+(defn dpb
   "Deposit Byte"
+  ^long
   [^long bitmask ^long num ^long value]
   (bit-or (bit-and-not num bitmask)
     (bit-and bitmask
       (bit-shift-left value (mask-offset bitmask)))))
 
-(defn ^long bit-count [^long x]
+(defn bit-count
+  ^long
+  [^long x]
   (let [n (ldb #=(mask 63 0) x) s (if (neg? x) 1 0)]
     (loop [c s i 0]
       (if (zero? (bit-shift-right n i))
@@ -223,7 +233,3 @@
   (if (number? thing)
     (hex (map ub8 (long->bytes thing)))
     (apply str (map octet-hex thing))))
-
-
-
-(set! *warn-on-reflection* false)

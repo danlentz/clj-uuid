@@ -1,5 +1,4 @@
 (ns clj-uuid.util
-  (:use [clojure.core])
   (:import (java.util UUID)))
 
 
@@ -100,7 +99,7 @@
        (finally
          (.delete ~f-sym)))))
 
-(defn lines-of-file [file-name]
+(defn lines-of-file [^String file-name]
  (line-seq
   (java.io.BufferedReader.
    (java.io.InputStreamReader.

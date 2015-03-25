@@ -1,5 +1,4 @@
-(ns clj-uuid.constants
-  (:use [clojure.core]))
+(ns clj-uuid.constants)
 
 
 (def +md5+  "MD5")
