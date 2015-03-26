@@ -12,8 +12,8 @@
 ;;   Universal time is represented as the number of seconds that have
 ;;   elapsed since 00:00 January 1, 1900 GMT.
 ;;
-;;   POSIX time is represented as the number of s
-;;   between the current time and midnight, January 1, 1970 UTC
+;;   POSIX time is represented as the number of seconds that have 
+;;   elaspsed since 00:00 January 1, 1970 UTC
 ;;
 ;;   Java time is represented as the difference, measured in milliseconds,
 ;;   between the current time and midnight, January 1, 1970 UTC
@@ -73,9 +73,8 @@
                      (if (< tt +subcounter-resolution+)
                        (->State (inc tt) time-now)
                        (recur (System/currentTimeMillis))))))))]
-       (+ (.seqid new-state)       
-         (+ 100103040000000000
-           (* (+ 2208988800000 (.millis new-state)) 10000))))))
+       (+ (.seqid new-state) 100103040000000000
+         (* (+ 2208988800000 (.millis new-state)) 10000)))))
 
 
 (defn posix-time
