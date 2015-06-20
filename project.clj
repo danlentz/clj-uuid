@@ -16,4 +16,4 @@
              :src-dir-uri "https://github.com/danlentz/clj-uuid/blob/master/"
              :src-linenum-anchor-prefix "L"
              :project {:name "clj-uuid"}}
-  :global-vars {*warn-on-reflection* true})
+  :global-vars {*warn-on-reflection* false})
