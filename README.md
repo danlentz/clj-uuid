@@ -8,7 +8,7 @@ clj-uuid
 * * * * * *
 
 [![Build Status](https://travis-ci.org/danlentz/clj-uuid.svg?branch=master)]
-(https://travis-ci.org/danlentz/clj-uuid)[![Dependency Status](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.5/badge.svg)](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.5)
+(https://travis-ci.org/danlentz/clj-uuid)[![Dependency Status](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.6/badge.svg)](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.6)
 
 
 **clj-uuid** is a Clojure library for generation and utilization of
