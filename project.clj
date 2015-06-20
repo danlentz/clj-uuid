@@ -7,6 +7,7 @@
                 supporting utilities are provided to support serialization
                 and manipulation of these UUIDs in a simple, efficient manner."
   :author       "Dan Lentz"
+  :signing  {:gpg-key "B110BC3D"}
   :url          "https://github.com/danlentz/clj-uuid"
   :license      {:name "Eclipse Public License"
                   :url "http://www.eclipse.org/legal/epl-v10.html"}
