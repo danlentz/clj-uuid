@@ -387,6 +387,9 @@
   (to-urn-string [uuid]
     (str "urn:uuid:" (.toString uuid)))
 
+  (to-hex-string [uuid]
+    (str (bitmop/hex (get-word-high uuid)) (bitmop/hex (get-word-low uuid))))
+
   (to-uri [uuid]
     (URI/create (to-urn-string uuid)))
 
