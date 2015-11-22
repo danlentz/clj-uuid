@@ -6,8 +6,8 @@
     <title>clj-uuid by danlentz</title>
 
     <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
@@ -39,7 +39,7 @@
 
 <hr>
 
-<p><a href="https://travis-ci.org/danlentz/clj-uuid"><img src="https://travis-ci.org/danlentz/clj-uuid.svg?branch=master" alt="Build Status"></a><a href="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.4"><img src="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.4/badge.svg" alt="Dependency Status"></a></p>
+<p><a href="https://travis-ci.org/danlentz/clj-uuid"><img src="https://travis-ci.org/danlentz/clj-uuid.svg?branch=master" alt="Build Status"></a><a href="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.6"><img src="https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.6/badge.svg" alt="Dependency Status"></a></p>
 
 <p><strong>clj-uuid</strong> is a Clojure library for generation and utilization of
 UUIDs (Universally Unique Identifiers) as described by
@@ -111,12 +111,12 @@ functionality that you are likely to ever need.</p>
 <p>In order to refer to the symbols in this library, it is recommended to
 <em>require</em> it in a given namespace:</p>
 
-<div class="highlight highlight-clojure"><pre>
+<div class="highlight highlight-source-clojure"><pre>
 (<span class="pl-k">require</span> '[clj-uuid <span class="pl-c1">:as</span> uuid])</pre></div>
 
 <p>Or include in namespace declaration:</p>
 
-<div class="highlight highlight-clojure"><pre>
+<div class="highlight highlight-source-clojure"><pre>
 (<span class="pl-k">ns</span> <span class="pl-e">foo</span>
   (<span class="pl-c1">:require</span> [clj-uuid <span class="pl-c1">:as</span> uuid])
   <span class="pl-e">...</span>
@@ -130,8 +130,8 @@ functionality that you are likely to ever need.</p>
 reader.  The tag <code>#uuid</code> denotes that the following string literal
 will be read as a UUID.  UUID's evaluate to themselves:</p>
 
-<div class="highlight highlight-clojure"><pre>
-user&gt; #uuid <span class="pl-s1"><span class="pl-pds">"</span>e6ff478d-9492-48dd-886d-23ec4c6385ee<span class="pl-pds">"</span></span>
+<div class="highlight highlight-source-clojure"><pre>
+user&gt; #uuid <span class="pl-s"><span class="pl-pds">"</span>e6ff478d-9492-48dd-886d-23ec4c6385ee<span class="pl-pds">"</span></span>
 
 <span class="pl-c">;;  =&gt; #uuid "e6ff478d-9492-48dd-886d-23ec4c6385ee"</span></pre></div>
 
@@ -144,7 +144,7 @@ representing special values such as <em>nil</em> or <em>null-context</em>. One m
 reference the null UUID declaratively or functionally, although it is
 best to pick one convention and remain consistant.</p>
 
-<div class="highlight highlight-clojure"><pre>
+<div class="highlight highlight-source-clojure"><pre>
 user&gt; (<span class="pl-en">uuid/null</span>)
 
 <span class="pl-c">;;  =&gt; #uuid "00000000-0000-0000-0000-000000000000"</span>
@@ -171,7 +171,7 @@ clock precision or degree of concurrency.</p>
 the UUID and the time at which it did so.  Its uniqueness across
 computers is guaranteed as long as node/MAC addresses are not duplicated.</p>
 
-<div class="highlight highlight-clojure"><pre>
+<div class="highlight highlight-source-clojure"><pre>
 user&gt; (<span class="pl-en">uuid/v1</span>)
 
 <span class="pl-c">;;  =&gt; #uuid "ffa803f0-b3d3-11e4-a03e-3af93c3de9ae"</span>
@@ -213,7 +213,7 @@ Execution time mean : 2.012861 µs
 representation of this timestamp is as a 60 bit value indicating the
 number of 100 nanosecond intervals since the Gregorian epoch:</p>
 
-<div class="highlight highlight-clojure"><pre>
+<div class="highlight highlight-source-clojure"><pre>
 user&gt; (<span class="pl-en">uuid/get-timestamp</span> (<span class="pl-en">uuid/v1</span>))
 
 <span class="pl-c">;;  =&gt; 136459064897650000</span>
@@ -237,7 +237,7 @@ UUID's and compare their timestamps relative to one another.  We can
 also look at the absolute timestamp values of time-based UUID's using the
 ideomatic Clojure representation of timestamp values:</p>
 
-<div class="highlight highlight-clojure"><pre>
+<div class="highlight highlight-source-clojure"><pre>
 user&gt; (<span class="pl-en">uuid/get-instant</span> (<span class="pl-en">uuid/v1</span>))
 
 <span class="pl-c">;;  =&gt; #inst "2015-03-17T17:51:15.970-00:00"</span>
@@ -293,22 +293,22 @@ one can always (re)construct the unique identifier that represents
 it.  We can demonstrate a few examples constructed using several of
 the canonical top level namespace UUIDs:</p>
 
-<div class="highlight highlight-clojure"><pre>
-user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>)
+<div class="highlight highlight-source-clojure"><pre>
+user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>)
 
 <span class="pl-c">;;  =&gt; #uuid "0a300ee9-f9e4-5697-a51a-efc7fafaba67"</span>
 
-user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-x500+ <span class="pl-s1"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>)
+user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-x500+ <span class="pl-s"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>)
 
 <span class="pl-c">;;  =&gt; #uuid "0cb29677-4eaf-578f-ab9b-f9ac67c33cb9"</span>
 
 
-user&gt; (<span class="pl-en">uuid/v3</span> uuid/+namespace-dns+ <span class="pl-s1"><span class="pl-pds">"</span>www.clojure.org<span class="pl-pds">"</span></span>)
+user&gt; (<span class="pl-en">uuid/v3</span> uuid/+namespace-dns+ <span class="pl-s"><span class="pl-pds">"</span>www.clojure.org<span class="pl-pds">"</span></span>)
 
 <span class="pl-c">;;  =&gt; #uuid "3bdca4f7-fc85-3a8b-9038-7626457527b0"</span>
 
 
-user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-oid+ <span class="pl-s1"><span class="pl-pds">"</span>0.1.22.13.8.236.1<span class="pl-pds">"</span></span>)
+user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-oid+ <span class="pl-s"><span class="pl-pds">"</span>0.1.22.13.8.236.1<span class="pl-pds">"</span></span>)
 
 <span class="pl-c">;;  =&gt; #uuid "9989a7d2-b7fc-5b6a-84d6-556b0531a065"</span></pre></div>
 
@@ -317,8 +317,8 @@ well-definted format specific to each namespace.  This is a very
 common convention, but not enforced.  It is perfectly valid to
 construct a namespaced UUID from any literal string.</p>
 
-<div class="highlight highlight-clojure"><pre>
-user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>I am clearly not a URL<span class="pl-pds">"</span></span>)
+<div class="highlight highlight-source-clojure"><pre>
+user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s"><span class="pl-pds">"</span>I am clearly not a URL<span class="pl-pds">"</span></span>)
 
 <span class="pl-c">;;  =&gt; #uuid "a167a791-e550-57ae-b20f-666ee47ce7c1"</span></pre></div>
 
@@ -326,7 +326,7 @@ user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="p
 constituent are even more general than even just Strings.  Any kind of
 object will do:</p>
 
-<div class="highlight highlight-clojure"><pre>
+<div class="highlight highlight-source-clojure"><pre>
 user&gt; (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-c1">:keyword</span>)
 
 <span class="pl-c">;;  =&gt; #uuid "bc480d53-fba7-5e5f-8f33-6ad77880a007"</span>
@@ -359,18 +359,18 @@ represents the 'name' of an object, typically unique within some given
 namespace.  Here is a simple example where one adds specialized support
 for URLs to be quickly digested as the bytes of their string representation.</p>
 
-<div class="highlight highlight-clojure"><pre>
+<div class="highlight highlight-source-clojure"><pre>
 (<span class="pl-en">extend-protocol</span> UUIDNameBytes java.net.URL
   (<span class="pl-en">as-byte-array</span> [this]
     (<span class="pl-en">.getBytes</span> (<span class="pl-en">.toString</span> this) StandardCharsets/UTF_8)))
 
 
-(<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>)
+(<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>)
 
 <span class="pl-c">;; =&gt; #uuid "0a300ee9-f9e4-5697-a51a-efc7fafaba67"</span>
 
 
-(<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ (<span class="pl-en">java.net.URL.</span> <span class="pl-s1"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>))
+(<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ (<span class="pl-en">java.net.URL.</span> <span class="pl-s"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>))
 
 <span class="pl-c">;; =&gt; #uuid "0a300ee9-f9e4-5697-a51a-efc7fafaba67"</span>
 </pre></div>
@@ -384,31 +384,31 @@ for example, can be used to assign unique identifiers based not only
 on the content of a string but the unique identity representing its
 source or provenance:</p>
 
-<div class="highlight highlight-clojure"><pre>
+<div class="highlight highlight-source-clojure"><pre>
 user&gt; (<span class="pl-en">uuid/v5</span>
-        (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>)
-        <span class="pl-s1"><span class="pl-pds">"</span>resource1#<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>)
+        <span class="pl-s"><span class="pl-pds">"</span>resource1#<span class="pl-pds">"</span></span>)
 
 <span class="pl-c">;;  =&gt; #uuid "6a3944a4-f00e-5921-b8b6-2cea5a745132"</span>
 
 
 user&gt; (<span class="pl-en">uuid/v5</span>
-        (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>)
-        <span class="pl-s1"><span class="pl-pds">"</span>resource2#<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s"><span class="pl-pds">"</span>http://example.com/<span class="pl-pds">"</span></span>)
+        <span class="pl-s"><span class="pl-pds">"</span>resource2#<span class="pl-pds">"</span></span>)
 
 <span class="pl-c">;;  =&gt; #uuid "98879e2a-8511-59ab-877d-ac6f8667866d"</span>
 
 
 user&gt; (<span class="pl-en">uuid/v5</span>
-        (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>http://other.com/<span class="pl-pds">"</span></span>)
-        <span class="pl-s1"><span class="pl-pds">"</span>resource1#<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s"><span class="pl-pds">"</span>http://other.com/<span class="pl-pds">"</span></span>)
+        <span class="pl-s"><span class="pl-pds">"</span>resource1#<span class="pl-pds">"</span></span>)
 
 <span class="pl-c">;;  =&gt; #uuid "bc956d0c-7af3-5b81-89f2-a96e8f9fd1a8"</span>
 
 
 user&gt; (<span class="pl-en">uuid/v5</span>
-        (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s1"><span class="pl-pds">"</span>http://other.com/<span class="pl-pds">"</span></span>)
-        <span class="pl-s1"><span class="pl-pds">"</span>resource2#<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> uuid/+namespace-url+ <span class="pl-s"><span class="pl-pds">"</span>http://other.com/<span class="pl-pds">"</span></span>)
+        <span class="pl-s"><span class="pl-pds">"</span>resource2#<span class="pl-pds">"</span></span>)
 
 <span class="pl-c">;;  =&gt; #uuid "a38b24fe-7ab8-58c8-a3f8-d3adb308260b"</span>
 
@@ -419,19 +419,19 @@ can be certain that the UUID resulting from a chain of calls such as
 the following will be unique -- if and only if the original namespace
 matches:</p>
 
-<div class="highlight highlight-clojure"><pre>
+<div class="highlight highlight-source-clojure"><pre>
 user&gt; (<span class="pl-en">-&gt;</span> (<span class="pl-en">uuid/v1</span>)
-        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>one<span class="pl-pds">"</span></span>)
-        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>two<span class="pl-pds">"</span></span>)
-        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>three<span class="pl-pds">"</span></span>))
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s"><span class="pl-pds">"</span>one<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s"><span class="pl-pds">"</span>two<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s"><span class="pl-pds">"</span>three<span class="pl-pds">"</span></span>))
 
 <span class="pl-c">;;  =&gt; #uuid "eb7a0c2b-eb0e-5bb2-9819-3c9edc2814fa"</span>
 
 
 user&gt; (<span class="pl-en">-&gt;</span> (<span class="pl-en">uuid/v1</span>)
-        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>one<span class="pl-pds">"</span></span>)
-        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>two<span class="pl-pds">"</span></span>)
-        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>three<span class="pl-pds">"</span></span>))
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s"><span class="pl-pds">"</span>one<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s"><span class="pl-pds">"</span>two<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s"><span class="pl-pds">"</span>three<span class="pl-pds">"</span></span>))
 
 <span class="pl-c">;;  =&gt; #uuid "45e8c272-1660-57ba-8892-6844e1d3196a"</span>
 </pre></div>
@@ -439,19 +439,19 @@ user&gt; (<span class="pl-en">-&gt;</span> (<span class="pl-en">uuid/v1</span>)
 <p>At each step, the local part string must be identical, in order for the the
 final UUID to match:</p>
 
-<div class="highlight highlight-clojure"><pre>
+<div class="highlight highlight-source-clojure"><pre>
 user&gt; (<span class="pl-en">-&gt;</span> uuid/+namespace-dns+
-        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>one<span class="pl-pds">"</span></span>)
-        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>two<span class="pl-pds">"</span></span>)
-        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>three<span class="pl-pds">"</span></span>))
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s"><span class="pl-pds">"</span>one<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s"><span class="pl-pds">"</span>two<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s"><span class="pl-pds">"</span>three<span class="pl-pds">"</span></span>))
 
 <span class="pl-c">;;  =&gt; #uuid "617756cc-3b02-5a86-ad4a-ab3e1403dbd6"</span>
 
 
 user&gt; (<span class="pl-en">-&gt;</span> uuid/+namespace-dns+
-        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>two<span class="pl-pds">"</span></span>)
-        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>one<span class="pl-pds">"</span></span>)
-        (<span class="pl-en">uuid/v5</span> <span class="pl-s1"><span class="pl-pds">"</span>three<span class="pl-pds">"</span></span>))
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s"><span class="pl-pds">"</span>two<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s"><span class="pl-pds">"</span>one<span class="pl-pds">"</span></span>)
+        (<span class="pl-en">uuid/v5</span> <span class="pl-s"><span class="pl-pds">"</span>three<span class="pl-pds">"</span></span>))
 
 <span class="pl-c">;;  =&gt; #uuid "52d5453e-2aa1-53c1-b093-0ea20ef57ad1"</span>
 </pre></div>
@@ -481,16 +481,16 @@ choose a random namespace and record it in some secret, persistent storage
 to ensure we can regenerate a user's activation code identically on-demand
 in the future.</p>
 
-<div class="highlight highlight-clojure"><pre>
+<div class="highlight highlight-source-clojure"><pre>
 user&gt; (<span class="pl-k">def</span> <span class="pl-e">+secret-weapon-licensing-namespace+</span> (<span class="pl-en">uuid/v4</span>))
 
 
-user&gt; (<span class="pl-en">uuid/v5</span> +secret-weapon-licensing-namespace+ <span class="pl-s1"><span class="pl-pds">"</span>joe@example.com<span class="pl-pds">"</span></span>)
+user&gt; (<span class="pl-en">uuid/v5</span> +secret-weapon-licensing-namespace+ <span class="pl-s"><span class="pl-pds">"</span>joe@example.com<span class="pl-pds">"</span></span>)
 
 <span class="pl-c">;;  =&gt; #uuid "b6433d1e-d369-5282-8dbc-bdd3845c376c"</span>
 
 
-user&gt; (<span class="pl-en">uuid/v5</span> +secret-weapon-licensing-namespace+ <span class="pl-s1"><span class="pl-pds">"</span>mom@knitting-arts.edu<span class="pl-pds">"</span></span>)
+user&gt; (<span class="pl-en">uuid/v5</span> +secret-weapon-licensing-namespace+ <span class="pl-s"><span class="pl-pds">"</span>mom@knitting-arts.edu<span class="pl-pds">"</span></span>)
 
 <span class="pl-c">;;  =&gt; #uuid "81e4708c-85bb-5f3c-be56-bba4d8b0ac91"</span>
 </pre></div>
@@ -924,6 +924,15 @@ that they were generated from the same name in the same namespace.</p></li>
 <li><p><a href="http://joearms.github.io/2015/03/12/The_web_of_names.html">The web of names, hashes, and UUIDs</a></p></li>
 <li><p><a href="http://blog.find-method.de/index.php?/archives/200-Coding-katas-Clojure-Bloom-filters.html">Coding Katas Clojure -- Bloom Filters</a></p></li>
 </ul>
+
+<h3>
+<a id="special-thanks" class="anchor" href="#special-thanks" aria-hidden="true"><span class="octicon octicon-link"></span></a>Special Thanks</h3>
+
+<p>YourKit supports open source projects with its full-featured Java Profiler.
+YourKit, LLC is the creator of <a href="https://www.yourkit.com/java/profiler/index.jsp">YourKit Java Profiler</a>
+and <a href="https://www.yourkit.com/.net/profiler/index.jsp">YourKit .NET Profiler</a>,
+innovative and intelligent tools for profiling Java and .NET
+applications.</p>
 
 <h3>
 <a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h3>
