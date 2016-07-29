@@ -141,10 +141,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def node-id
-  (memoize make-node-id))
+  (delay make-node-id))
 
 (def ^:const +node-id+
-  (assemble-bytes (cons 0 (cons 0 (node-id)))))
+  (assemble-bytes (cons 0 (cons 0 (@node-id)))))
 
 (def ^:const +v1-lsb+
   (let [clk-high  (dpb (mask 2 6) (ldb (mask 6 8) +clock-sequence+) 0x2)
