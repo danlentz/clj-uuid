@@ -1,4 +1,5 @@
 (ns clj-uuid.v5-test
+  (:refer-clojure :exclude [uuid?])
   (:require [clojure.test   :refer :all]
             [clj-uuid       :refer :all]))
 
