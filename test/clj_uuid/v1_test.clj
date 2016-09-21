@@ -1,7 +1,7 @@
 (ns clj-uuid.v1-test
   (:require [clojure.test   :refer :all]
             [clojure.set]
-            [clj-uuid :refer :all]))
+            [clj-uuid :refer [v1 get-timestamp]]))
 
 
 (deftest check-v1-concurrency
@@ -25,23 +25,3 @@
       (testing "concurrent v1 monotonic increasing..."
         (is (every? identity
               (map #(apply < (map get-timestamp %)) answers)))))))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

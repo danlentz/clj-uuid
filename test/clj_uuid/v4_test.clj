@@ -1,4 +1,5 @@
 (ns clj-uuid.v4-test
+  (:refer-clojure :exclude [uuid?])
   (:require [clojure.test   :refer :all]
             [clj-uuid       :refer :all]))
 
@@ -10,5 +11,3 @@
     (is (= (v4  0 -1)  #uuid "00000000-0000-4000-bfff-ffffffffffff"))
     (is (= (v4 -1  0)  #uuid "ffffffff-ffff-4fff-8000-000000000000"))
     (is (= (v4 -1 -1)  #uuid "ffffffff-ffff-4fff-bfff-ffffffffffff"))))
-
-

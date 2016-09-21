@@ -1,5 +1,5 @@
 (ns clj-uuid
-  (:refer-clojure :exclude [==])
+  (:refer-clojure :exclude [== uuid?])
   (:require [clj-uuid
              [constants :refer :all]
              [util      :refer :all]
