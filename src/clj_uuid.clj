@@ -4,8 +4,7 @@
              [constants :refer :all]
              [util      :refer :all]
              [bitmop    :as bitmop]
-             [clock     :as clock]
-             [node      :as node]])
+             [clock     :as clock]])
   (:import [java.security MessageDigest]
            [java.io       ByteArrayOutputStream
                           ObjectOutputStream]
@@ -466,6 +465,13 @@
 ;; of 100-nanosecond intervals since the adoption of the Gregorian calendar
 ;; in the West, 12:00am Friday October 15, 1582 UTC.
 
+(def ^:private +v1-lsb+
+  ;; Lazily load the namespace clj-uuid.node to avoid calling make-node-id
+  ;; unless needed. make-node-id causes problems on some platforms.
+  (delay
+    (require 'clj-uuid.node)
+    (var-get (find-var 'clj-uuid.node/+v1-lsb+))))
+
 (defn v1
   "Generate a v1 (time-based) unique identifier, guaranteed to be unique
   and thread-safe regardless of clock precision or degree of concurrency.
@@ -484,7 +490,7 @@
         msb       (bit-or time-high
                    (bit-shift-left time-low 32)
                    (bit-shift-left time-mid 16))]
-    (UUID. msb node/+v1-lsb+)))
+    (UUID. msb @+v1-lsb+)))
 
 
 
