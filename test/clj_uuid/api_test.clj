@@ -14,6 +14,7 @@
       (is (= (get-word-high tmpid)       0))
       (is (= (get-word-low tmpid)        0))
       (is (= (null? tmpid)           true))
+      (is (= (uuid? tmpid)           true))
       (is (= (seq (to-byte-array tmpid)) [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]))
       (is (= (hash-code tmpid)       0))
       (is (= (get-version tmpid)         0))
@@ -34,6 +35,7 @@
       (is (= (get-word-high tmpid)       7757371281853190609))
       (is (= (get-word-low tmpid)        -9172705715073830712))
       (is (= (null? tmpid)           false))
+      (is (= (uuid? tmpid)           true))
       (is (=
             (seq (to-byte-array tmpid))
             [107 -89 -72 20 -99 -83 17 -47 -128 -76 0 -64 79 -44 48 -56]))
@@ -57,6 +59,7 @@
       (is (= (get-word-high tmpid)       -2754731383046652668))
       (is (= (get-word-low tmpid)        -5355381512134070146))
       (is (= (null? tmpid)           false))
+      (is (= (uuid? tmpid)           true))
       (is (=
             (seq (to-byte-array tmpid))
             [-39 -59 58 102 -3 -30 61 4 -75 -83 -36 -29 -124 -115 -16 126]))
@@ -80,6 +83,7 @@
       (is (= (get-word-high tmpid)       4517641053478013565))
       (is (= (get-word-low tmpid)       -8196387622257066560))
       (is (= (null? tmpid)               false))
+      (is (= (uuid? tmpid)               true))
       (is (=
             (seq (to-byte-array tmpid))
             [62 -79 -30 -102 71 71 74 125 -114 64 -108 -30 69 -11 125 -64]))
@@ -95,7 +99,13 @@
       (is (= (get-clk-low tmpid)         142))
       (is (= (get-clk-high tmpid)        64))
       (is (= (get-node-id tmpid)         163699557236160))
-      (is (= (get-timestamp tmpid)       nil)))))
+      (is (= (get-timestamp tmpid)       nil))))
+
+  (testing "strings"
+    (is (= (uuid? "foo")           false)))
+
+  (testing "nil"
+    (is (= (uuid? nil)             false))))
 
 
 
