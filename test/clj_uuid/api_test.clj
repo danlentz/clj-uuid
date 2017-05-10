@@ -1,7 +1,9 @@
 (ns clj-uuid.api-test
   (:refer-clojure :exclude [uuid?])
   (:require [clojure.test :refer :all]
-            [clj-uuid     :refer :all]))
+            [clj-uuid     :refer :all])
+  (:import
+   (java.lang IllegalArgumentException)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Protocol Tests
@@ -108,5 +110,20 @@
     (is (uuid-string?       (to-string       (v4))))
     (is (uuid-urn-string?   (to-urn-string   (v4))))))
 
+(deftest nil-test
+  (testing "Calling certain functions/methods on nil returns nil"
+    (testing "UUIDNameBytes"
+      (is (thrown? IllegalArgumentException (as-byte-array nil))))
 
+    (testing "UUIDable"
+      (is (thrown? IllegalArgumentException (as-uuid nil)))
+      (is (false? (uuidable? nil))))
 
+    (testing "UUIDRfc4122"
+      (is (false? (uuid? nil))))
+
+    (is (false? (uuid-string? nil)))
+
+    (is (false? (uuid-urn-string? nil)))
+
+    (is (false? (uuid-vec? nil)))))

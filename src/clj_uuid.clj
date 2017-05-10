@@ -12,7 +12,8 @@
            [java.net      URI
                           URL]
            [java.util     UUID
-                          Date]))
+            Date]
+           [java.lang IllegalArgumentException]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Leach-Salz UUID Representation     [RFC4122:4.1.2 "LAYOUT AND BYTE ORDER"] ;;
@@ -572,8 +573,12 @@
 
   java.net.URL
   (as-byte-array ^bytes [this]
-    (as-byte-array (.toString this))))
- 
+    (as-byte-array (.toString this)))
+
+  nil
+  (as-byte-array [x]
+    (throw (IllegalArgumentException. (format "%s cannot be converted to byte array." x)))))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -665,16 +670,13 @@
 ;; Predicates
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; NOTE: (not (nil? ...)) avoids returning some generalized boolean value that
-;; might be counterintuitive to the user, since these functions are exposed
-;; as user api.
-
-
 (defn uuid-string? [str]
-  (not (nil? (re-matches uuid-regex str))))
+  (and (string? str)
+       (re-matches uuid-regex str)))
 
 (defn uuid-urn-string? [str]
-  (not (nil? (re-matches urn-regex str))))
+  (and (string? str)
+       (re-matches urn-regex str)))
 
 (defn uuid-vec? [v]
   (and (= (count v) 16)
@@ -694,7 +696,10 @@
 
 (extend-protocol UUIDRfc4122
   Object
-  (uuid? [x] false))
+  (uuid? [x] false)
+
+  nil
+  (uuid? [_] false))
 
 (extend-protocol UUIDable
   String
@@ -715,4 +720,9 @@
   (uuidable? ^boolean [_]
     false)
   (as-uuid [x]
-    (exception IllegalArgumentException x "Cannot be coerced to UUID.")))
+    (exception IllegalArgumentException x "Cannot be coerced to UUID."))
+
+  nil
+  (as-uuid [x]
+    (throw (IllegalArgumentException. (format "%s cannot be coerced to UUID." x))))
+  (uuidable? ^boolean [_] false))
