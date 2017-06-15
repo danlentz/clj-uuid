@@ -143,10 +143,10 @@
 (def node-id
   (memoize make-node-id))
 
-(def ^:const +node-id+
+(def +node-id+
   (assemble-bytes (cons 0 (cons 0 (node-id)))))
 
-(def ^:const +v1-lsb+
+(def +v1-lsb+
   (let [clk-high  (dpb (mask 2 6) (ldb (mask 6 8) +clock-sequence+) 0x2)
         clk-low   (ldb (mask 8 0) +clock-sequence+)]
     (dpb (mask 8 56) (dpb (mask 8 48) +node-id+ clk-low) clk-high)))
