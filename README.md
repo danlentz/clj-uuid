@@ -1,15 +1,14 @@
 clj-uuid
 ========
 
-> _"The intent of the UUID is to enable distributed systems to uniquely_ 
+> _"The intent of the UUID is to enable distributed systems to uniquely_
 > _identify information without significant central coordination."_
 > -- [_Wikipedia/UUID_](http://en.wikipedia.org/wiki/Universally_unique_identifier)
 
 * * * * * *
 
 [![Build Status](https://travis-ci.org/danlentz/clj-uuid.svg?branch=master)]
-(https://travis-ci.org/danlentz/clj-uuid)[![Dependency Status](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.6/badge.svg)](https://www.versioneye.com/clojure/danlentz:clj-uuid/0.1.6)
-
+(https://travis-ci.org/danlentz/clj-uuid)
 
 **clj-uuid** is a Clojure library for generation and utilization of
 UUIDs (Universally Unique Identifiers) as described by
@@ -62,7 +61,7 @@ much.  The upper bound on the representation implemented by this
 library limits the number of unique identifiers to a mere...
 
 *three hundred forty undecillion two hundred eighty-two decillion three*
-*hundred sixty-six nonillion nine hundred twenty octillion nine hundred* 
+*hundred sixty-six nonillion nine hundred twenty octillion nine hundred*
 *thirty-eight septillion four hundred sixty-three sextillion four hundred*
 *sixty-three quintillion three hundred seventy-four quadrillion six hundred*
 *seven trillion four hundred thirty-one billion seven hundred sixty-eight*
@@ -150,7 +149,7 @@ clock precision or degree of concurrency.
 A v1 UUID may reveal both the identity of the computer that generated
 the UUID and the time at which it did so.  Its uniqueness across
 computers is guaranteed as long as node/MAC addresses are not duplicated.
-  
+
 
 ```clojure
 
@@ -213,7 +212,7 @@ user> (map uuid/get-timestamp (repeatedly 10 uuid/v1))
 ;;      136459065592320000
 ;;      136459065592340000
 ;;      136459065592340001 <-+ subcounter ensures unique timestamp
-;;      136459065592350000   | even when the resolution of the 
+;;      136459065592350000   | even when the resolution of the
 ;;      136459065592350001 <-+ system clock is insufficiently
 ;;      136459065592370000   | granular to provide uniqueness.
 ;;      136459065592370001 <-+
@@ -235,7 +234,7 @@ user> (uuid/get-instant (uuid/v1))
 
 user> (map uuid/get-instant (repeatedly 10 uuid/v1))
 
-;;  => (#inst "2015-03-17T17:51:53.800-00:00" <-+ Note, however, 
+;;  => (#inst "2015-03-17T17:51:53.800-00:00" <-+ Note, however,
 ;;      #inst "2015-03-17T17:51:53.800-00:00" <-+ insufficient clock precision
 ;;      #inst "2015-03-17T17:51:53.802-00:00"   | to distinguish betweem
 ;;      #inst "2015-03-17T17:51:53.803-00:00" <-+ absolute timestamp values
@@ -468,7 +467,7 @@ This capability can be used to represent uniqueness of a sequence of
 computations in, for example, a transaction system such as the one
 used in the graph-object database system
 [de.setf.resource](http://github.com/lisp/de.setf.resource/) or this
-interesting new [CQRS/ES Server](http://yuppiechef.github.io/cqrs-server/). 
+interesting new [CQRS/ES Server](http://yuppiechef.github.io/cqrs-server/).
 
 ### A Simple Example
 
@@ -555,18 +554,18 @@ _(function)_    `v1 []`
 
 >  Generate a v1 (time-based) unique identifier, guaranteed to be unique
 >  and thread-safe regardless of clock precision or degree of concurrency.
->  Creation of v1 UUID's does not require any call to a cryptographic 
+>  Creation of v1 UUID's does not require any call to a cryptographic
 >  generator and can be accomplished much more efficiently than v1, v3, v5,
->  or squuid's.  A v1 UUID reveals both the identity of the computer that 
->  generated the UUID and the time at which it did so.  Its uniqueness across 
+>  or squuid's.  A v1 UUID reveals both the identity of the computer that
+>  generated the UUID and the time at which it did so.  Its uniqueness across
 >  computers is guaranteed as long as MAC addresses are not duplicated.
 
 
 _(function)_    `v3 [^UUID namespace ^Object local-name]`
 
 >  Generate a v3 (name based, MD5 hash) UUID. context' must be UUIDable.
->  v3 identifiers are intended for generating UUID's from names that are 
->  drawn from, and unique within, some namespace.  The concept of name and 
+>  v3 identifiers are intended for generating UUID's from names that are
+>  drawn from, and unique within, some namespace.  The concept of name and
 >  namespace should be broadly construed, and not limited to textual names.
 >  The requiremens for a v3 UUID are as follows:
 >
@@ -605,8 +604,8 @@ _(function)_    `v4 [^long msb, ^long lsb]`
 _(function)_    `v5 [^UUID namespace ^Object local-name]`
 
 >  Generate a v5 (name based, SHA1 hash) UUID. 'context' must be UUIDable.
->  v5 identifiers are intended for generating UUID's from names that are 
->  drawn from, and unique within, some namespace.  The concept of name and 
+>  v5 identifiers are intended for generating UUID's from names that are
+>  drawn from, and unique within, some namespace.  The concept of name and
 >  namespace should be broadly construed, and not limited to textual names.
 >  The requiremens for a v5 UUID are as follows:
 >
@@ -632,12 +631,12 @@ _(function)_    `squuid []`
 >  Splits and reassembles a v4 UUID to merge current POSIX
 >  time (seconds since 12:00am January 1, 1970 UTC) with the most
 >  significant 32 bits of the UUID
-  
+
 
 _(function)_    `monotonic-time []`
 
->  Return a monotonic timestamp (guaranteed always increasing)  based on 
->  the number of 100-nanosecond intervals elapsed since the adoption of the 
+>  Return a monotonic timestamp (guaranteed always increasing)  based on
+>  the number of 100-nanosecond intervals elapsed since the adoption of the
 >  Gregorian calendar in the West, 12:00am Friday October 15, 1582 UTC.
 
 * * * * * *
@@ -653,7 +652,7 @@ _(protocol)_    `UUIDNameBytes`
 >
 > _(member)_    `as-byte-array [self]`
 >
->>  Extract a byte serialization that represents the 'name' of x, 
+>>  Extract a byte serialization that represents the 'name' of x,
 >>  typically unique within a given namespace.
 
 
@@ -678,12 +677,12 @@ _(protocol)_    `UUIDRfc4122`
 >  IETF RFC4122 <http://www.ietf.org/rfc/rfc4122.txt>. A UUID
 >  represents a 128-bit value, however there are variant encoding
 >  layouts used to assign and interpret information encoded in
->  those bits.  This is a protocol for  _variant 2_ (*Leach-Salz*) 
+>  those bits.  This is a protocol for  _variant 2_ (*Leach-Salz*)
 >  UUID's.
 >
 > _(member)_    `null? [self]`
 >
->>  Return `true` only if `self` has all 128 bits set ot zero and is 
+>>  Return `true` only if `self` has all 128 bits set ot zero and is
 >>  therefore equal to the null UUID, `00000000-0000-0000-0000-000000000000`.
 >
 > _(member)_    `uuid? [self]`
@@ -715,20 +714,20 @@ _(protocol)_    `UUIDRfc4122`
 >
 > _(member)_    `get-variant [self]`
 >
->>  Return the _variant_ number associated with this UUID.  The variant field 
->>  contains a value which identifies the layout of the UUID.  The bit-layout 
+>>  Return the _variant_ number associated with this UUID.  The variant field
+>>  contains a value which identifies the layout of the UUID.  The bit-layout
 >>  implemented by this protocol supports UUID's with a variant value of 0x2,
 >>  which indicates Leach-Salz layout.  Defined UUID variant values are:
 >>
->>     0x0   Null 
+>>     0x0   Null
 >>     0x2   Leach-Salz
->>     0x6   Microsoft 
+>>     0x6   Microsoft
 >>     0x7   Reserved for future assignment
 >>
 >>  In the canonical representation, `xxxxxxxx-xxxx-xxxx-Nxxx-xxxxxxxxxxxx`,
 >>  the most significant bits of N indicate the variant (depending on the
 >>  variant one, two, or three bits are used). The variant covered by RFC4122
->>  is indicated by the two most significant bits of `N` being `1 0` (i.e., the 
+>>  is indicated by the two most significant bits of `N` being `1 0` (i.e., the
 >>  hexadecimal `N` will always be `8`, `9`, `A`, or `B`).
 >
 > _(member)_    `get-version [self]`
@@ -744,7 +743,7 @@ _(protocol)_    `UUIDRfc4122`
 >>     0x4   Cryptographic random
 >>     0x5   Namespaced (SHA1 Digest)
 >>
->>  In the canonical representation, `xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx`, 
+>>  In the canonical representation, `xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx`,
 >>  the four bits of `M` indicate the UUID version (i.e., the hexadecimal `M`
 >>  will be either `1`, `2`, `3`, `4`, or `5`).
 >
@@ -760,7 +759,7 @@ _(protocol)_    `UUIDRfc4122`
 >
 >>  For time-based (v1) UUID's, return a `java.util.Date` object that represents
 >>  the system time at which this UUID was generated. NOTE: the returned
->>  value may not necessarily be temporally unique. For non-time-based 
+>>  value may not necessarily be temporally unique. For non-time-based
 >>  (v3, v4, v5, squuid) UUID's, always returns `nil`.
 >
 > _(member)_    `get-time-low [self]`
@@ -781,11 +780,11 @@ _(protocol)_    `UUIDRfc4122`
 > _(member)_    `get-clk-seq [self]`
 >
 >>  Return the _clk-seq_ number associated with this UUID. For time-based
->>  (v1) UUID's the _clock-sequence_ value is a somewhat counter-intuitively named 
->>  seed-value that is used to reduce the potential that duplicate UUID's 
+>>  (v1) UUID's the _clock-sequence_ value is a somewhat counter-intuitively named
+>>  seed-value that is used to reduce the potential that duplicate UUID's
 >>  might be generated under unusual situations, such as if the system hardware
->>  clock is set backward in time or if, despite all efforts otherwise, a 
->>  duplicate `+node-id+` happens to be generated. This value is initialized to 
+>>  clock is set backward in time or if, despite all efforts otherwise, a
+>>  duplicate `+node-id+` happens to be generated. This value is initialized to
 >>  a random 16-bit number once per lifetime of the system.  For non-time-based
 >>  (v3, v4, v5, squuid) UUID's, always returns `nil`.
 >
@@ -811,28 +810,28 @@ _(protocol)_    `UUIDRfc4122`
 >
 > _(member)_    `to-byte-array [self]`
 >
->>  Return an array of 16 bytes that represents `self` as a decomposed 
+>>  Return an array of 16 bytes that represents `self` as a decomposed
 >>  octet serialization encoded in most-significant-byte first order.
 >
 > _(member)_    `to-string [self]`
 >
->>  Return a String object that represents `self` in the canonical 
->>  36 character hexadecimal string format: 
+>>  Return a String object that represents `self` in the canonical
+>>  36 character hexadecimal string format:
 >>
 >>     "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 >
 > _(member)_    `to-hex-string [self]`
 >
->>  Return a String object that represents `self` as the 32 hexadecimal 
->>  characters directly encodong the UUID's 128 bit value: 
+>>  Return a String object that represents `self` as the 32 hexadecimal
+>>  characters directly encodong the UUID's 128 bit value:
 >>
 >>     "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 >
 > _(member)_    `to-urn-string [self]`
 >
->>  Return a String object that represents `uuid` as a the string 
->>  serialization of the URN URI based on the canonical 36 character 
->>  hex-string representation: 
+>>  Return a String object that represents `uuid` as a the string
+>>  serialization of the URN URI based on the canonical 36 character
+>>  hex-string representation:
 >>
 >>     "urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 >
@@ -844,11 +843,11 @@ _(protocol)_    `UUIDRfc4122`
 
 ### References
 
-* [IETF RFC-4122](http://www.ietf.org/rfc/rfc4122.txt) _A Universally Unique IDentifier (UUID) URN Namespace_ 
+* [IETF RFC-4122](http://www.ietf.org/rfc/rfc4122.txt) _A Universally Unique IDentifier (UUID) URN Namespace_
 
 * [Wikipedia/_Universally unique identifier_](http://en.wikipedia.org/wiki/Universally_unique_identifier)
 
-* [CL-UUID](http://www.dardoria.net/software/uuid.html) reference implementation 
+* [CL-UUID](http://www.dardoria.net/software/uuid.html) reference implementation
 
 * [UNICLY](https://github.com/mon-key/unicly) reference implementation
 
@@ -876,6 +875,4 @@ applications.
 
 Copyright © 2015 Dan Lentz
 
-Distributed under the Eclipse Public License version 1.0 
-
-
+Distributed under the Eclipse Public License version 1.0
