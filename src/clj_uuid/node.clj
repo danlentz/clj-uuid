@@ -36,7 +36,7 @@
 ;; prepending two other (computed) bytes to the node-id before
 ;; bitwise assembly.  
 ;; 
-;;  (cons clock-high (cons clock-low +node-id+))
+;;  (cons clock-high (cons clock-low (+node-id+)))
 ;;
 ;;  
 ;;      ( <BYTE> . <BYTE> . <BYTE> <BYTE> <BYTE> <BYTE> <BYTE> <BYTE>)
@@ -140,13 +140,16 @@
 ;; Public NodeID API
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def node-id
-  (memoize make-node-id))
+(def node-id make-node-id)
 
-(def +node-id+
+(defn +node-id+
+  []
   (assemble-bytes (cons 0 (cons 0 (node-id)))))
 
-(def +v1-lsb+
+(defn- +v1-lsb+'
+  []
   (let [clk-high  (dpb (mask 2 6) (ldb (mask 6 8) +clock-sequence+) 0x2)
         clk-low   (ldb (mask 8 0) +clock-sequence+)]
-    (dpb (mask 8 56) (dpb (mask 8 48) +node-id+ clk-low) clk-high)))
+    (dpb (mask 8 56) (dpb (mask 8 48) (+node-id+) clk-low) clk-high)))
+
+(def +v1-lsb+ (memoize +v1-lsb+'))
