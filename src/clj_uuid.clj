@@ -9,6 +9,7 @@
   (:import [java.security MessageDigest]
            [java.io       ByteArrayOutputStream
                           ObjectOutputStream]
+           [java.nio      ByteBuffer]
            [java.net      URI
                           URL]
            [java.util     UUID
@@ -702,6 +703,13 @@
   (uuid? [_] false))
 
 (extend-protocol UUIDable
+  (Class/forName "[B") ; byte array
+  (as-uuid [^bytes ba]
+    (let [bb (ByteBuffer/wrap ba)]
+      (UUID. (.getLong bb) (.getLong bb))))
+  (uuidable? [^bytes ba]
+    (= 16 (alength ba)))
+
   String
   (uuidable? ^boolean [s]
     (or
