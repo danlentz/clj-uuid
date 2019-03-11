@@ -705,10 +705,15 @@
 (extend-protocol UUIDable
   (Class/forName "[B") ; byte array
   (as-uuid [^bytes ba]
-    (let [bb (ByteBuffer/wrap ba)]
-      (UUID. (.getLong bb) (.getLong bb))))
+    (as-uuid (ByteBuffer/wrap ba)))
   (uuidable? [^bytes ba]
     (= 16 (alength ba)))
+
+  ByteBuffer
+  (as-uuid [^ByteBuffer bb]
+    (UUID. (.getLong ^ByteBuffer bb) (.getLong ^ByteBuffer bb)))
+  (uuidable? [^ByteBuffer bb]
+    (= 16 (.limit bb)))
 
   String
   (uuidable? ^boolean [s]
