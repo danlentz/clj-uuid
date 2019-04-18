@@ -7,8 +7,7 @@ clj-uuid
 
 * * * * * *
 
-[![Build Status](https://travis-ci.org/danlentz/clj-uuid.svg?branch=master)]
-(https://travis-ci.org/danlentz/clj-uuid)
+[![Build Status](https://travis-ci.org/danlentz/clj-uuid.svg?branch=master)](https://travis-ci.org/danlentz/clj-uuid)
 
 **clj-uuid** is a Clojure library for generation and utilization of
 UUIDs (Universally Unique Identifiers) as described by
