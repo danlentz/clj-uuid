@@ -2,7 +2,7 @@
   (:refer-clojure :exclude [* + - / < > <= >= == rem bit-or bit-and bit-xor
                             bit-not bit-shift-left bit-shift-right
                             byte short int float long double inc dec
-                            zero? min max true? false?])
+                            zero? min max true? false? unsigned-bit-shift-right])
   (:require [primitive-math :refer :all]
             [clojure.pprint :refer [cl-format pprint]]
             [clj-uuid.constants :refer :all]
@@ -52,7 +52,7 @@
 ;; derives from the fact that there is no primitive unsigned numeric datatype
 ;; that can represent the full range of possible values of the msb and lsb.
 ;; Ie., we need to always deal with the unpleasant "am I negative?" approach to
-;; reading (writing) that 64th bit.  To avoid the complexity of all the 
+;; reading (writing) that 64th bit.  To avoid the complexity of all the
 ;; edge cases, we encapsulate the basic primitives of working with
 ;; unsigned numbers entirely within the abstraction of "mask" and
 ;; "mask offset".  Using these, we built the two fundamental unsigned
@@ -60,7 +60,7 @@
 ;; ldb (load-byte) and dpb (deposit-byte).
 ;;
 ;; This bitmop library is dead useful for working with unsigned binary
-;; values on the JVM.  
+;; values on the JVM.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
