@@ -12,7 +12,7 @@
   :url          "https://github.com/danlentz/clj-uuid"
   :license      {:name "Eclipse Public License"
                   :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.6.0" :scope "provided"]
+  :dependencies [[org.clojure/clojure "1.10.1" :scope "provided"]
                  [primitive-math      "0.1.6"]]
   :codox    {:output-dir  "doc/api"
              :src-dir-uri "https://github.com/danlentz/clj-uuid/blob/master/"
