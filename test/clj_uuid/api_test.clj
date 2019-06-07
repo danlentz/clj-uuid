@@ -127,3 +127,8 @@
     (is (false? (uuid-urn-string? nil)))
 
     (is (false? (uuid-vec? nil)))))
+
+(deftest byte-array-round-trip-test
+  (testing "round-trip via byte-array"
+    (let [uuid #uuid "4787199e-c0e2-4609-b5b8-284f2b7d117d"]
+      (is (= uuid (as-uuid (as-byte-array uuid)))))))
