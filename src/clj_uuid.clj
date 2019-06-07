@@ -671,12 +671,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn uuid-string? [str]
-  (some? (and (string? str)
-              (re-matches uuid-regex str))))
+  (and (string? str)
+       (some? (re-matches uuid-regex str))))
 
 (defn uuid-urn-string? [str]
-  (some? (and (string? str)
-              (re-matches urn-regex str))))
+  (and (string? str)
+       (some? (re-matches urn-regex str))))
 
 (defn uuid-vec? [v]
   (and (= (count v) 16)
