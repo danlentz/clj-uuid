@@ -8,7 +8,7 @@
                 and manipulation of these UUIDs in a simple, efficient manner."
   :author       "Dan Lentz"
   :jvm-opts ^:replace []
-  :signing  {:gpg-key "3A2F2AA9"}
+  :signing  {:gpg-key "7FD20410"}
   :url          "https://github.com/danlentz/clj-uuid"
   :license      {:name "Eclipse Public License"
                   :url "http://www.eclipse.org/legal/epl-v10.html"}
