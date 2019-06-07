@@ -486,7 +486,7 @@
         msb       (bit-or time-high
                    (bit-shift-left time-low 32)
                    (bit-shift-left time-mid 16))]
-    (UUID. msb node/+v1-lsb+)))
+    (UUID. msb (node/+v1-lsb+))))
 
 
 
