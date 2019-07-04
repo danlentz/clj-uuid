@@ -142,7 +142,7 @@
 
 (def node-id make-node-id)
 
-(def +node-id+ (delay (assemble-bytes (cons 0 (cons 0 (node-id)))))
+(def +node-id+ (delay (assemble-bytes (cons 0 (cons 0 (node-id))))))
 
 (defn- +v1-lsb+'
   []
