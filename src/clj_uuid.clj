@@ -708,7 +708,7 @@
     (let [bb (ByteBuffer/wrap ba)]
       (UUID. (.getLong bb) (.getLong bb))))
   (uuidable? [^bytes ba]
-    (= 16 (alength ba)))
+    (= 16 (alength ^bytes ba)))
 
   String
   (uuidable? ^boolean [s]

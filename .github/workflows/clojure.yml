@@ -1,0 +1,28 @@
+name: Clojure CI
+
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        # see: https://github.com/marketplace/actions/setup-java
+        distribution: 'corretto'
+        java-version: '8'
+    - name: Install clojure tools
+      uses: DeLaGuardo/setup-clojure@12.1
+      with:
+        # see: https://github.com/marketplace/actions/setup-clojure
+        cli: 1.11.1.1429
+    - name: Run tests
+      run: lein test
