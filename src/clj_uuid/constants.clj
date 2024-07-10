@@ -23,5 +23,3 @@
 (def ^:const +ub8-mask+  0x00000000000000ff)
 (def ^:const +ub4-mask+  0x000000000000000f)
 (def ^:const +ub1-mask+  0x0000000000000001)
-
-(def ^:const +max-counter+ 0xfff)

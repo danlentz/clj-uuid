@@ -362,7 +362,7 @@
 
   (uuid? ^boolean [_] true)
 
-  (uuid= ^boolean [^UUID x ^UUID y & more]
+  (uuid= ^boolean [^UUID x ^UUID y]
     (.equals x y))
 
   (uuid< ^boolean [^UUID x ^UUID y]
