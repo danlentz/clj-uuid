@@ -1,7 +1,7 @@
 (ns clj-uuid.api-test
-  (:refer-clojure :exclude [uuid?])
+  (:refer-clojure :exclude [uuid? max])
   (:require [clojure.test :refer :all]
-            [clj-uuid     :refer :all])
+            [clj-uuid     :refer :all :exclude [= > <]])
   (:import
    (java.lang IllegalArgumentException)))
 
@@ -77,8 +77,7 @@
       (is (= (get-timestamp tmpid)       nil))))
 
   (testing "v4 uuid protocol..."
-    (let [tmpid
-          (java.util.UUID/fromString "3eb1e29a-4747-4a7d-8e40-94e245f57dc0")]
+    (let [tmpid #uuid "3eb1e29a-4747-4a7d-8e40-94e245f57dc0"]
       (is (= (get-word-high tmpid)       4517641053478013565))
       (is (= (get-word-low tmpid)       -8196387622257066560))
       (is (= (null? tmpid)               false))
@@ -97,9 +96,95 @@
       (is (= (get-clk-low tmpid)         142))
       (is (= (get-clk-high tmpid)        64))
       (is (= (get-node-id tmpid)         163699557236160))
-      (is (= (get-timestamp tmpid)       nil)))))
+      (is (= (get-timestamp tmpid)       nil))))
 
+  (testing "max uuid protocol..."
+    (let [tmpid +max+]
+      (is (= (get-word-high tmpid)       -1))
+      (is (= (get-word-low tmpid)        -1))
+      (is (= (null? tmpid)               false))
+      (is (= (max? tmpid)                true))
+      (is (= (seq (to-byte-array tmpid)) [-1 -1 -1 -1 -1 -1 -1 -1
+                                          -1 -1 -1 -1 -1 -1 -1 -1]))
+      (is (= (hash-code tmpid)           0))
+      (is (= (get-version tmpid)         0xf))
+      (is (= (to-string tmpid)       "ffffffff-ffff-ffff-ffff-ffffffffffff"))
+      (is (=
+            (to-urn-string tmpid)
+            "urn:uuid:ffffffff-ffff-ffff-ffff-ffffffffffff"))
+      (is (= (get-time-low tmpid)       0xffffffff))
+      (is (= (get-time-mid tmpid)       0xffff))
+      (is (= (get-time-high tmpid)      0xffff))
+      (is (= (get-clk-low tmpid)        0xff))
+      (is (= (get-clk-high tmpid)       0xff))
+      (is (= (get-node-id tmpid)        0xffffffffffff))
+      (is (= (get-timestamp tmpid)      nil))))
 
+  (testing "v6 uuid protocol..."
+    (let [tmpid #uuid "1ef3f06f-16db-6ff0-bb01-1b50e6f39e7f"]
+      (is (= (get-word-high tmpid)       2230390600394043376))
+      (is (= (get-word-low tmpid)        -4971662479354257793))
+      (is (= (null? tmpid)               false))
+      (is (= (max? tmpid)                false))
+      (is (= (seq (to-byte-array tmpid)) [30  -13 -16 111 22  -37 111 -16
+                                          -69 1   27  80  -26 -13 -98 127]))
+      (is (= (hash-code tmpid)           1440357040))
+      (is (= (get-version tmpid)         6))
+      (is (= (to-string tmpid)       "1ef3f06f-16db-6ff0-bb01-1b50e6f39e7f"))
+      (is (=
+            (to-urn-string tmpid)
+            "urn:uuid:1ef3f06f-16db-6ff0-bb01-1b50e6f39e7f"))
+      (is (= (get-time-low tmpid)       0x6ff0))
+      (is (= (get-time-mid tmpid)       0x16db))
+      (is (= (get-time-high tmpid)      0x1ef3f06f))
+      (is (= (get-clk-low tmpid)        0xbb))
+      (is (= (get-clk-high tmpid)       0x1))
+      (is (= (get-node-id tmpid)        0x1b50e6f39e7f))
+      (is (= (get-timestamp tmpid)      0x1ef3f06f16dfff0))))
+
+  (testing "v7 uuid protocol..."
+    (let [tmpid #uuid "01909eae-4801-753a-bcd5-0889c34ac129"]
+      (is (= (get-word-high tmpid)       112764462053815610))
+      (is (= (get-word-low tmpid)        -4839952836759731927))
+      (is (= (null? tmpid)               false))
+      (is (= (max? tmpid)                false))
+      (is (= (seq (to-byte-array tmpid)) [1   -112 -98 -82  72  1  117 58
+                                          -68 -43  8   -119 -61 74 -63 41]))
+      (is (= (hash-code tmpid)           906895924))
+      (is (= (get-version tmpid)         7))
+      (is (= (to-string tmpid)       "01909eae-4801-753a-bcd5-0889c34ac129"))
+      (is (=
+            (to-urn-string tmpid)
+            "urn:uuid:01909eae-4801-753a-bcd5-0889c34ac129"))
+      (is (= (get-time-low tmpid)       0x01909eae))
+      (is (= (get-time-mid tmpid)       0x4801))
+      (is (= (get-time-high tmpid)      0x753a))
+      (is (= (get-clk-low tmpid)        0xbc))
+      (is (= (get-clk-high tmpid)       0xd5))
+      (is (= (get-node-id tmpid)        0x0889c34ac129))
+      (is (= (get-timestamp tmpid)      nil))))
+
+  (testing "v8 uuid protocol..."
+    (let [tmpid #uuid "ffffffff-ffff-8fff-bfff-ffffffffffff"]
+      (is (= (get-word-high tmpid)       -28673))
+      (is (= (get-word-low tmpid)        -4611686018427387905))
+      (is (= (null? tmpid)               false))
+      (is (= (max? tmpid)                false))
+      (is (= (seq (to-byte-array tmpid)) [-1  -1 -1 -1 -1 -1 -113 -1
+                                          -65 -1 -1 -1 -1 -1 -1   -1]))
+      (is (= (hash-code tmpid)           1073770496))
+      (is (= (get-version tmpid)         8))
+      (is (= (to-string tmpid)       "ffffffff-ffff-8fff-bfff-ffffffffffff"))
+      (is (=
+            (to-urn-string tmpid)
+            "urn:uuid:ffffffff-ffff-8fff-bfff-ffffffffffff"))
+      (is (= (get-time-low tmpid)       0xffffffff))
+      (is (= (get-time-mid tmpid)       0xffff))
+      (is (= (get-time-high tmpid)      0x8fff))
+      (is (= (get-clk-low tmpid)        0xbf))
+      (is (= (get-clk-high tmpid)       0xff))
+      (is (= (get-node-id tmpid)        0xffffffffffff))
+      (is (= (get-timestamp tmpid)      nil)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Predicate Tests

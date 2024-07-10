@@ -1,20 +1,22 @@
 (ns clj-uuid
-  (:refer-clojure :exclude [== uuid?])
-  (:require [clj-uuid
+  (:refer-clojure :exclude [== uuid? max < > =])
+  (:require [clojure.core :as cc]
+            [clj-uuid
              [constants :refer :all]
              [util      :refer :all]
              [bitmop    :as bitmop]
              [clock     :as clock]
-             [node      :as node]])
-  (:import [java.security MessageDigest]
-           [java.io       ByteArrayOutputStream
+             [node      :as node]
+             [random    :as random]])
+  (:import [java.io       ByteArrayOutputStream
                           ObjectOutputStream]
-           [java.nio      ByteBuffer]
+           [java.lang IllegalArgumentException]
            [java.net      URI
                           URL]
+           [java.nio      ByteBuffer]
+           [java.security MessageDigest]
            [java.util     UUID
-            Date]
-           [java.lang IllegalArgumentException]))
+            Date]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Leach-Salz UUID Representation     [RFC4122:4.1.2 "LAYOUT AND BYTE ORDER"] ;;
@@ -122,6 +124,17 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; The MAX UUID                                   [RFC4122:5.4    "MAX UUID"] ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; "The [max] UUID is a special form of UUID that is specified to have
+;; all 128 bits set."
+
+(def ^:const +max+            #uuid "ffffffff-ffff-ffff-ffff-ffffffffffff")
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Well-Known UUIDs                 [RFC4122:Appendix-C "SOME NAMESPACE IDs"] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -193,23 +206,30 @@
     specialized hash computation.")
 
   (null?                         [uuid]
-    "Return `true` only if `uuid` has all 128 bits set ot zero and is
+    "Return `true` only if `uuid` has all 128 bits set to zero and is
     therefore equal to the null UUID, 00000000-0000-0000-0000-000000000000.")
+
+  (max?                         [uuid]
+    "Return `true` only if `uuid` has all 128 bits set and is
+    therefore equal to the maximum UUID, ffffffff-ffff-ffff-ffff-ffffffffffff.")
 
   (uuid?                         [x]
     "Return `true` if `x` implements an RFC4122 unique identifier.")
 
   (uuid=                         [x y]
     "Directly compare two UUID's for = relation based on the equality
-    semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].")
+    semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].
+    See: `clj-uuid/=`")
 
   (uuid<                         [x y]
     "Directly compare two UUID's for < relation based on the ordinality
-    semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].")
+    semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].
+    See: `clj-uuid/<`")
 
   (uuid>                         [x y]
     "Directly compare two UUID's for > relation based on the ordinality
-    semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].")
+    semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].
+    See: `clj-uuid/>`")
 
   (get-word-high                 [uuid]
     "Return the most significant 64 bits of UUID's 128 bit value.")
@@ -292,7 +312,7 @@
     For non-time-based (v3, v4, v5, squuid) UUID's, always returns `nil`.")
 
   (get-instant   ^java.util.Date [uuid]
-    "For time-based (v1) UUID's, return a java.util.Date object that represents
+    "For time-based (v1, v6) UUID's, return a java.util.Date object that represents
     the system time at which this UUID was generated. NOTE: the returned
     value may not necessarily be temporally unique. For non-time-based
     (v3, v4, v5, squuid) UUID's, always returns `nil`.")
@@ -342,22 +362,22 @@
 
   (uuid? ^boolean [_] true)
 
-  (uuid= ^boolean [^UUID x ^UUID y]
+  (uuid= ^boolean [^UUID x ^UUID y & more]
     (.equals x y))
 
   (uuid< ^boolean [^UUID x ^UUID y]
     (let [xh (.getMostSignificantBits x)
           yh (.getMostSignificantBits y)]
-      (or (< xh yh)
-        (and (= xh yh) (< (.getLeastSignificantBits x)
-                         (.getLeastSignificantBits y))))))
+      (or (cc/< xh yh)
+        (and (cc/= xh yh) (cc/< (.getLeastSignificantBits x)
+                             (.getLeastSignificantBits y))))))
 
   (uuid> ^boolean [^UUID x ^UUID y]
     (let [xh (.getMostSignificantBits x)
           yh (.getMostSignificantBits y)]
-      (or (> xh yh)
-        (and (= xh yh) (> (.getLeastSignificantBits x)
-                         (.getLeastSignificantBits y))))))
+      (or (cc/> xh yh)
+        (and (cc/= xh yh) (cc/> (.getLeastSignificantBits x)
+                             (.getLeastSignificantBits y))))))
 
   (get-word-high ^long [uuid]
     (.getMostSignificantBits uuid))
@@ -366,7 +386,10 @@
     (.getLeastSignificantBits uuid))
 
   (null? ^boolean [uuid]
-    (= 0 (.getMostSignificantBits uuid) (.getLeastSignificantBits uuid)))
+    (cc/= 0 (.getMostSignificantBits uuid) (.getLeastSignificantBits uuid)))
+
+  (max? ^boolean [uuid]
+    (uuid= uuid +max+))
 
   (to-byte-array ^bytes [uuid]
     (let [arr (byte-array 16)]
@@ -396,16 +419,20 @@
     (URI/create (to-urn-string uuid)))
 
   (get-time-low ^long [uuid]
-    (bitmop/ldb #=(bitmop/mask 32 0)
-      (bit-shift-right (.getMostSignificantBits uuid) 32)))
+    (let [msb (.getMostSignificantBits uuid)]
+      (if (cc/= 6 (get-version uuid))
+        (bitmop/ldb #=(bitmop/mask 16 0) msb)
+        (bitmop/ldb #=(bitmop/mask 32 0) (bit-shift-right msb 32)))))
 
   (get-time-mid ^long [uuid]
     (bitmop/ldb #=(bitmop/mask 16 16)
       (.getMostSignificantBits uuid)))
 
   (get-time-high ^long [uuid]
-    (bitmop/ldb #=(bitmop/mask 16 0)
-      (.getMostSignificantBits uuid)))
+    (let [msb (.getMostSignificantBits uuid)]
+      (if (cc/= 6 (get-version uuid))
+        (bitmop/ldb #=(bitmop/mask 32 0) (bit-shift-right msb 32))
+        (bitmop/ldb #=(bitmop/mask 16 0) msb))))
 
   (get-clk-low ^long [uuid]
     (bitmop/ldb #=(bitmop/mask 8 0)
@@ -416,7 +443,7 @@
       (.getLeastSignificantBits uuid)))
 
   (get-clk-seq ^short [uuid]
-    (when (= 1 (.version uuid))
+    (when (#{1 6} (.version uuid))
       (.clockSequence uuid)))
 
   (get-node-id ^long [uuid]
@@ -424,8 +451,12 @@
       (.getLeastSignificantBits uuid)))
 
   (get-timestamp ^long [uuid]
-    (when (= 1 (.version uuid))
-      (.timestamp uuid)))
+    (case (.version uuid)
+      1 (.timestamp uuid)
+      6 (bit-or (get-time-low uuid)
+                (bit-shift-left (get-time-mid uuid) 12)
+                (bit-shift-left (get-time-high uuid) 28))
+      nil))
 
   (get-instant [uuid]
     (when-let [ts (get-timestamp uuid)]
@@ -456,6 +487,16 @@
   ^java.util.UUID
   []
   +null+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; The MAX UUID Constructor                       [RFC4122:5.4    "MAX UUID"] ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn max
+  "Generates the maximum UUID, ffffffff-ffff-ffff-ffff-ffffffffffff."
+  ^java.util.UUID
+  []
+  +max+)
 
 
 
@@ -488,6 +529,28 @@
                    (bit-shift-left time-mid 16))]
     (UUID. msb (node/+v1-lsb+))))
 
+(defn v6
+  "Generate a v6 (time-based), lexically sortable, unique identifier,
+  guaranteed to be unique and thread-safe regardless of clock
+  precision or degree of concurrency.  Creation of v6 UUID's does not
+  require any call to a cryptographic generator and can be
+  accomplished much more efficiently than v3, v4, v5, or squuid's.  A
+  v6 UUID reveals both the identity of the computer that generated the
+  UUID and the time at which it did so.  Its uniqueness across
+  computers is guaranteed as long as MAC addresses are not
+  duplicated. Used for compatibility with systems that already use v1;
+  UUID v7 should be prefered over v1 or v6."
+  ^java.util.UUID
+  []
+  (let [ts        (clock/monotonic-time)
+        time-high (bitmop/ldb #=(bitmop/mask 32 28) ts)
+        time-mid  (bitmop/ldb #=(bitmop/mask 16 12)  ts)
+        time-low  (bitmop/dpb #=(bitmop/mask 4  12)
+                    (bitmop/ldb #=(bitmop/mask 12 0) ts) 0x6)
+        msb       (bit-or time-low
+                   (bit-shift-left time-mid 16)
+                   (bit-shift-left time-high 32))]
+    (UUID. msb (node/+v1-lsb+))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -601,7 +664,7 @@
 (defn- build-digested-uuid
   ^java.util.UUID
   [^long version ^bytes arr]
-  {:pre [(or (= version 3) (= version 5))]}
+  {:pre [(or (cc/= version 3) (cc/= version 5))]}
   (let [msb (bitmop/bytes->long arr 0)
         lsb (bitmop/bytes->long arr 8)]
     (UUID.
@@ -666,10 +729,78 @@
       (as-byte-array local-part))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Lexically Sortable UUID                       [RFC4122:5.2: UUID Version 7];;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn v7
+  "Generate a v7 unix time-based, lexically sortable UUID with monotonic
+  counter and cryptographically secure random portion. The 12 bit
+  rand_a is used as counter, rand_b is CSPRNG. Random numbers are
+  generated using the JVM default implementation of
+  java.security.SecureRandom."
+  ^java.util.UUID
+  []
+  (let [[t counter]     (clock/monotonic-unix-time-and-random-counter)
+        time            (bitmop/ldb #=(bitmop/mask 48  0) t)
+        ver-and-counter (bitmop/dpb #=(bitmop/mask 4  12) counter 0x7)
+        msb             (bit-or ver-and-counter (bit-shift-left time 16))
+        lsb             (bitmop/dpb #=(bitmop/mask 2 62) (random/long) 0x2)]
+    (UUID. msb lsb)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Custom UUID                                   [RFC4122:5.2: UUID Version 8];;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn v8
+  "Generate a v8 custom UUID with up to 122 bits of user data."
+  ^java.util.UUID
+  [^long msb ^long lsb]
+  (UUID.
+   (bitmop/dpb #=(bitmop/mask 4 12) msb 0x8)
+   (bitmop/dpb #=(bitmop/mask 2 62) lsb 0x2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Predicates
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- compare-many
+  [f x y more]
+  (if (f x y)
+    (if (next more)
+      (recur f y (first more) (next more))
+      (f y (first more)))
+    false))
+
+(defn =
+  "Directly compare two or more UUIDs for = relation based on the
+  equality semantics defined by [RFC4122:3 RULES FOR LEXICAL
+  EQUIVALENCE]."
+  ([_] true)
+  ([x y]
+   (uuid= x y))
+  ([x y & more]
+   (compare-many uuid= x y more)))
+
+(defn >
+  "Directly compare two or more UUIDs for > relation based on the
+  ordinality semantics defined by [RFC4122:3 RULES FOR LEXICAL
+  EQUIVALENCE]."
+  ([_] true)
+  ([x y]
+   (uuid> x y))
+  ([x y & more]
+   (compare-many uuid> x y more)))
+
+(defn <
+  "Directly compare two or more UUIDs for < relation based on the
+  ordinality semantics defined by [RFC4122:3 RULES FOR LEXICAL
+  EQUIVALENCE]."
+  ([_] true)
+  ([x y]
+   (uuid< x y))
+  ([x y & more]
+   (compare-many uuid< x y more)))
 
 (defn uuid-string? [str]
   (and (string? str)
@@ -680,8 +811,8 @@
        (some? (re-matches urn-regex str))))
 
 (defn uuid-vec? [v]
-  (and (= (count v) 16)
-    (every? #(and (integer? %) (>= -128  %) (<=  127  %)) v)))
+  (and (cc/= (count v) 16)
+    (every? #(and (integer? %) (>= -128  % 127)) v)))
 
 
 
@@ -708,7 +839,7 @@
     (let [bb (ByteBuffer/wrap ba)]
       (UUID. (.getLong bb) (.getLong bb))))
   (uuidable? [^bytes ba]
-    (= 16 (alength ^bytes ba)))
+    (cc/= 16 (alength ^bytes ba)))
 
   String
   (uuidable? ^boolean [s]

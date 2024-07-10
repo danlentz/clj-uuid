@@ -548,6 +548,9 @@ _(function)_    `v0 []`
 
 > Return the null UUID, #uuid "00000000-0000-0000-0000-000000000000"
 
+_(function)_    `max []`
+
+> Return the maximum UUID, #uuid "ffffffff-ffff-ffff-ffff-ffffffffffff"
 
 _(function)_    `v1 []`
 
@@ -620,6 +623,30 @@ _(function)_    `v5 [^UUID namespace ^Object local-name]`
 >  * If two v5 UUID's are equal, then there is a high degree of certainty
 >    that they were generated from the same name in the same namespace.
 
+_(function)_    `v6 []`
+
+> Generate a v6 (time-based), lexically sortable, unique identifier,
+> guaranteed to be unique and thread-safe regardless of clock
+> precision or degree of concurrency.  Creation of v6 UUID's does not
+> require any call to a cryptographic generator and can be
+> accomplished much more efficiently than v3, v4, v5, or squuid's.  A
+> v6 UUID reveals both the identity of the computer that generated the
+> UUID and the time at which it did so.  Its uniqueness across
+> computers is guaranteed as long as MAC addresses are not
+> duplicated. Used for compatibility with systems that already use v1;
+> UUID v7 should be prefered over v1 or v6.
+
+_(function)_    `v7 []`
+
+> Generate a v7 unix time-based, lexically sortable UUID with monotonic
+> counter and cryptographically secure random portion. The 12 bit
+> rand_a is used as counter, rand_b is CSPRNG. Random numbers are
+> generated using the JVM default implementation of
+> java.security.SecureRandom.
+
+_(function)_    `v8 [^long msb, ^long lsb]`
+
+> Generate a v8 custom UUID with up to 122 bits of user data.
 
 _(function)_    `squuid []`
 
@@ -631,6 +658,35 @@ _(function)_    `squuid []`
 >  time (seconds since 12:00am January 1, 1970 UTC) with the most
 >  significant 32 bits of the UUID
 
+_(function)_    `= [x]`
+
+_(function)_    `= [x y]`
+
+_(function)_    `= [x y & more]`
+
+> Directly compare two or more UUIDs for = relation based on the
+> ordinality semantics defined by [RFC4122:3 RULES FOR LEXICAL
+> EQUIVALENCE].
+
+_(function)_    `> [x]`
+
+_(function)_    `> [x y]`
+
+_(function)_    `> [x y & more]`
+
+> Directly compare two or more UUIDs for > relation based on the
+> ordinality semantics defined by [RFC4122:3 RULES FOR LEXICAL
+> EQUIVALENCE].
+
+_(function)_    `< [x]`
+
+_(function)_    `< [x y]`
+
+_(function)_    `< [x y & more]`
+
+> Directly compare two or more UUIDs for < relation based on the
+> ordinality semantics defined by [RFC4122:3 RULES FOR LEXICAL
+> EQUIVALENCE].
 
 _(function)_    `monotonic-time []`
 
