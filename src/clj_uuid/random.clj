@@ -23,4 +23,4 @@
 (defn long-12bit
   "Generate a long value between 0 and 512"
   []
-  (bit-and (long 2) 0xfff))
+  (bit-and (long 3) 0xfff))
