@@ -292,13 +292,13 @@
 
   (get-clk-seq                   [uuid]
     "Return the clock-sequence number associated with this UUID. For time-based
-    (v1) UUID's the 'clock-sequence' value is a somewhat counter-intuitively
+    (v1, v6) UUID's the 'clock-sequence' value is a somewhat counter-intuitively
     named seed-value that is used to reduce the potential that duplicate UUID's
     might be generated under unusual situations, such as if the system hardware
     clock is set backward in time or if, despite all efforts otherwise, a
     duplicate node-id happens to be generated. This value is initialized to
-    a random 16-bit number once per lifetime of the system.  For non-time-based
-    (v3, v4, v5, squuid) UUID's, always returns `nil`.")
+    a random 16-bit number once per lifetime of the system.  For non-gregorian,
+    time-based (v3, v4, v5, v7, v8, squuid) UUID's, always returns `nil`.")
 
   (get-node-id                   [uuid]
     "Return the 48 bit unsigned value that represents the spatially unique
@@ -306,16 +306,23 @@
 
   (get-timestamp                 [uuid]
     "Return the 60 bit unsigned value that represents a temporally unique
-    timestamp associated with this UUID.  For time-based (v1) UUID's the
+    timestamp associated with this UUID.  For time-based (v1, v6) UUID's the
     result encodes the number of 100 nanosecond intervals since the
     adoption of the Gregorian calendar: 12:00am Friday October 15, 1582 UTC.
-    For non-time-based (v3, v4, v5, squuid) UUID's, always returns `nil`.")
+    For non-gregorian, time-based (v3, v4, v5, v7, v8, squuid) UUID's, always
+    returns `nil`.")
 
   (get-instant   ^java.util.Date [uuid]
-    "For time-based (v1, v6) UUID's, return a java.util.Date object that represents
-    the system time at which this UUID was generated. NOTE: the returned
-    value may not necessarily be temporally unique. For non-time-based
-    (v3, v4, v5, squuid) UUID's, always returns `nil`.")
+    "For time-based (v1, v6, v7) UUID's, return a java.util.Date
+    object that represents the system time at which this UUID was
+    generated. NOTE: the returned value may not necessarily be
+    temporally unique. For non-time-based
+    (v3, v4, v5, v8, squuid) UUID's, always returns `nil`.")
+
+  (get-unix-time                 [uuid]
+    "For time-based (v1, v6, v7) UUIDs return the timestamp portion in
+    aproximately milliseconds since the Unix epoch 1970-01-01T00:00:00.000Z.
+    For non-time-based (v3, v4, v5, v8, squuid) UUID's, always returns `nil`.")
 
   (to-byte-array                 [uuid]
     "Return an array of 16 bytes that represents `uuid` as a decomposed
@@ -461,10 +468,15 @@
                 (bit-shift-left (get-time-high uuid) 28))
       nil))
 
-  (get-instant [uuid]
-    (when-let [ts (get-timestamp uuid)]
-      (Date. (long (clock/posix-time ts)))))
+  (get-unix-time ^long [uuid]
+    (case (.version uuid)
+      (1 6) (clock/posix-time (get-timestamp uuid))
+      7     (bitmop/ldb #=(bitmop/mask 48 16) (.getMostSignificantBits uuid))
+      nil))
 
+  (get-instant [uuid]
+    (when-let [ts (get-unix-time uuid)]
+      (Date. (long ts))))
 
   UUIDNameBytes
 
