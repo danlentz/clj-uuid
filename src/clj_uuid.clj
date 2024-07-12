@@ -455,7 +455,8 @@
   (get-timestamp ^long [uuid]
     (case (.version uuid)
       1 (.timestamp uuid)
-      6 (bit-or (get-time-low uuid)
+      6 (bit-or (bitmop/ldb #=(bitmop/mask 12 0)
+                            (.getMostSignificantBits uuid))
                 (bit-shift-left (get-time-mid uuid) 12)
                 (bit-shift-left (get-time-high uuid) 28))
       nil))

@@ -2,7 +2,8 @@
   "Time based UUIDs tests"
   (:require [clojure.test   :refer :all]
             [clojure.set]
-            [clj-uuid :as uuid :refer [v7 v6 v1 get-timestamp]]))
+            [clj-uuid :as uuid :refer [v7 v6 v1 get-timestamp]]
+            [clj-uuid.clock :as clock]))
 
 (deftest check-v1-concurrency
   (doseq [concur (range 5 9)]
@@ -45,8 +46,15 @@
               (* concur extent)
               (count (apply clojure.set/union (map set answers))))))
       (testing "concurrent v6 monotonic increasing..."
-        (is (every? identity
-              (map uuid/< answers)))))))
+        (is (every? identity (map (partial apply uuid/<) answers)))))))
+
+(deftest check-get-timestamp
+  (let [time (clock/monotonic-time)]
+    (with-redefs [clock/monotonic-time (constantly time)]
+      (is (= time (uuid/get-timestamp (v1)))
+          "Timestamp should be retrievable from v1 UUID")
+      (is (= time (uuid/get-timestamp (v6)))
+          "Timestamp should be retrievable from v6 UUID"))))
 
 (deftest check-v7-concurrency
   (doseq [concur (range 5 9)]
@@ -68,4 +76,4 @@
               (count (apply clojure.set/union (map set answers))))))
       (testing "concurrent v7 monotonic increasing..."
         (is (every? identity
-              (map uuid/< answers)))))))
+              (map (partial apply uuid/<) answers)))))))

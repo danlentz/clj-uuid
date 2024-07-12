@@ -140,7 +140,7 @@
       (is (= (get-clk-low tmpid)        0xbb))
       (is (= (get-clk-high tmpid)       0x1))
       (is (= (get-node-id tmpid)        0x1b50e6f39e7f))
-      (is (= (get-timestamp tmpid)      0x1ef3f06f16dfff0))))
+      (is (= (get-timestamp tmpid)      0x1ef3f06f16dbff0))))
 
   (testing "v7 uuid protocol..."
     (let [tmpid #uuid "01909eae-4801-753a-bcd5-0889c34ac129"]
