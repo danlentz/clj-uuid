@@ -297,8 +297,9 @@
     might be generated under unusual situations, such as if the system hardware
     clock is set backward in time or if, despite all efforts otherwise, a
     duplicate node-id happens to be generated. This value is initialized to
-    a random 16-bit number once per lifetime of the system.  For non-gregorian,
-    time-based (v3, v4, v5, v7, v8, squuid) UUID's, always returns `nil`.")
+    a random 16-bit number once per lifetime of the system.  For
+    non-gregorian-time-based (v3, v4, v5, v7, v8, squuid) UUID's, always
+    returns `nil`.")
 
   (get-node-id                   [uuid]
     "Return the 48 bit unsigned value that represents the spatially unique
@@ -309,7 +310,7 @@
     timestamp associated with this UUID.  For time-based (v1, v6) UUID's the
     result encodes the number of 100 nanosecond intervals since the
     adoption of the Gregorian calendar: 12:00am Friday October 15, 1582 UTC.
-    For non-gregorian, time-based (v3, v4, v5, v7, v8, squuid) UUID's, always
+    For non-gregorian-time-based (v3, v4, v5, v7, v8, squuid) UUID's, always
     returns `nil`.")
 
   (get-instant   ^java.util.Date [uuid]
