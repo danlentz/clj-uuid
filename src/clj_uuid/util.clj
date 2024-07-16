@@ -14,7 +14,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; PROG1 but with more idiomatic clojure name 
+;; PROG1 but with more idiomatic clojure name
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmacro returning
@@ -35,7 +35,7 @@
 
 (defmacro compile-if
   "Evaluate `exp` and if it returns logical true and doesn't error, expand to
-  `then` otherwise expand to `else`.  
+  `then` otherwise expand to `else`.
   credit: <clojure/src/clj/clojure/core/reducers.clj#L24>
 
   (compile-if (Class/forName \"java.util.concurrent.ForkJoinTask\")
@@ -76,13 +76,13 @@
 
 (defmacro wrap-fn [name args & body]
   `(let [old-fn# (var-get (var ~name))
-         new-fn# (fn [& p#] 
-                   (let [~args p#] 
+         new-fn# (fn [& p#]
+                   (let [~args p#]
                      (do ~@body)))
          wrapper# (fn [& params#]
                     (if (= ~(count args) (count params#))
                       (apply new-fn# params#)
-                      (apply old-fn# params#)))] 
+                      (apply old-fn# params#)))]
      (alter-var-root (var ~name) (constantly wrapper#))))
 
 
@@ -110,7 +110,7 @@
 ;; Condition Handling
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmacro exception [& [param & more :as params]] 
-  (if (class? param) 
-    `(throw (new ~param (str ~@(interpose " " more)))) 
+(defmacro exception [& [param & more :as params]]
+  (if (class? param)
+    `(throw (new ~param (str ~@(interpose " " more))))
     `(throw (Exception. (str ~@(interpose " " params))))))
