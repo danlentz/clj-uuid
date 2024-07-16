@@ -550,9 +550,9 @@
   guaranteed to be unique and thread-safe regardless of clock
   precision or degree of concurrency.  Creation of v6 UUID's does not
   require any call to a cryptographic generator and can be
-  accomplished much more efficiently than v3, v4, v5, or squuid's.  A
-  v6 UUID reveals both the identity of the computer that generated the
-  UUID and the time at which it did so.  Its uniqueness across
+  accomplished much more efficiently than v3, v4, v5, v7, or squuid's.
+  A v6 UUID reveals both the identity of the computer that generated
+  the UUID and the time at which it did so.  Its uniqueness across
   computers is guaranteed as long as MAC addresses are not
   duplicated. Used for compatibility with systems that already use v1;
   UUID v7 should be prefered over v1 or v6."
