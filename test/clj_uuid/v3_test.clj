@@ -1,7 +1,7 @@
 (ns clj-uuid.v3-test
-  (:refer-clojure :exclude [uuid?])
+  (:refer-clojure :exclude [uuid? max])
   (:require [clojure.test   :refer :all]
-            [clj-uuid       :refer :all]))
+            [clj-uuid       :refer :all :exclude [> < =]]))
 
 
 (deftest check-v3-special-cases
@@ -336,4 +336,3 @@
   (testing "v3 oid-ns case-based correctness..."
     (doseq [case +v3-oid-ns-cases+]
       (is (= (second case) (v3 +namespace-oid+ (first case)))))))
-

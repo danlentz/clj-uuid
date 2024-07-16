@@ -1,5 +1,6 @@
-(ns clj-uuid.clock)
-  
+(ns clj-uuid.clock
+  (:require [clj-uuid.random :as random]))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Lock-Free, Thread-safe Monotonic Clock
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -12,7 +13,7 @@
 ;;   Universal time is represented as the number of seconds that have
 ;;   elapsed since 00:00 January 1, 1900 GMT.
 ;;
-;;   POSIX time is represented as the number of seconds that have 
+;;   POSIX time is represented as the number of seconds that have
 ;;   elaspsed since 00:00 January 1, 1970 UTC
 ;;
 ;;   Java time is represented as the difference, measured in milliseconds,
@@ -56,10 +57,24 @@
 
 (set! *warn-on-reflection* true)
 
-(def  +subcounter-resolution+    9999)
+(def ^:const +subcounter-resolution+     9999)
+(def ^:const +random-counter-resolution+ 0xfff)
 
 (deftype State [^short seqid ^long millis])
 
+(let [-state- (atom (->State 0 0))]
+  (defn monotonic-unix-time-and-random-counter []
+     (let [^State new-state
+           (swap! -state-
+             (fn [^State current-state]
+               (loop [time-now (System/currentTimeMillis)]
+                 (if-not (= (.millis current-state) time-now)
+                   (->State (random/long-12bit) time-now)
+                   (let [tt (.seqid current-state)]
+                     (if (< tt +random-counter-resolution+)
+                       (->State (inc tt) time-now)
+                       (recur (System/currentTimeMillis))))))))]
+       [(.millis new-state) (.seqid new-state)])))
 
 (let [-state- (atom (->State 0 0))]
   (defn monotonic-time []
@@ -88,5 +103,5 @@
    (universal-time (monotonic-time)))
   ([^long gregorian]
    (+ (posix-time gregorian) 2208988800)))
-  
+
 (set! *warn-on-reflection* false)
