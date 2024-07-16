@@ -10,11 +10,9 @@
            [java.io       ByteArrayOutputStream
                           ObjectOutputStream]
            [java.nio      ByteBuffer]
-           [java.net      URI
-                          URL]
-           [java.util     UUID
-            Date]
-           [java.lang IllegalArgumentException]))
+           [java.net      URI URL]
+           [java.util     UUID Date]
+           [java.lang     IllegalArgumentException]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Leach-Salz UUID Representation     [RFC4122:4.1.2 "LAYOUT AND BYTE ORDER"] ;;
