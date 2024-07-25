@@ -89,12 +89,11 @@
 ;;    xxxxxxxx-xxxx-xxxx-Nxxx-xxxxxxxxxxxx
 ;;
 ;; the most significant bits of N indicate the variant (depending on the
-;; variant one, two, or three bits are used). The variant covered by the
-;; RFC9562 is indicated by the two most significant bits of N being 1 0
-;; (i.e., the hexadecimal N will always be 8, 9, A, or B).
-;;
-
-
+;; variant one, two, or three bits are used). The principal variants covered
+;; by the RFC9562 are indicated by the two most significant bits of N being 1 0
+;; (i.e., the hexadecimal N will always be 8, 9, A, or B).  As seen below,
+;; there are two additional variants, currently used for special "sentinal"
+;; UUID's as defined below.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; UUID Version                                                 [RFC9562:4.2] ;;
@@ -106,31 +105,26 @@
 ;;    xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx
 ;;
 ;; the four bits of M indicates the UUID version (i.e., the hexadecimal
-;; digit M will be either 1, 2, 3, 4, or 5).
-
-
+;; digit M will be either 1, 2, 3, 4, 5, 6, 7, or 8).
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; The NULL (variant 0) UUID                                    [RFC9562:5.9] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; "The [null] UUID is a special form of UUID that is specified to have
-;; all 128 bits set to zero."
-
-
-(def ^:const +null+           #uuid "00000000-0000-0000-0000-000000000000")
-
-
+(def ^:const +null+
+  "The [null] UUID is a special form of sentinel UUID that is specified to have
+   all 128 bits set to zero."
+  #uuid "00000000-0000-0000-0000-000000000000")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; The MAX UUID                                                [RFC9562:5.10] ;;
+;; The MAX (variant 15) UUID                                   [RFC9562:5.10] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; "The [max] UUID is a special form of UUID that is specified to have
-;; all 128 bits set."
-
-(def ^:const +max+            #uuid "ffffffff-ffff-ffff-ffff-ffffffffffff")
+(def ^:const +max+
+  "The [max] UUID is a special form of sentinel UUID that is specified to have
+   all 128 bits set."
+  #uuid "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")
 
 
 
@@ -259,10 +253,11 @@
     implemented by this protocol supports UUID's with a variant value of 0x2,
     which indicates Leach-Salz layout.  Defined UUID variant values are:
 
-    0x0   Null
+    0x0   NULL
     0x2   Leach-Salz
     0x6   Microsoft
     0x7   Reserved for future assignment
+    0xF   MAX
 
     In the canonical representation, xxxxxxxx-xxxx-xxxx-Nxxx-xxxxxxxxxxxx,
     the most significant bits of N indicate the variant (depending on the
@@ -353,6 +348,7 @@
 
 
 ;; For backwards compatibility
+
 (def UUIDRfc4122 UUIDRfc9562)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
