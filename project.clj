@@ -1,11 +1,13 @@
 (defproject danlentz/clj-uuid "0.2.0"
-  :description  "A Clojure library for generation and utilization of
+  :description "A Clojure library for generation and utilization of
                 UUIDs (Universally Unique Identifiers) as described by
-                RFC-4122. This library extends the standard Java UUID class
-                to provide true v1 (time based) and v3/v5 (namespace based)
+                RFC-4122/9562. This library extends the standard Java
+                UUID class to provide true v1 (time based) and
+                v3/v5 (namespace based), and the new v6, v7, and v8
                 identifier generation. Additionally, a number of useful
-                supporting utilities are provided to support serialization
-                and manipulation of these UUIDs in a simple, efficient manner."
+                utilities are provided to support serialization and
+                manipulation of these UUIDs in a simple, efficient
+                manner."
   :author       "Dan Lentz"
   :jvm-opts ^:replace []
   :signing  {:gpg-key "7FD20410"}
