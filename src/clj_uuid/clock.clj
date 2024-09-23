@@ -54,43 +54,74 @@
 ;; ...                 and so forth
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-(set! *warn-on-reflection* true)
+(deftype State [^long seqid ^long millis])
 
 (def ^:const +subcounter-resolution+     9999)
-(def ^:const +random-counter-resolution+ 0xfff)
-
-(deftype State [^short seqid ^long millis])
-
-(let [-state- (atom (->State 0 0))]
-  (defn monotonic-unix-time-and-random-counter []
-     (let [^State new-state
-           (swap! -state-
-             (fn [^State current-state]
-               (loop [time-now (System/currentTimeMillis)]
-                 (if-not (= (.millis current-state) time-now)
-                   (->State (random/long-12bit) time-now)
-                   (let [tt (.seqid current-state)]
-                     (if (< tt +random-counter-resolution+)
-                       (->State (inc tt) time-now)
-                       (recur (System/currentTimeMillis))))))))]
-       [(.millis new-state) (.seqid new-state)])))
 
 (let [-state- (atom (->State 0 0))]
   (defn monotonic-time []
      (let [^State new-state
            (swap! -state-
              (fn [^State current-state]
-               (loop [time-now (System/currentTimeMillis)]
-                 (if-not (= (.millis current-state) time-now)
-                   (->State 0 time-now)
-                   (let [tt (.seqid current-state)]
-                     (if (< tt +subcounter-resolution+)
-                       (->State (inc tt) time-now)
-                       (recur (System/currentTimeMillis))))))))]
-       (+ (.seqid new-state) 100103040000000000
-         (* (+ 2208988800000 (.millis new-state)) 10000)))))
+               (loop []
+                 (let [time-now (System/currentTimeMillis)]
+                   (cond
+                     (< (.millis current-state) time-now)
+                     (->State 0 time-now)
 
+                     (> (.millis current-state) time-now)
+                     (recur)
+
+                     true
+                     (let [tt (inc (.seqid current-state))]
+                       (if (<= tt +subcounter-resolution+)
+                         (->State tt time-now)
+                         (recur))))))))]
+       (+ (.seqid new-state) 100103040000000000
+          (* (+ 2208988800000 (.millis new-state)) 10000)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Monotonicity and Counters       [RFC9562:6.2.2 "Monotonic Random"] ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;   "With this method, the random data is extended to also function as
+;;   a counter. This monotonic value can be thought of as a "randomly
+;;   seeded counter" that MUST be incremented in the least significant
+;;   position for each UUID created on a given timestamp tick. UUIDv7's
+;;   rand_b section SHOULD be utilized with this method to handle batch
+;;   UUID generation during a single timestamp tick. The increment value
+;;   for every UUID generation is a random integer of any desired length
+;;   larger than zero. It ensures that the UUIDs retain the required level
+;;   of unguessability provided by the underlying entropy. The increment
+;;   value MAY be 1 when the number of UUIDs generated in a particular
+;;   period of time is important"
+
+(def ^:const +random-counter-resolution+ 0xfff)
+
+(let [-state- (atom (->State 0 0))]
+  (defn monotonic-unix-time-and-random-counter []
+     (let [^State new-state
+           (swap! -state-
+             (fn [^State current-state]
+               (loop []
+                 (let [time-now (System/currentTimeMillis)]
+                   (cond
+                     (< (.millis current-state) time-now)
+                     (->State (random/long-12bit) time-now)
+
+                     (> (.millis current-state) time-now)
+                     (recur)
+
+                     true
+                     (let [tt (inc (.seqid current-state))]
+                       (if (<= tt +random-counter-resolution+)
+                         (->State tt time-now)
+                         (recur))))))))]
+       [(.millis new-state) (.seqid new-state)])))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Time Utilities
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn posix-time
   ([]
@@ -104,4 +135,52 @@
   ([^long gregorian]
    (+ (posix-time gregorian) 2208988800)))
 
-(set! *warn-on-reflection* false)
+
+
+
+
+
+(comment
+  (require '[criterium.core :as criterium :refer [bench]])
+
+
+;; (let [-state- (atom (->State 0 0))]
+;;   (defn monotonic-unix-time-and-counter []
+;;     (let [^State new-state
+;;           (swap! -state-
+;;                  (fn [^State current-state]
+;;                    (loop [time-now (java.time.Instant/now)]
+;;                      (let [time-now-epoch-millis (.toEpochMilli time-now)
+;;                            nanos (.getNano time-now)
+;;                            nanos-till-ms (min 999999 (- 1000000 (rem nanos 1000000)))]
+;;                        (if-not (= (.millis current-state) time-now-epoch-millis)
+;;                          (->State 0 time-now-epoch-millis)
+;;                          (let [tt (.seqid current-state)]
+;;                            (if (< tt +random-counter-resolution+)
+;;                              (->State (inc tt) time-now-epoch-millis)
+;;                              (do ;; recur when counter is out of runway - sleep until new millisecond
+;;                                (java.lang.Thread/sleep 0 nanos-till-ms)
+;;                                (recur (java.time.Instant/now))))))))))]
+;;       [(.millis new-state) (.seqid new-state)])))
+
+
+  (bench (and (repeatedly 100000000 monotonic-unix-time-and-random-counter) nil))
+
+  ;; Evaluation count : 28688470740 in 60 samples of 478141179 calls.
+  ;;              Execution time mean : 0.414950 ns
+  ;;     Execution time std-deviation : 0.044658 ns
+  ;;    Execution time lower quantile : 0.379115 ns ( 2.5%)
+  ;;    Execution time upper quantile : 0.501328 ns (97.5%)
+  ;;                    Overhead used : 1.640844 ns
+
+
+
+  (bench (and (repeatedly 100000000 monotonic-unix-time-and-counter) nil))
+
+  ;; Evaluation count : 17791729260 in 60 samples of 296528821 calls.
+  ;;              Execution time mean : 1.794180 ns
+  ;;     Execution time std-deviation : 0.074041 ns
+  ;;    Execution time lower quantile : 1.730718 ns ( 2.5%)
+  ;;    Execution time upper quantile : 1.930633 ns (97.5%)
+  ;;                    Overhead used : 1.640844 ns
+  )
