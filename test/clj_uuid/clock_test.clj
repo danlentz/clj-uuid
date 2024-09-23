@@ -26,10 +26,10 @@
                       agents)
           _         (apply await working)
           answers   (mapv deref working)]
-      (testing "concurrent timestamp uniqueness..."
+      (testing (str "concurrent timestamp uniqueness (" concur " threads)...")
         (is (= (* concur extent)
                (count (apply clojure.set/union (map set answers))))))
-      (testing "concurrent monotonic increasing..."
+      (testing (str "concurrent monotonic increasing (" concur " threads)...")
         (is (every? identity
                     (map #(apply < %) answers)))))))
 
@@ -44,11 +44,11 @@
                          agents)
           _       (apply await working)
           answers (mapv deref working)]
-      (testing "concurrent timestamp uniqueness..."
+      (testing (str "concurrent timestamp uniqueness (" concur " threads)...")
         (is (=
               (* concur extent)
               (count (apply clojure.set/union (map set answers))))))
-      (testing "concurrent monotonic increasing..."
+      (testing (str "concurrent monotonic increasing (" concur " threads)...")
         (doseq [answer answers]
           (let [[time counter] (first answer)]
             (loop [time    time
