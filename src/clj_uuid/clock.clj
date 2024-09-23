@@ -59,7 +59,10 @@
 (def ^:const +subcounter-resolution+     9999)
 
 (let [-state- (atom (->State 0 0))]
-  (defn monotonic-time []
+  (defn monotonic-time
+    "Generate a guaranteed monotonically increasing number based on
+     Gregorian time"
+    []
      (let [^State new-state
            (swap! -state-
              (fn [^State current-state]
@@ -95,11 +98,15 @@
 ;;   of unguessability provided by the underlying entropy. The increment
 ;;   value MAY be 1 when the number of UUIDs generated in a particular
 ;;   period of time is important"
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def ^:const +random-counter-resolution+ 0xfff)
 
 (let [-state- (atom (->State 0 0))]
-  (defn monotonic-unix-time-and-random-counter []
+  (defn monotonic-unix-time-and-random-counter
+    "Generate a guaranteed monotonically increasing number pairs based on
+     Posix time"
+    []
      (let [^State new-state
            (swap! -state-
              (fn [^State current-state]
@@ -107,7 +114,7 @@
                  (let [time-now (System/currentTimeMillis)]
                    (cond
                      (< (.millis current-state) time-now)
-                     (->State (random/long-12bit) time-now)
+                     (->State (random/eight-bits) time-now)
 
                      (> (.millis current-state) time-now)
                      (recur)

@@ -1,7 +1,6 @@
 (ns clj-uuid.random
-  (:require [clj-uuid.bitmop :as bitmop])
-  (:import (java.security SecureRandom))
-  (:refer-clojure :exclude [bytes long]))
+  (:refer-clojure :exclude [bytes long])
+  (:import (java.security SecureRandom)))
 
 (defonce ^:private secure-random
   (delay (SecureRandom.)))
@@ -20,7 +19,7 @@
   ([n-bytes]
    (reduce (fn [n b] (+ (bit-shift-left n 8) b)) 0 (bytes n-bytes))))
 
-(defn long-12bit
-  "Generate a long value between 0 and 512"
+(defn eight-bits
+  "Generate a hard-to-guess long value between 0 and 255"
   []
-  (bit-and (long 3) 0xfff))
+  (bit-and (long 3) 0xff))
