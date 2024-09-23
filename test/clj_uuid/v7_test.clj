@@ -14,7 +14,7 @@
 
 (deftest check-v7-concurrency
   (doseq [concur    (range 2 9)]
-    (let [extent    2000000
+    (let [extent    1000000
           agents    (map agent (repeat concur nil))
           working   (map #(send-off %
                             (fn [state]

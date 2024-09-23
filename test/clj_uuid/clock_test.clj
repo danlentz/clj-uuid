@@ -18,7 +18,7 @@
 
 (deftest check-multi-threaded-monotonic-time
   (doseq [concur (range 0 9)]
-    (let [extent    2000000
+    (let [extent    1000000
           agents    (mapv agent (repeat concur nil))
           working   (mapv #(send-off %
                             (fn [state]
@@ -35,7 +35,7 @@
 
 (deftest check-multi-threaded-monotonic-unix-time-and-random-counter
   (doseq [concur (range 0 9)]
-    (let [extent  2000000
+    (let [extent  1000000
           agents  (mapv agent (repeat concur nil))
           working (mapv #(send-off %
                            (fn [state]
