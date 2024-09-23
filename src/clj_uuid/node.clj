@@ -1,7 +1,8 @@
 (ns clj-uuid.node
-  (:require [clj-uuid.util      :refer [java6? exception compile-if]])
-  (:require [clj-uuid.bitmop    :refer [sb8 assemble-bytes ldb dpb mask]])
-  (:require [clj-uuid.constants :refer :all])
+  (:require [clj-uuid.util      :refer [java6? exception compile-if]]
+            [clj-uuid.bitmop    :refer [sb8 assemble-bytes ldb dpb mask]]
+            [clj-uuid.constants :refer :all]
+            [clj-uuid.random    :as random])
   (:import  [java.net           InetAddress
                                 NetworkInterface]
             [java.security      MessageDigest]
@@ -20,7 +21,6 @@
 ;; initialized to a random 16-bit number once per lifetime of the system.
 
 (defonce +clock-sequence+ (inc (rand-int 0xffff)))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; NodeID Representation                               [RFC4122:4.1.6 "NODE"] ;;
@@ -151,3 +151,14 @@
     (dpb (mask 8 56) (dpb (mask 8 48) @+node-id+ clk-low) clk-high)))
 
 (def +v1-lsb+ (memoize +v1-lsb+'))
+
+;; v6 lsb uses a cryptographically secure random node identifier that is
+;; initialized at runtime.
+
+(defn- +v6-lsb+'
+  []
+  (let [clk-high  (dpb (mask 2 6) (ldb (mask 6 8) +clock-sequence+) 0x2)
+        clk-low   (ldb (mask 8 0) +clock-sequence+)]
+    (dpb (mask 8 56) (dpb (mask 8 48) (random/long) clk-low) clk-high)))
+
+(def +v6-lsb+ (memoize +v6-lsb+'))
