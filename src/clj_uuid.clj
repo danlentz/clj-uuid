@@ -70,7 +70,6 @@
 ;;  (104 111) (112 119) (120 127)    ;; node
 
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; UUID Variant                                                 [RFC9562:4.1] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -124,8 +123,6 @@
    all 128 bits set."
   #uuid "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Well-Known UUIDs                 [RFC4122:Appendix-C "SOME NAMESPACE IDs"] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -133,18 +130,14 @@
 ;; The following UUID's are the canonical top-level namespace identifiers
 ;; defined in RFC9562 Appendix C.
 
-
 (def ^:const +namespace-dns+  #uuid "6ba7b810-9dad-11d1-80b4-00c04fd430c8")
 (def ^:const +namespace-url+  #uuid "6ba7b811-9dad-11d1-80b4-00c04fd430c8")
 (def ^:const +namespace-oid+  #uuid "6ba7b812-9dad-11d1-80b4-00c04fd430c8")
 (def ^:const +namespace-x500+ #uuid "6ba7b814-9dad-11d1-80b4-00c04fd430c8")
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Monotonic Clock (guaranteed always increasing value for time)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defn monotonic-time
  "Return a monotonic timestamp (guaranteed always increasing) based on
@@ -153,12 +146,9 @@
  []
  (clock/monotonic-time))
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; UUID Protocols
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defprotocol UUIDNameBytes
   "A mechanism intended for user-level extension that defines the
@@ -171,7 +161,6 @@
     typically unique within a given namespace."))
 
 
-
 (defprotocol UUIDable
   "A UUIDable object directly represents a UUID.  Examples of things which
   might be conceptually 'uuidable' include string representation of a
@@ -182,7 +171,6 @@
 
   (uuidable?                 [x]
     "Return 'true' if 'x' can be coerced to UUID."))
-
 
 
 (defprotocol UUIDRfc9562
@@ -480,8 +468,6 @@
     [this]
     (to-byte-array this)))
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; V0 UUID Constructor                                          [RFC9562:5.9] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -503,27 +489,27 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn max
-  "Generates the maximum UUID, ffffffff-ffff-ffff-ffff-ffffffffffff."
+  "Generates the v15 (maximum) UUID, ffffffff-ffff-ffff-ffff-ffffffffffff."
   ^java.util.UUID
   []
   +max+)
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; V1, V6 UUID Constructors                                [RFC9562:5.1, 5.6] ;;
+;; V1, V6 (time-coded) UUID Constructors                   [RFC9562:5.1, 5.6] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Concatenate the UUID version with the MAC address of the computer that is
-;; generating the UUID, and with a monotonic timestamp based on the number
-;; of 100-nanosecond intervals since the adoption of the Gregorian calendar
-;; in the West, 12:00am Friday October 15, 1582 UTC.
+;; Concatenate the UUID version with a unique per-node identifier (the
+;; MAC address of the computer that is generating the UUID, or securely
+;; generated once-per-session random identifier) and with a monotonic
+;; timestamp based on the number of 100-nanosecond intervals since the
+;; adoption of the Gregorian calendar in the West, 12:00am Friday
+;; October 15, 1582 UTC.
 
 (defn v1
   "Generate a v1 (time-based) unique identifier, guaranteed to be unique
   and thread-safe regardless of clock precision or degree of concurrency.
   Creation of v1 UUID's does not require any call to a cryptographic
-  generator and can be accomplished much more efficiently than v3, v4, v5,
+  generator and can be accomplished much more efficiently than v3, v4, v5, v7,
   or squuid's.  A v1 UUID reveals both the identity of the computer that
   generated the UUID and the time at which it did so.  Its uniqueness across
   computers is guaranteed as long as MAC addresses are not duplicated."
@@ -540,28 +526,64 @@
     (UUID. msb (node/+v1-lsb+))))
 
 (defn v6
-  "Generate a v6 (time-based), lexically sortable, unique identifier,
-  guaranteed to be unique and thread-safe regardless of clock
-  precision or degree of concurrency.  Creation of v6 UUID's does not
-  require any call to a cryptographic generator and can be
-  accomplished much more efficiently than v3, v4, v5, v7, or squuid's.
-  A v6 UUID reveals both the identity of the computer that generated
-  the UUID and the time at which it did so.  Its uniqueness across
-  computers is guaranteed as long as MAC addresses are not
-  duplicated. Used for compatibility with systems that already use v1;
-  UUID v7 should be prefered over v1 or v6."
+  "Generate a v6 (time-based), LEXICALLY SORTABLE, unique identifier,
+  v6 is a field-compatible version of v1, reordered for improved DB
+  locality.  Creation of v6 UUID's does not require any call to a
+  cryptographic generator and can be accomplished much more efficiently
+  than v3, v4, v5, v7, or squuid's.  A v6 UUID uses a cryptographically
+  secure, hard to guess random node id. It DOES NOT reveal the identity
+  of the computer on which it was created."
   ^java.util.UUID
   []
   (let [ts        (clock/monotonic-time)
         time-high (bitmop/ldb #=(bitmop/mask 32 28) ts)
-        time-mid  (bitmop/ldb #=(bitmop/mask 16 12)  ts)
+        time-mid  (bitmop/ldb #=(bitmop/mask 16 12) ts)
         time-low  (bitmop/dpb #=(bitmop/mask 4  12)
                     (bitmop/ldb #=(bitmop/mask 12 0) ts) 0x6)
         msb       (bit-or time-low
-                   (bit-shift-left time-mid 16)
+                   (bit-shift-left time-mid  16)
                    (bit-shift-left time-high 32))]
-    (UUID. msb (node/+v1-lsb+))))
+    (UUID. msb (node/+v6-lsb+))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; V7 (crypto secure, posix time-coded) UUID Constructor        [RFC9562:5.7] ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;  0                   1                   2                   3
+;;  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+;; |                           unix_ts_ms                          |
+;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+;; |          unix_ts_ms           |  ver  |       rand_a          |
+;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+;; |var|                        rand_b                             |
+;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+;; |                            rand_b                             |
+;; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+;;  The following table enumerates a slot/type/value correspondence:
+;;
+;;   SLOT       SIZE      Description
+;;  ----------------------------------------------------------------------
+;;  unix_ts_ms   6 bytes  POSIX millis timestamp
+;;  ver          4 bits   version, set to 0b0111 (7)
+;;  rand_a      12 bits   randomly initialized subcounter
+;;  var          2 bits   variant, set to 0b10 (2)
+;;  rand_b      62 bits   cryptographically secure pseudorandom data
+
+(defn v7
+  "Generate a v7 unix time-based, LEXICALLY SORTABLE UUID with monotonic
+  counter and cryptographically secure random portion and POSIX time encoding.
+  As such, creation of v7 UUIDs may be significantly slower, but have improved
+  entropy chararacteristics compared to v1 or v6 UUIDs."
+  ^java.util.UUID
+  []
+  (let [[t counter]     (clock/monotonic-unix-time-and-random-counter)
+        time            (bitmop/ldb #=(bitmop/mask 48  0) t)
+        ver-and-counter (bitmop/dpb #=(bitmop/mask 4  12) counter 0x7)
+        msb             (bit-or ver-and-counter (bit-shift-left time 16))
+        lsb             (bitmop/dpb #=(bitmop/mask 2 62) (random/long) 0x2)]
+    (UUID. msb lsb)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; V4 (random) UUID Constructor                                 [RFC9562:5.4] ;;
@@ -589,7 +611,17 @@
       (bitmop/dpb #=(bitmop/mask 4 12) msb 0x4)
       (bitmop/dpb #=(bitmop/mask 2 62) lsb 0x2))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; v8 (custom) UUID Constructor                  [RFC9562:5.8: UUID Version 8];;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn v8
+  "Generate a v8 custom UUID with up to 122 bits of user data."
+  ^java.util.UUID
+  [^long msb ^long lsb]
+  (UUID.
+   (bitmop/dpb #=(bitmop/mask 4 12) msb 0x8)
+   (bitmop/dpb #=(bitmop/mask 2 62) lsb 0x2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SQUUID (sequential) UUID Constructor
@@ -612,8 +644,6 @@
         timed-msb (bit-or (bit-shift-left secs 32)
                     (bit-and +ub32-mask+ msb))]
     (UUID. timed-msb lsb)))
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; "Local-Part" Representation
@@ -653,8 +683,6 @@
   (as-byte-array [x]
     (throw (IllegalArgumentException. (format "%s cannot be converted to byte array." x)))))
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Digest Instance
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -680,8 +708,6 @@
     (UUID.
      (bitmop/dpb #=(bitmop/mask 4 12) msb version)
      (bitmop/dpb #=(bitmop/mask 2 62) lsb 0x2))))
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Namespaced UUIDs                                        [RFC9562:5.3, 5.5] ;;
@@ -737,38 +763,6 @@
     (digest-bytes +sha1+
       (to-byte-array (as-uuid context))
       (as-byte-array local-part))))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Lexically Sortable UUID                       [RFC9562:5.7: UUID Version 7];;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn v7
-  "Generate a v7 unix time-based, lexically sortable UUID with monotonic
-  counter and cryptographically secure random portion. The 12 bit
-  rand_a is used as counter, rand_b is CSPRNG. Random numbers are
-  generated using the JVM default implementation of
-  java.security.SecureRandom."
-  ^java.util.UUID
-  []
-  (let [[t counter]     (clock/monotonic-unix-time-and-random-counter)
-        time            (bitmop/ldb #=(bitmop/mask 48  0) t)
-        ver-and-counter (bitmop/dpb #=(bitmop/mask 4  12) counter 0x7)
-        msb             (bit-or ver-and-counter (bit-shift-left time 16))
-        lsb             (bitmop/dpb #=(bitmop/mask 2 62) (random/long) 0x2)]
-    (UUID. msb lsb)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Custom UUID                                   [RFC9562:5.8: UUID Version 8];;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn v8
-  "Generate a v8 custom UUID with up to 122 bits of user data."
-  ^java.util.UUID
-  [^long msb ^long lsb]
-  (UUID.
-   (bitmop/dpb #=(bitmop/mask 4 12) msb 0x8)
-   (bitmop/dpb #=(bitmop/mask 2 62) lsb 0x2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Predicates

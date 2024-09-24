@@ -1,10 +1,6 @@
 (ns clj-uuid.clock
+  "Lock-Free, Thread-safe Monotonic Clocks"
   (:require [clj-uuid.random :as random]))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Lock-Free, Thread-safe Monotonic Clock
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Timestamp Epochs                       [RFC4122:4.1.4 "TIMESTAMP"] ;;
@@ -60,8 +56,8 @@
 
 (let [-state- (atom (->State 0 0))]
   (defn monotonic-time
-    "Generate a guaranteed monotonically increasing number based on
-     Gregorian time"
+    "Generate a guaranteed monotonically increasing timestamp based on
+     Gregorian time and a stateful subcounter"
     []
      (let [^State new-state
            (swap! -state-
@@ -104,8 +100,8 @@
 
 (let [-state- (atom (->State 0 0))]
   (defn monotonic-unix-time-and-random-counter
-    "Generate a guaranteed monotonically increasing number pairs based on
-     Posix time"
+    "Generate guaranteed monotonically increasing number pairs based on
+     POSIX time and a randomly seeded subcounter"
     []
      (let [^State new-state
            (swap! -state-
@@ -131,63 +127,17 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn posix-time
+  "Generate the (Unix compatible) POSIX time -- the number of seconds
+  that have elaspsed since 00:00 January 1, 1970 UTC"
   ([]
    (posix-time (System/currentTimeMillis)))
   ([^long gregorian]
    (- (quot gregorian 10000) 12219292800000)))
 
 (defn universal-time
+  "Generate the (Common-Lisp compatible) universal-time -- the number of
+  seconds that have elapsed since 00:00 January 1, 1900 GMT"
   ([]
    (universal-time (monotonic-time)))
   ([^long gregorian]
    (+ (posix-time gregorian) 2208988800)))
-
-
-
-
-
-
-(comment
-  (require '[criterium.core :as criterium :refer [bench]])
-
-
-;; (let [-state- (atom (->State 0 0))]
-;;   (defn monotonic-unix-time-and-counter []
-;;     (let [^State new-state
-;;           (swap! -state-
-;;                  (fn [^State current-state]
-;;                    (loop [time-now (java.time.Instant/now)]
-;;                      (let [time-now-epoch-millis (.toEpochMilli time-now)
-;;                            nanos (.getNano time-now)
-;;                            nanos-till-ms (min 999999 (- 1000000 (rem nanos 1000000)))]
-;;                        (if-not (= (.millis current-state) time-now-epoch-millis)
-;;                          (->State 0 time-now-epoch-millis)
-;;                          (let [tt (.seqid current-state)]
-;;                            (if (< tt +random-counter-resolution+)
-;;                              (->State (inc tt) time-now-epoch-millis)
-;;                              (do ;; recur when counter is out of runway - sleep until new millisecond
-;;                                (java.lang.Thread/sleep 0 nanos-till-ms)
-;;                                (recur (java.time.Instant/now))))))))))]
-;;       [(.millis new-state) (.seqid new-state)])))
-
-
-  (bench (and (repeatedly 100000000 monotonic-unix-time-and-random-counter) nil))
-
-  ;; Evaluation count : 28688470740 in 60 samples of 478141179 calls.
-  ;;              Execution time mean : 0.414950 ns
-  ;;     Execution time std-deviation : 0.044658 ns
-  ;;    Execution time lower quantile : 0.379115 ns ( 2.5%)
-  ;;    Execution time upper quantile : 0.501328 ns (97.5%)
-  ;;                    Overhead used : 1.640844 ns
-
-
-
-  (bench (and (repeatedly 100000000 monotonic-unix-time-and-counter) nil))
-
-  ;; Evaluation count : 17791729260 in 60 samples of 296528821 calls.
-  ;;              Execution time mean : 1.794180 ns
-  ;;     Execution time std-deviation : 0.074041 ns
-  ;;    Execution time lower quantile : 1.730718 ns ( 2.5%)
-  ;;    Execution time upper quantile : 1.930633 ns (97.5%)
-  ;;                    Overhead used : 1.640844 ns
-  )

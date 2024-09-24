@@ -7,7 +7,7 @@
 (deftest check-v7-single-threaded
   (let [iterations 1000000
         groups     10]
-    (testing "single-thread v6 uuid uniqueness..."
+    (testing "single-thread v7 uuid uniqueness..."
       (dotimes [_ groups]
         (let [result (repeatedly iterations v7)]
           (is (= (count result) (count (set result)))))))))
@@ -28,4 +28,4 @@
 
       (testing (str "concurrent v7 monotonic increasing (" concur " threads)...")
         (is (every? identity
-              (map (partial apply uuid/<) answers)))))))
+                    (map (partial apply uuid/<) answers)))))))
