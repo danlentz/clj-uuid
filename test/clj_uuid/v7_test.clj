@@ -29,3 +29,10 @@
       (testing (str "concurrent v7 monotonic increasing (" concur " threads)...")
         (is (every? identity
                     (map (partial apply uuid/<) answers)))))))
+
+(deftest check-get-timestamp
+  (dotimes [_ 1000000]
+    (let [time (first (clock/monotonic-unix-time-and-random-counter))]
+      (with-redefs [clock/monotonic-unix-time-and-random-counter (constantly [time (rand-int 4095)])]
+        (is (= time (uuid/get-timestamp (v7)))
+            "Timestamp should be retrievable from v7 UUID")))))

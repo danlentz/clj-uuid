@@ -1,6 +1,6 @@
 (ns clj-uuid
   (:refer-clojure :exclude [== uuid? max < > =])
-  (:require [clojure.core :as cc]
+  (:require [clojure.core :as clojure]
             [clj-uuid
              [constants :refer :all]
              [util      :refer :all]
@@ -361,16 +361,16 @@
   (uuid< ^boolean [^UUID x ^UUID y]
     (let [xh (.getMostSignificantBits x)
           yh (.getMostSignificantBits y)]
-      (or (cc/< xh yh)
-        (and (cc/= xh yh) (cc/< (.getLeastSignificantBits x)
-                             (.getLeastSignificantBits y))))))
+      (or (clojure/< xh yh)
+          (and (clojure/= xh yh) (clojure/< (.getLeastSignificantBits x)
+                                            (.getLeastSignificantBits y))))))
 
   (uuid> ^boolean [^UUID x ^UUID y]
     (let [xh (.getMostSignificantBits x)
           yh (.getMostSignificantBits y)]
-      (or (cc/> xh yh)
-        (and (cc/= xh yh) (cc/> (.getLeastSignificantBits x)
-                             (.getLeastSignificantBits y))))))
+      (or (clojure/> xh yh)
+          (and (clojure/= xh yh) (clojure/> (.getLeastSignificantBits x)
+                                            (.getLeastSignificantBits y))))))
 
   (get-word-high ^long [uuid]
     (.getMostSignificantBits uuid))
@@ -379,7 +379,7 @@
     (.getLeastSignificantBits uuid))
 
   (null? ^boolean [uuid]
-    (cc/= 0 (.getMostSignificantBits uuid) (.getLeastSignificantBits uuid)))
+    (clojure/= 0 (.getMostSignificantBits uuid) (.getLeastSignificantBits uuid)))
 
   (max? ^boolean [uuid]
     (uuid= uuid +max+))
@@ -413,7 +413,7 @@
 
   (get-time-low ^long [uuid]
     (let [msb (.getMostSignificantBits uuid)]
-      (if (cc/= 6 (get-version uuid))
+      (if (clojure/= 6 (get-version uuid))
         (bitmop/ldb #=(bitmop/mask 16 0) msb)
         (bitmop/ldb #=(bitmop/mask 32 0) (bit-shift-right msb 32)))))
 
@@ -423,7 +423,7 @@
 
   (get-time-high ^long [uuid]
     (let [msb (.getMostSignificantBits uuid)]
-      (if (cc/= 6 (get-version uuid))
+      (if (clojure/= 6 (get-version uuid))
         (bitmop/ldb #=(bitmop/mask 32 0) (bit-shift-right msb 32))
         (bitmop/ldb #=(bitmop/mask 16 0) msb))))
 
@@ -450,12 +450,13 @@
                             (.getMostSignificantBits uuid))
                 (bit-shift-left (get-time-mid uuid) 12)
                 (bit-shift-left (get-time-high uuid) 28))
+      7 (bitmop/ldb #=(bitmop/mask 48 16) (.getMostSignificantBits uuid))
       nil))
 
   (get-unix-time ^long [uuid]
     (case (.version uuid)
       (1 6) (clock/posix-time (get-timestamp uuid))
-      7     (bitmop/ldb #=(bitmop/mask 48 16) (.getMostSignificantBits uuid))
+      7     (get-timestamp uuid)
       nil))
 
   (get-instant [uuid]
@@ -703,7 +704,7 @@
 (defn- build-digested-uuid
   ^java.util.UUID
   [^long version ^bytes arr]
-  {:pre [(or (cc/= version 3) (cc/= version 5))]}
+  {:pre [(or (clojure/= version 3) (clojure/= version 5))]}
   (let [msb (bitmop/bytes->long arr 0)
         lsb (bitmop/bytes->long arr 8)]
     (UUID.
@@ -816,10 +817,8 @@
        (some? (re-matches urn-regex str))))
 
 (defn uuid-vec? [v]
-  (and (cc/= (count v) 16)
-    (every? #(and (integer? %) (>= -128  % 127)) v)))
-
-
+  (and (clojure/= (count v) 16)
+       (every? #(and (integer? %) (>= -128  % 127)) v)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; UUID Polymorphism
@@ -844,7 +843,7 @@
     (let [bb (ByteBuffer/wrap ba)]
       (UUID. (.getLong bb) (.getLong bb))))
   (uuidable? [^bytes ba]
-    (cc/= 16 (alength ^bytes ba)))
+    (clojure/= 16 (alength ^bytes ba)))
 
   String
   (uuidable? ^boolean [s]
