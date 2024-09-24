@@ -1,5 +1,5 @@
 (ns clj-uuid.node
-  (:require [clj-uuid.util      :refer [java6? exception compile-if]]
+  (:require [clj-uuid.util      :refer [java6? compile-if]]
             [clj-uuid.bitmop    :refer [sb8 assemble-bytes ldb dpb mask]]
             [clj-uuid.constants :refer :all]
             [clj-uuid.random    :as random])
@@ -7,7 +7,6 @@
                                 NetworkInterface]
             [java.security      MessageDigest]
             [java.util          Properties]))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Clock Sequence                            [RFC4122:4.1.5 "CLOCK SEQUENCE"] ;;

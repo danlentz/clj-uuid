@@ -1,18 +1,6 @@
 (ns clj-uuid.util
   (:import (java.util UUID)))
 
-
-
-
-(defn indexed
-  "Returns a lazy sequence of [index, item] pairs, where items come
-  from 's' and indexes count up from zero.
-  (indexed '(a b c d))  =>  ([0 a] [1 b] [2 c] [3 d])"
-  [s]
-  ;; (map vector (iterate inc 0) s))
-  (map #(clojure.lang.MapEntry. %1 %2) (range) s))
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; PROG1 but with more idiomatic clojure name
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -24,7 +12,6 @@
   `(let [value# ~value]
      ~@forms
      value#))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Conditional Compilation
@@ -59,17 +46,6 @@
   `(let [start# (System/nanoTime)  ret# ~(cons 'do body)]
      [ret# (/ (double (- (System/nanoTime) start#)) 1000000.0)]))
 
-
-(defmacro run-and-measure-timing [expr]
-  `(let [start-time# (System/currentTimeMillis)
-         response# ~expr
-         end-time# (System/currentTimeMillis)]
-     {:time-taken (- end-time# start-time#)
-      :response response#
-      :start-time start-time#
-      :end-time end-time#}))
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Debugging
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -100,17 +76,7 @@
          (.delete ~f-sym)))))
 
 (defn lines-of-file [^String file-name]
- (line-seq
-  (java.io.BufferedReader.
-   (java.io.InputStreamReader.
-    (java.io.FileInputStream. file-name)))))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Condition Handling
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defmacro exception [& [param & more :as params]]
-  (if (class? param)
-    `(throw (new ~param (str ~@(interpose " " more))))
-    `(throw (Exception. (str ~@(interpose " " params))))))
+  (line-seq
+    (java.io.BufferedReader.
+      (java.io.InputStreamReader.
+        (java.io.FileInputStream. file-name)))))

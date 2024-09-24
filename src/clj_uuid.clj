@@ -68,7 +68,9 @@
 ;;  (72 79)                          ;; clock-seq-low
 ;;  (80 87)   (88 95)   (96 103)     ;;
 ;;  (104 111) (112 119) (120 127)    ;; node
-
+;;
+;; This has been updated with additional layouts.  See RFC9562:5.7 and
+;; the description of v7 UUIDs, below.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; UUID Variant                                                 [RFC9562:4.1] ;;
@@ -115,7 +117,7 @@
   #uuid "00000000-0000-0000-0000-000000000000")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; The MAX (variant 15) UUID                                   [RFC9562:5.10] ;;
+;; The MAX (variant 7) UUID                                    [RFC9562:5.10] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def ^:const +max+
@@ -228,10 +230,13 @@
     0x3   Namespaced (MD5 Digest)
     0x4   Cryptographic random
     0x5   Namespaced (SHA1 Digest)
+    0x6   Time based, lexically ordered
+    0x7   POSIX Time based, lexically ordered, cryptographically secure
+    0x8   User Customizable
 
     In the canonical representation, xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx,
     the four bits of M indicate the UUID version (i.e., the hexadecimal M
-    will be either 1, 2, 3, 4, or 5).")
+    will be either 1, 2, 3, 4, 5, 6, 7, or 8).")
 
   (get-variant                   [uuid]
     "Return the variant number associated with this UUID.  The variant field
@@ -239,11 +244,10 @@
     implemented by this protocol supports UUID's with a variant value of 0x2,
     which indicates Leach-Salz layout.  Defined UUID variant values are:
 
-    0x0   NULL
+    0x0   Null
     0x2   Leach-Salz
     0x6   Microsoft
-    0x7   Reserved for future assignment
-    0xF   MAX
+    0x7   Max
 
     In the canonical representation, xxxxxxxx-xxxx-xxxx-Nxxx-xxxxxxxxxxxx,
     the most significant bits of N indicate the variant (depending on the
@@ -332,7 +336,6 @@
   (to-uri        ^java.net.URI   [uuid]
     "Return the unique URN URI associated with this UUID."))
 
-
 ;; For backwards compatibility
 
 (def UUIDRfc4122 UUIDRfc9562)
@@ -341,14 +344,12 @@
 ;; RFC9562 Unique Identifier extended java.util.UUID
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 (extend-type UUID
 
   UUIDable
 
   (as-uuid   [u] u)
   (uuidable? [_] true)
-
 
   UUIDRfc9562
 
@@ -828,7 +829,7 @@
   (cond
     (uuid-string?     s) (UUID/fromString s)
     (uuid-urn-string? s) (UUID/fromString (subs s 9))
-    :else                (exception "invalid UUID")))
+    :else                (throw (IllegalArgumentException. (format "Invalid UUID: %s" s)))))
 
 (extend-protocol UUIDRfc9562
   Object
@@ -863,7 +864,7 @@
   (uuidable? ^boolean [_]
     false)
   (as-uuid [x]
-    (exception IllegalArgumentException x "Cannot be coerced to UUID."))
+    (throw (IllegalArgumentException. (format "%s Cannot be coerced to UUID." x))))
 
   nil
   (as-uuid [x]
