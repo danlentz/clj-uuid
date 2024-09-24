@@ -3,7 +3,7 @@
   (:require [clojure.core :as clojure]
             [clj-uuid
              [constants :refer :all]
-             [util      :refer :all]
+             [util      :as util]
              [bitmop    :as bitmop]
              [clock     :as clock]
              [node      :as node]
@@ -32,7 +32,8 @@
 ;;
 ;;
 ;; Each field is treated as integer and has its value printed as a zero-filled
-;; hexadecimal digit string with the most significant digit first.
+;; hexadecimal digit string with the most significant digit first (unsigned,
+;; big-endian).
 ;;
 ;; 0                   1                   2                   3
 ;;  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -112,7 +113,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def ^:const +null+
-  "The [null] UUID is a special form of sentinel UUID that is specified to have
+  "The NULL UUID is a special form of sentinel UUID that is specified to have
    all 128 bits set to zero."
   #uuid "00000000-0000-0000-0000-000000000000")
 
@@ -121,8 +122,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def ^:const +max+
-  "The [max] UUID is a special form of sentinel UUID that is specified to have
-   all 128 bits set."
+  "The MAX UUID is a special form of sentinel UUID that is specified to have
+   all 128 bits set to one."
   #uuid "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -162,7 +163,6 @@
     "Extract a byte serialization that represents the 'name' of x,
     typically unique within a given namespace."))
 
-
 (defprotocol UUIDable
   "A UUIDable object directly represents a UUID.  Examples of things which
   might be conceptually 'uuidable' include string representation of a
@@ -173,7 +173,6 @@
 
   (uuidable?                 [x]
     "Return 'true' if 'x' can be coerced to UUID."))
-
 
 (defprotocol UUIDRfc9562
   "A protocol that abstracts an unique identifier as described by
@@ -227,9 +226,9 @@
     0x0   Null
     0x1   Time based
     0x2   DCE security with POSIX UID
-    0x3   Namespaced (MD5 Digest)
+    0x3   Namespaced, deterministic (MD5 Digest)
     0x4   Cryptographic random
-    0x5   Namespaced (SHA1 Digest)
+    0x5   Namespaced, deterministic (SHA1 Digest)
     0x6   Time based, lexically ordered
     0x7   POSIX Time based, lexically ordered, cryptographically secure
     0x8   User Customizable
@@ -295,7 +294,7 @@
     timestamp associated with this UUID.  For time-based (v1, v6) UUID's the
     result encodes the number of 100 nanosecond intervals since the
     adoption of the Gregorian calendar: 12:00am Friday October 15, 1582 UTC.
-    For non-gregorian-time-based (v3, v4, v5, v7, v8, squuid) UUID's, always
+    For non-time-based (v3, v4, v5, v8, squuid) UUID's, always
     returns `nil`.")
 
   (get-instant   ^java.util.Date [uuid]
@@ -673,7 +672,7 @@
 
   java.lang.String
   (as-byte-array ^bytes [this]
-    (compile-if (java6?)
+    (util/compile-if (java6?)
       (.getBytes this)
       (.getBytes this java.nio.charset.StandardCharsets/UTF_8)))
 
