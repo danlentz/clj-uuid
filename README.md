@@ -11,8 +11,8 @@ clj-uuid
 UUIDs (Universally Unique Identifiers) as described by
 [**IETF RFC-9562**](http://www.ietf.org/rfc/rfc9562.txt).
 
-This library extends the standard Java UUID class to provide true v1
-(time based) and v3/v5 (namespace based) identifier generation.
+This library extends the standard Java UUID class to provide true
+time based and namespace based identifier generation.
 Additionally, a number of useful supporting utilities are provided to
 support serialization and manipulation of these UUIDs in a simple,
 efficient manner.
