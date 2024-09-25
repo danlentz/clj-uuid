@@ -18,7 +18,7 @@
                  [org.clj-commons/primitive-math "1.0.1"]]
   :codox    {:output-path  "doc/api"
              :src-dir-uri  "https://github.com/danlentz/clj-uuid/blob/master/"
-             :doc-files ["README.md"]
+             :doc-files []
              :src-linenum-anchor-prefix "L"
              :project {:name "clj-uuid"}}
   :global-vars {*warn-on-reflection* true})
