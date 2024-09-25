@@ -221,7 +221,7 @@
   (get-version                   [uuid]
     "Return the version number associated with this UUID.  The version
     field contains a value which describes the nature of the UUID.  There
-    are five versions of Leach-Salz UUID, plus the null UUID:
+    are five versions of Leach-Salz UUID, plus the null and max UUIDs:
 
     0x0   Null
     0x1   Time based
@@ -232,6 +232,7 @@
     0x6   Time based, lexically ordered
     0x7   POSIX Time based, lexically ordered, cryptographically secure
     0x8   User Customizable
+    0xF   Max
 
     In the canonical representation, xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx,
     the four bits of M indicate the UUID version (i.e., the hexadecimal M
@@ -290,12 +291,14 @@
     node identifier associated with this UUID.")
 
   (get-timestamp                 [uuid]
-    "Return the 60 bit unsigned value that represents a temporally unique
-    timestamp associated with this UUID.  For time-based (v1, v6) UUID's the
-    result encodes the number of 100 nanosecond intervals since the
-    adoption of the Gregorian calendar: 12:00am Friday October 15, 1582 UTC.
-    For non-time-based (v3, v4, v5, v8, squuid) UUID's, always
-    returns `nil`.")
+    "Return the time of UUID creation.  For Gregorian time-based (v1,
+    v6) UUID's, this is 60 bit unsigned value that represents a
+    temporally unique timestamp associated with this UUID.  The result
+    encodes the number of 100 nanosecond intervals since the adoption of
+    the Gregorian calendar.  For v7 UUID's this encodes the more common
+    unix time in milliseconds since midnight, January 1, 1970 UTC.  For
+    non-time-based (v3, v4, v5, v8, squuid) UUID's, always returns
+    `nil`.")
 
   (get-instant   ^java.util.Date [uuid]
     "For time-based (v1, v6, v7) UUID's, return a java.util.Date

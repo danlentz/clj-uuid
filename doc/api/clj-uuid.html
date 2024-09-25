@@ -49,12 +49,14 @@ temporally unique. For non-time-based
 node identifier associated with this UUID.</pre></div></div><div class="public anchor" id="var-get-time-high"><h3>get-time-high</h3><div class="usage"><code>(get-time-high uuid)</code></div><div class="doc"><pre class="plaintext">Return the 16 bit unsigned value that represents the `time-high` field
 of the `timestamp` multiplexed with the `version` of this UUID.</pre></div></div><div class="public anchor" id="var-get-time-low"><h3>get-time-low</h3><div class="usage"><code>(get-time-low uuid)</code></div><div class="doc"><pre class="plaintext">Return the 32 bit unsigned value that represents the `time-low` field
 of the `timestamp` associated with this UUID.</pre></div></div><div class="public anchor" id="var-get-time-mid"><h3>get-time-mid</h3><div class="usage"><code>(get-time-mid uuid)</code></div><div class="doc"><pre class="plaintext">Return the 16 bit unsigned value that represents the `time-mid` field
-of the `timestamp` assocaited with this UUID.</pre></div></div><div class="public anchor" id="var-get-timestamp"><h3>get-timestamp</h3><div class="usage"><code>(get-timestamp uuid)</code></div><div class="doc"><pre class="plaintext">Return the 60 bit unsigned value that represents a temporally unique
-timestamp associated with this UUID.  For time-based (v1, v6) UUID's the
-result encodes the number of 100 nanosecond intervals since the
-adoption of the Gregorian calendar: 12:00am Friday October 15, 1582 UTC.
-For non-time-based (v3, v4, v5, v8, squuid) UUID's, always
-returns `nil`.</pre></div></div><div class="public anchor" id="var-get-unix-time"><h3>get-unix-time</h3><div class="usage"><code>(get-unix-time uuid)</code></div><div class="doc"><pre class="plaintext">For time-based (v1, v6, v7) UUIDs return the timestamp portion in
+of the `timestamp` assocaited with this UUID.</pre></div></div><div class="public anchor" id="var-get-timestamp"><h3>get-timestamp</h3><div class="usage"><code>(get-timestamp uuid)</code></div><div class="doc"><pre class="plaintext">Return the time of UUID creation.  For Gregorian time-based (v1,
+v6) UUID's, this is 60 bit unsigned value that represents a
+temporally unique timestamp associated with this UUID.  The result
+encodes the number of 100 nanosecond intervals since the adoption of
+the Gregorian calendar.  For v7 UUID's this encodes the more common
+unix time in milliseconds since midnight, January 1, 1970 UTC.  For
+non-time-based (v3, v4, v5, v8, squuid) UUID's, always returns
+`nil`.</pre></div></div><div class="public anchor" id="var-get-unix-time"><h3>get-unix-time</h3><div class="usage"><code>(get-unix-time uuid)</code></div><div class="doc"><pre class="plaintext">For time-based (v1, v6, v7) UUIDs return the timestamp portion in
 aproximately milliseconds since the Unix epoch 1970-01-01T00:00:00.000Z.
 For non-time-based (v3, v4, v5, v8, squuid) UUID's, always returns `nil`.</pre></div></div><div class="public anchor" id="var-get-variant"><h3>get-variant</h3><div class="usage"><code>(get-variant uuid)</code></div><div class="doc"><pre class="plaintext">Return the variant number associated with this UUID.  The variant field
 contains a value which identifies the layout of the UUID.  The bit-layout
@@ -72,7 +74,7 @@ variant one, two, or three bits are used). The variant covered by RFC9562
 is indicated by the two most significant bits of N being 1 0 (i.e., the
 hexadecimal N will always be 8, 9, A, or B).</pre></div></div><div class="public anchor" id="var-get-version"><h3>get-version</h3><div class="usage"><code>(get-version uuid)</code></div><div class="doc"><pre class="plaintext">Return the version number associated with this UUID.  The version
 field contains a value which describes the nature of the UUID.  There
-are five versions of Leach-Salz UUID, plus the null UUID:
+are five versions of Leach-Salz UUID, plus the null and max UUIDs:
 
 0x0   Null
 0x1   Time based
@@ -83,6 +85,7 @@ are five versions of Leach-Salz UUID, plus the null UUID:
 0x6   Time based, lexically ordered
 0x7   POSIX Time based, lexically ordered, cryptographically secure
 0x8   User Customizable
+0xF   Max
 
 In the canonical representation, xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx,
 the four bits of M indicate the UUID version (i.e., the hexadecimal M
