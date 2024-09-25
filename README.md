@@ -34,7 +34,7 @@ identifiers to a wider audience.
 
 With Leiningen:
 
-[![Clojars Project](http://clojars.org/danlentz/clj-uuid/latest-version.svg)](http://clojars.org/danlentz/clj-uuid)
+![Clojars Project](https://img.shields.io/clojars/v/danlentz/clj-uuid.svg)](https://clojars.org/danlentz/clj-uuid)
 
 ### How is it better?
 
