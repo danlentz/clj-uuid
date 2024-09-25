@@ -1,9 +1,9 @@
 (defproject danlentz/clj-uuid "0.2.0-SNAPSHOT"
   :description "A Clojure library for generation and utilization of
                 UUIDs (Universally Unique Identifiers) as described by
-                RFC-4122/9562. This library extends the standard Java
-                UUID class to provide true v1 (time based) and
-                v3/v5 (namespace based), and the new v6, v7, and v8
+                RFC-9562. This library extends the standard Java
+                UUID class to provide true v1, v6, v7 (time based) and
+                v3/v5 (namespace based), and v8 (user customizable)
                 identifier generation. Additionally, a number of useful
                 utilities are provided to support serialization and
                 manipulation of these UUIDs in a simple, efficient
@@ -14,11 +14,11 @@
   :url          "https://github.com/danlentz/clj-uuid"
   :license      {:name "Eclipse Public License"
                  :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.10.1" :scope "provided"]
+  :dependencies [[org.clojure/clojure "1.12.0" :scope "provided"]
                  [org.clj-commons/primitive-math "1.0.1"]]
-
-  :codox    {:output-dir  "doc/api"
-             :src-dir-uri "https://github.com/danlentz/clj-uuid/blob/master/"
+  :codox    {:output-path  "doc/api"
+             :src-dir-uri  "https://github.com/danlentz/clj-uuid/blob/master/"
+             :doc-files ["README.md"]
              :src-linenum-anchor-prefix "L"
              :project {:name "clj-uuid"}}
   :global-vars {*warn-on-reflection* true})
