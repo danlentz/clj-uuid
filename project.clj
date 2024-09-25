@@ -10,7 +10,7 @@
                 manner."
   :author       "Dan Lentz"
   :jvm-opts ^:replace []
-  :signing  {:gpg-key "7FD20410"}
+  :signing  {:gpg-key "D0540BEC1EA1D3D0"}
   :url          "https://github.com/danlentz/clj-uuid"
   :license      {:name "Eclipse Public License"
                  :url "http://www.eclipse.org/legal/epl-v10.html"}
