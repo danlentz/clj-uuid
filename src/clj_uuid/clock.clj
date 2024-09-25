@@ -1,9 +1,6 @@
-(ns clj-uuid.clock)
-  
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Lock-Free, Thread-safe Monotonic Clock
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+(ns clj-uuid.clock
+  "Lock-Free, Thread-safe Monotonic Clocks"
+  (:require [clj-uuid.random :as random]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Timestamp Epochs                       [RFC4122:4.1.4 "TIMESTAMP"] ;;
@@ -12,7 +9,7 @@
 ;;   Universal time is represented as the number of seconds that have
 ;;   elapsed since 00:00 January 1, 1900 GMT.
 ;;
-;;   POSIX time is represented as the number of seconds that have 
+;;   POSIX time is represented as the number of seconds that have
 ;;   elaspsed since 00:00 January 1, 1970 UTC
 ;;
 ;;   Java time is represented as the difference, measured in milliseconds,
@@ -53,40 +50,94 @@
 ;; ...                 and so forth
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(deftype State [^long seqid ^long millis])
 
-(set! *warn-on-reflection* true)
-
-(def  +subcounter-resolution+    9999)
-
-(deftype State [^short seqid ^long millis])
-
+(def ^:const +subcounter-resolution+     9999)
 
 (let [-state- (atom (->State 0 0))]
-  (defn monotonic-time []
+  (defn monotonic-time
+    "Generate a guaranteed monotonically increasing timestamp based on
+     Gregorian time and a stateful subcounter"
+    []
      (let [^State new-state
            (swap! -state-
              (fn [^State current-state]
-               (loop [time-now (System/currentTimeMillis)]
-                 (if-not (= (.millis current-state) time-now)
-                   (->State 0 time-now)
-                   (let [tt (.seqid current-state)]
-                     (if (< tt +subcounter-resolution+)
-                       (->State (inc tt) time-now)
-                       (recur (System/currentTimeMillis))))))))]
-       (+ (.seqid new-state) 100103040000000000
-         (* (+ 2208988800000 (.millis new-state)) 10000)))))
+               (loop []
+                 (let [time-now (System/currentTimeMillis)]
+                   (cond
+                     (< (.millis current-state) time-now)
+                     (->State 0 time-now)
 
+                     (> (.millis current-state) time-now)
+                     (recur)
+
+                     true
+                     (let [tt (inc (.seqid current-state))]
+                       (if (<= tt +subcounter-resolution+)
+                         (->State tt time-now)
+                         (recur))))))))]
+       (+ (.seqid new-state) 100103040000000000
+          (* (+ 2208988800000 (.millis new-state)) 10000)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Monotonicity and Counters       [RFC9562:6.2.2 "Monotonic Random"] ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;   "With this method, the random data is extended to also function as
+;;   a counter. This monotonic value can be thought of as a "randomly
+;;   seeded counter" that MUST be incremented in the least significant
+;;   position for each UUID created on a given timestamp tick. UUIDv7's
+;;   rand_b section SHOULD be utilized with this method to handle batch
+;;   UUID generation during a single timestamp tick. The increment value
+;;   for every UUID generation is a random integer of any desired length
+;;   larger than zero. It ensures that the UUIDs retain the required level
+;;   of unguessability provided by the underlying entropy. The increment
+;;   value MAY be 1 when the number of UUIDs generated in a particular
+;;   period of time is important"
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def ^:const +random-counter-resolution+ 0xfff)
+
+(let [-state- (atom (->State 0 0))]
+  (defn monotonic-unix-time-and-random-counter
+    "Generate guaranteed monotonically increasing number pairs based on
+     POSIX time and a randomly seeded subcounter"
+    []
+     (let [^State new-state
+           (swap! -state-
+             (fn [^State current-state]
+               (loop []
+                 (let [time-now (System/currentTimeMillis)]
+                   (cond
+                     (< (.millis current-state) time-now)
+                     (->State (random/eight-bits) time-now)
+
+                     (> (.millis current-state) time-now)
+                     (recur)
+
+                     true
+                     (let [tt (inc (.seqid current-state))]
+                       (if (<= tt +random-counter-resolution+)
+                         (->State tt time-now)
+                         (recur))))))))]
+       [(.millis new-state) (.seqid new-state)])))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Time Utilities
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn posix-time
+  "Generate the (Unix compatible) POSIX time -- the number of seconds
+  that have elaspsed since 00:00 January 1, 1970 UTC"
   ([]
    (posix-time (System/currentTimeMillis)))
   ([^long gregorian]
    (- (quot gregorian 10000) 12219292800000)))
 
 (defn universal-time
+  "Generate the (Common-Lisp compatible) universal-time -- the number of
+  seconds that have elapsed since 00:00 January 1, 1900 GMT"
   ([]
    (universal-time (monotonic-time)))
   ([^long gregorian]
    (+ (posix-time gregorian) 2208988800)))
-  
-(set! *warn-on-reflection* false)

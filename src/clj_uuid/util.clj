@@ -1,20 +1,8 @@
 (ns clj-uuid.util
   (:import (java.util UUID)))
 
-
-
-
-(defn indexed
-  "Returns a lazy sequence of [index, item] pairs, where items come
-  from 's' and indexes count up from zero.
-  (indexed '(a b c d))  =>  ([0 a] [1 b] [2 c] [3 d])"
-  [s]
-  ;; (map vector (iterate inc 0) s))
-  (map #(clojure.lang.MapEntry. %1 %2) (range) s))
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; PROG1 but with more idiomatic clojure name 
+;; PROG1 but with more idiomatic clojure name
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmacro returning
@@ -25,7 +13,6 @@
      ~@forms
      value#))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Conditional Compilation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -35,7 +22,7 @@
 
 (defmacro compile-if
   "Evaluate `exp` and if it returns logical true and doesn't error, expand to
-  `then` otherwise expand to `else`.  
+  `then` otherwise expand to `else`.
   credit: <clojure/src/clj/clojure/core/reducers.clj#L24>
 
   (compile-if (Class/forName \"java.util.concurrent.ForkJoinTask\")
@@ -59,30 +46,19 @@
   `(let [start# (System/nanoTime)  ret# ~(cons 'do body)]
      [ret# (/ (double (- (System/nanoTime) start#)) 1000000.0)]))
 
-
-(defmacro run-and-measure-timing [expr]
-  `(let [start-time# (System/currentTimeMillis)
-         response# ~expr
-         end-time# (System/currentTimeMillis)]
-     {:time-taken (- end-time# start-time#)
-      :response response#
-      :start-time start-time#
-      :end-time end-time#}))
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Debugging
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmacro wrap-fn [name args & body]
   `(let [old-fn# (var-get (var ~name))
-         new-fn# (fn [& p#] 
-                   (let [~args p#] 
+         new-fn# (fn [& p#]
+                   (let [~args p#]
                      (do ~@body)))
          wrapper# (fn [& params#]
                     (if (= ~(count args) (count params#))
                       (apply new-fn# params#)
-                      (apply old-fn# params#)))] 
+                      (apply old-fn# params#)))]
      (alter-var-root (var ~name) (constantly wrapper#))))
 
 
@@ -100,17 +76,7 @@
          (.delete ~f-sym)))))
 
 (defn lines-of-file [^String file-name]
- (line-seq
-  (java.io.BufferedReader.
-   (java.io.InputStreamReader.
-    (java.io.FileInputStream. file-name)))))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Condition Handling
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defmacro exception [& [param & more :as params]] 
-  (if (class? param) 
-    `(throw (new ~param (str ~@(interpose " " more)))) 
-    `(throw (Exception. (str ~@(interpose " " params))))))
+  (line-seq
+    (java.io.BufferedReader.
+      (java.io.InputStreamReader.
+        (java.io.FileInputStream. file-name)))))

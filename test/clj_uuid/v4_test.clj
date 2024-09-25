@@ -1,8 +1,8 @@
 (ns clj-uuid.v4-test
-  (:refer-clojure :exclude [uuid?])
+  "Custom UUIDs tests"
+  (:refer-clojure :exclude [uuid? max])
   (:require [clojure.test   :refer :all]
-            [clj-uuid       :refer :all]))
-
+            [clj-uuid       :refer :all :exclude [> < =]]))
 
 (deftest check-v4-special-cases
   (testing "v4 special case correctness..."
