@@ -98,7 +98,7 @@
 
 (def ^:const +random-counter-resolution+ 0xfff)
 
-(let [-state- (atom (->State (random/eight-bits) 0))]
+(let [-state- (atom (->State (random/ten-bits) 0))]
   (defn monotonic-unix-time-and-random-counter
     "Generate guaranteed monotonically increasing number pairs based on
      POSIX time and a randomly seeded subcounter"
@@ -110,7 +110,7 @@
                  (let [time-now (System/currentTimeMillis)]
                    (cond
                      (< (.millis current-state) time-now)
-                     (->State (random/eight-bits) time-now)
+                     (->State (random/ten-bits) time-now)
 
                      (> (.millis current-state) time-now)
                      (recur)
