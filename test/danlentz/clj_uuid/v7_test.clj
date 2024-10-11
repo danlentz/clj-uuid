@@ -1,8 +1,8 @@
-(ns clj-uuid.v7-test
+(ns danlentz.clj-uuid.v7-test
   (:require [clojure.test   :refer :all]
             [clojure.set]
-            [clj-uuid :as uuid :refer [v7]]
-            [clj-uuid.clock :as clock]))
+            [danlentz.clj-uuid.api :as uuid :refer [v7]]
+            [danlentz.clj-uuid.clock :as clock]))
 
 (deftest check-v7-single-threaded
   (let [iterations 1000000

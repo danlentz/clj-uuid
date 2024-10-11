@@ -1,7 +1,7 @@
-(ns clj-uuid.v3-test
+(ns danlentz.clj-uuid.v3-test
   (:refer-clojure :exclude [uuid? max])
   (:require [clojure.test   :refer :all]
-            [clj-uuid       :refer :all :exclude [> < =]]))
+            [danlentz.clj-uuid.api       :refer :all :exclude [> < =]]))
 
 
 (deftest check-v3-special-cases

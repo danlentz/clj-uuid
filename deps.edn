@@ -1,4 +1,6 @@
 {:paths ["src"]
  :deps
   {org.clojure/clojure {:mvn/version "1.12.0"}
-   org.clj-commons/primitive-math {:mvn/version "1.0.1"}}}
+   org.clj-commons/primitive-math {:mvn/version "1.0.1"}}
+ :aliases
+ {:test {:extra-paths ["test"]}}}

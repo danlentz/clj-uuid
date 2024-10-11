@@ -1,8 +1,8 @@
-(ns clj-uuid.v8-test
+(ns danlentz.clj-uuid.v8-test
   "Custom UUIDs tests"
   (:refer-clojure :exclude [uuid? max])
   (:require [clojure.test   :refer :all]
-            [clj-uuid       :refer :all :exclude [> < =]]))
+            [danlentz.clj-uuid.api       :refer :all :exclude [> < =]]))
 
 (deftest check-v8-special-cases
   (testing "v8 custom UUID"

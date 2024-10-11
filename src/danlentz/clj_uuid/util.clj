@@ -1,4 +1,4 @@
-(ns clj-uuid.util
+(ns danlentz.clj-uuid.util
   (:import (java.util UUID)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

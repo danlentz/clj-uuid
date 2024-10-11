@@ -1,6 +1,6 @@
-(ns clj-uuid.clock
+(ns danlentz.clj-uuid.clock
   "Lock-Free, Thread-safe Monotonic Clocks"
-  (:require [clj-uuid.random :as random]))
+  (:require [danlentz.clj-uuid.random :as random]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Timestamp Epochs                       [RFC4122:4.1.4 "TIMESTAMP"] ;;

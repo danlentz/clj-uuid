@@ -1,16 +1,16 @@
-(ns clj-uuid.bitmop
+(ns danlentz.clj-uuid.bitmop
   (:refer-clojure :exclude [* + - / < > <= >= == rem bit-or bit-and bit-xor
                             bit-not bit-shift-left bit-shift-right
                             byte short int float long double inc dec
                             zero? min max true? false? unsigned-bit-shift-right])
-  (:require [primitive-math :refer :all]
+  (:require [clj-commons.primitive-math :refer :all]
             [clojure.pprint :refer [cl-format pprint]]
-            [clj-uuid.constants :refer :all]
-            [clj-uuid.util :refer :all]))
+            [danlentz.clj-uuid.constants :refer :all]
+            [danlentz.clj-uuid.util :refer :all]))
 
 ;; NOTE: this package uses copious amounts of unchecked math on primitive
 ;; numeric datatypes.  These functions should be considered an internal
-;; implementation detail of clj-uuid and used with appropriate external
+;; implementation detail of danlentz.clj-uuid and used with appropriate external
 ;; checks in place.
 
 ;; Primitive Type  |  Size   |  Minimum  |     Maximum    |  Wrapper Type

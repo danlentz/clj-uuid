@@ -1,7 +1,7 @@
-(ns clj-uuid.api-test
+(ns danlentz.clj-uuid.api-test
   (:refer-clojure :exclude [uuid? max])
   (:require [clojure.test :refer :all]
-            [clj-uuid     :refer :all :exclude [= > <]])
+            [danlentz.clj-uuid.api  :refer :all :exclude [= > <]])
   (:import
    (java.lang IllegalArgumentException)))
 

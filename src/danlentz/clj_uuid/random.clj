@@ -1,4 +1,4 @@
-(ns clj-uuid.random
+(ns danlentz.clj-uuid.random
   (:refer-clojure :exclude [bytes long])
   (:import (java.security SecureRandom)))
 

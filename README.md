@@ -1,4 +1,4 @@
-clj-uuid
+danlentz.clj-uuid
 ========
 
 > _"The intent of the UUID is to enable distributed systems to uniquely_
@@ -7,7 +7,7 @@ clj-uuid
 
 * * * * * *
 
-**clj-uuid** is a Clojure library for generation and utilization of
+**danlentz.clj-uuid** is a Clojure library for generation and utilization of
 UUIDs (Universally Unique Identifiers) as described by
 [**IETF RFC-9562**](http://www.ietf.org/rfc/rfc9562.txt).
 
@@ -33,7 +33,7 @@ identifiers to a wider audience.
 With Leiningen:
 
 
-[![Clojars Project](https://img.shields.io/clojars/v/danlentz/clj-uuid.svg)](https://clojars.org/danlentz/clj-uuid)
+[![Clojars Project](https://img.shields.io/clojars/v/danlentz/danlentz.clj-uuid.svg)](https://clojars.org/danlentz/danlentz.clj-uuid)
 
 
 ### How is it better?
@@ -41,7 +41,7 @@ With Leiningen:
 The JVM version only provides an automatic generator for random (v4)
 and (non-namespaced) pseudo-v3 UUID's.  Where appropriate, this library
 does use the internal JVM UUID implementation.  The benefit with this library
-is that clj-uuid provides an easy way to get fast time-based (v1, v6),
+is that danlentz.clj-uuid provides an easy way to get fast time-based (v1, v6),
 true namespaced (v3, v5), and high quality cryptographcically secure
 time-based (v7) UUIDs.
 
@@ -84,7 +84,7 @@ to your last few undecillion or so and I'll see what I can do to help out.
 
 ### Usage
 
-Using clj-uuid is really easy.  Docstrings are provided, but sometimes
+Using danlentz.clj-uuid is really easy.  Docstrings are provided, but sometimes
 examples help, too.  The following cases demonstrate about 90% of the
 functionality that you are likely to ever need.
 
@@ -93,7 +93,7 @@ In order to refer to the symbols in this library, it is recommended to
 
 ```clojure
 
-(require '[clj-uuid :as uuid])
+(require '[danlentz.clj-uuid :as uuid])
 ```
 
 Or include in namespace declaration:
@@ -102,7 +102,7 @@ Or include in namespace declaration:
 ```clojure
 
 (ns foo
-  (:require [clj-uuid :as uuid])
+  (:require [danlentz.clj-uuid :as uuid])
   ...
   )
 
@@ -347,7 +347,7 @@ user> (get-instant y)
 
 As you can see, it is always possible to order time encoded ids by
 parsing them, but v6 and v7 UUIDs make this easier, on any platform,
-even if you don't have your trusty clj-uuid library available.
+even if you don't have your trusty danlentz.clj-uuid library available.
 
 
 ```clojure

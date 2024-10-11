@@ -1,6 +1,6 @@
-(ns clj-uuid.node-test
+(ns danlentz.clj-uuid.node-test
   (:require [clojure.test   :refer :all]
-            [clj-uuid.node  :refer :all]))
+            [danlentz.clj-uuid.node  :refer :all]))
 
 
 (deftest check-node-id

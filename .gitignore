@@ -10,5 +10,5 @@ pom.xml.asc
 lpr.sh
 
 test/new.clj
-/clj-uuid.iml
+/danlentz.clj-uuid.iml
 /.idea

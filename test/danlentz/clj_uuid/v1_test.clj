@@ -1,9 +1,9 @@
-(ns clj-uuid.v1-test
+(ns danlentz.clj-uuid.v1-test
   "Time based UUIDs tests"
   (:require [clojure.test   :refer :all]
             [clojure.set]
-            [clj-uuid :as uuid :refer [v1 get-timestamp]]
-            [clj-uuid.clock :as clock]))
+            [danlentz.clj-uuid.api :as uuid :refer [v1 get-timestamp]]
+            [danlentz.clj-uuid.clock :as clock]))
 
 (deftest check-v1-single-threaded
   (let [iterations 1000000

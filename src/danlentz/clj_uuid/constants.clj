@@ -1,4 +1,4 @@
-(ns clj-uuid.constants)
+(ns danlentz.clj-uuid.constants)
 
 
 (def +md5+  "MD5")

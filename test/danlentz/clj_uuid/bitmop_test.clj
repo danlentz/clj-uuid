@@ -1,7 +1,7 @@
-(ns clj-uuid.bitmop-test
+(ns danlentz.clj-uuid.bitmop-test
   (:require
     [clojure.test    :refer :all]
-    [clj-uuid.bitmop :refer :all]))
+    [danlentz.clj-uuid.bitmop :refer :all]))
 
 
   
@@ -46,7 +46,7 @@
     (is (= 32   (mask-width  (mask 32 0))))
     (is (= 31   (mask-width  (mask 31 32))))
     (is (= 62   (mask-width  (mask 62 0))))
-    (is (= 48   (mask-width  (mask 48 15)))) 
+    (is (= 48   (mask-width  (mask 48 15))))
     (is (= 64   (mask-width  (mask 64 0))))
     (is (= 60   (mask-width  (mask 60 4))))
     (is (= 31   (mask-width  (mask 31 33))))
@@ -77,7 +77,7 @@
     (for [i (range 0 61)]
       (is (= 15 (ldb (mask 4 i) (mask 64 0))))))
   (testing "dpb..."
-    (map #(is (= 0x3 %))    
+    (map #(is (= 0x3 %))
       (for [i (range 8)]
         (ldb (mask 4 (* i 4))
           (dpb (mask 4 (* i 4)) (mask 64 0) 0x3))))
@@ -124,17 +124,17 @@
     (is (= (ub4 -1) 15))
     (is (= (ub4 16) 0))
     (is (= (ub4 15) 15))
-    (is (= (ub4 7)  7))   
+    (is (= (ub4 7)  7))
     (is (= (ub56 0x80) 128))
     (is (= (class (ub56 0x80)) Long))))
 
 
 
 (deftest check-byte-reassembly-roundtrip
-  (testing "dissasemble/reassemble-bytes..."      
+  (testing "dissasemble/reassemble-bytes..."
     (dotimes [_ 256]
       (let [bytes (for [i (range 8)]
-                    (sb8 (rand-int (mask 8 0))))] 
+                    (sb8 (rand-int (mask 8 0))))]
         (is (= (seq (long->bytes (assemble-bytes bytes))) bytes))))))
 
 
@@ -142,7 +142,7 @@
   (testing "octet-hex mapping..."
     (is (= (octet-hex 0xff) "FF"))
     (is (= (octet-hex 0x00) "00"))
-    (is (= (octet-hex 0x7a) "7A"))    
+    (is (= (octet-hex 0x7a) "7A"))
     (is (= (octet-hex 15)   "0F"))
     (is (= (octet-hex 45)   "2D"))
     (is (= (octet-hex 250)  "FA"))
