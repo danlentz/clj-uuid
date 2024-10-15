@@ -1,26 +1,23 @@
 (ns clj-uuid.v5-test
-  (:refer-clojure :exclude [uuid? max])
-  (:require [clojure.test   :refer :all]
-            [clj-uuid       :refer :all :exclude [> < =]]))
-
-
+  (:require [clj-uuid.core  :as uuid]
+            [clojure.test   :refer :all]))
 
 (deftest check-v5-special-cases
   (testing "v5 special case correctness..."
     (is (=
-          (v5 +null+ "")
+          (uuid/v5 uuid/+null+ "")
           #uuid "E129F27C-5103-5C5C-844B-CDF0A15E160D"))
     (is (=
-          (v5 +namespace-x500+ "")
+          (uuid/v5 uuid/+namespace-x500+ "")
           #uuid "B4BDF874-8C03-5BD8-8FD7-5E409DFD82C0"))
     (is (=
-          (v5 +namespace-oid+ "")
+          (uuid/v5 uuid/+namespace-oid+ "")
           #uuid "0A68EB57-C88A-5F34-9E9D-27F85E68AF4F"))
     (is (=
-          (v5 +namespace-dns+ "")
+          (uuid/v5 uuid/+namespace-dns+ "")
           #uuid "4EBD0208-8328-5D69-8C44-EC50939C0967"))
     (is (=
-          (v5 +namespace-url+ "")
+          (uuid/v5 uuid/+namespace-url+ "")
           #uuid "1B4DB7EB-4057-5DDF-91E0-36DEC72071F5"))))
 
 (def +v5-null-ns-cases+
@@ -118,15 +115,13 @@
     ("{|}~ !\"#$%&'()*+,-./012345" #uuid "37CDD9D8-A94F-5BB5-AA57-97A92ACA22FC")
     ("|}~ !\"#$%&'()*+,-./0123456" #uuid "BB23D8C2-29F0-5EC5-BF50-B7092FA62204")
     ("}~ !\"#$%&'()*+,-./01234567" #uuid "AD3AD027-A2ED-5F09-B581-78AD87D86A7C")
-    ("~ !\"#$%&'()*+,-./012345678" #uuid "093B7461-98EF-55DC-8616-890210247499")
-    ))
+    ("~ !\"#$%&'()*+,-./012345678" #uuid "093B7461-98EF-55DC-8616-890210247499")))
 
 
 (deftest check-v5-null-ns-cases
   (testing "v5 null-ns case-based correctness..."
     (doseq [case +v5-null-ns-cases+]
-      (is (= (second case) (v5 +null+ (first case)))))))
-
+      (is (= (second case) (uuid/v5 uuid/+null+ (first case)))))))
 
 
 (def +v5-dns-ns-cases+
@@ -231,7 +226,7 @@
 (deftest check-v5-dns-ns-cases
   (testing "v5 dns-ns case-based correctness..."
     (doseq [case +v5-dns-ns-cases+]
-      (is (= (second case) (v5 +namespace-dns+ (first case)))))))
+      (is (= (second case) (uuid/v5 uuid/+namespace-dns+ (first case)))))))
 
 
 (def +v5-oid-ns-cases+
@@ -336,4 +331,4 @@
 (deftest check-v5-oid-ns-cases
   (testing "v5 oid-ns case-based correctness..."
     (doseq [case +v5-oid-ns-cases+]
-      (is (= (second case) (v5 +namespace-oid+ (first case)))))))
+      (is (= (second case) (uuid/v5 uuid/+namespace-oid+ (first case)))))))

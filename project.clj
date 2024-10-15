@@ -1,4 +1,4 @@
-(defproject danlentz/clj-uuid "0.2.0"
+(defproject danlentz/clj-uuid "0.2.1-SNAPSHOT"
   :description "A Clojure library for generation and utilization of
                 UUIDs (Universally Unique Identifiers) as described by
                 RFC-9562. This library extends the standard Java
