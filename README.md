@@ -93,7 +93,7 @@ In order to refer to the symbols in this library, it is recommended to
 
 ```clojure
 
-(require '[clj-uuid :as uuid])
+(require '[clj-uuid.core :as uuid])
 ```
 
 Or include in namespace declaration:
@@ -102,7 +102,7 @@ Or include in namespace declaration:
 ```clojure
 
 (ns foo
-  (:require [clj-uuid :as uuid])
+  (:require [clj-uuid.core :as uuid])
   ...
   )
 
