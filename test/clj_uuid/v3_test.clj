@@ -1,25 +1,24 @@
 (ns clj-uuid.v3-test
-  (:refer-clojure :exclude [uuid? max])
-  (:require [clojure.test   :refer :all]
-            [clj-uuid       :refer :all :exclude [> < =]]))
+  (:require [clj-uuid.core  :as uuid]
+            [clojure.test   :refer :all]))
 
 
 (deftest check-v3-special-cases
   (testing "v3 special case correctness..."
     (is (=
-          (v3 +null+ "")
+          (uuid/v3 uuid/+null+ "")
           #uuid "4ae71336-e44b-39bf-b9d2-752e234818a5"))
     (is (=
-          (v3 +namespace-x500+ "")
+          (uuid/v3 uuid/+namespace-x500+ "")
           #uuid "7AAF118C-F174-3EBA-9EC5-680CD791A020"))
     (is (=
-          (v3 +namespace-oid+ "")
+          (uuid/v3 uuid/+namespace-oid+ "")
           #uuid "596B79DC-00DD-3991-A72F-D3696C38C64F"))
     (is (=
-          (v3 +namespace-dns+ "")
+          (uuid/v3 uuid/+namespace-dns+ "")
           #uuid "C87EE674-4DDC-3EFE-A74E-DFE25DA5D7B3"))
     (is (=
-          (v3 +namespace-url+ "")
+          (uuid/v3 uuid/+namespace-url+ "")
           #uuid "14CDB9B4-DE01-3FAA-AFF5-65BC2F771745"))))
 
 
@@ -125,7 +124,7 @@
 (deftest check-v3-null-ns-cases
   (testing "v3 null-ns case-based correctness..."
     (doseq [case +v3-null-ns-cases+]
-      (is (= (second case) (v3 +null+ (first case)))))))
+      (is (= (second case) (uuid/v3 uuid/+null+ (first case)))))))
 
 
 (def +v3-dns-ns-cases+
@@ -230,7 +229,7 @@
 (deftest check-v3-dns-ns-cases
   (testing "v3 dns-ns case-based correctness..."
     (doseq [case +v3-dns-ns-cases+]
-      (is (= (second case) (v3 +namespace-dns+ (first case)))))))
+      (is (= (second case) (uuid/v3 uuid/+namespace-dns+ (first case)))))))
 
 
 (def +v3-oid-ns-cases+
@@ -335,4 +334,4 @@
 (deftest check-v3-oid-ns-cases
   (testing "v3 oid-ns case-based correctness..."
     (doseq [case +v3-oid-ns-cases+]
-      (is (= (second case) (v3 +namespace-oid+ (first case)))))))
+      (is (= (second case) (uuid/v3 uuid/+namespace-oid+ (first case)))))))

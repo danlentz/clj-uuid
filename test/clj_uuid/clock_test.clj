@@ -1,7 +1,7 @@
 (ns clj-uuid.clock-test
-  (:require [clojure.test   :refer :all]
-            [clojure.set]
-            [clj-uuid.clock :refer :all]))
+  (:require [clj-uuid.clock :as clock]
+            [clojure.set    :as set]
+            [clojure.test   :refer :all]))
 
 (deftest check-single-threaded
   (let [iterations 1000000
@@ -9,11 +9,11 @@
         check      #(mapv (fn [_] (%)) (range iterations))]
     (testing "monotonic-time..."
       (dotimes [_ groups]
-        (let [result   (check monotonic-time)]
+        (let [result   (check clock/monotonic-time)]
           (is (= (count result) (count (set result)))))))
     (testing "monotonic-unix-time-and-random-counter..."
       (dotimes [_ groups]
-        (let [result   (check monotonic-unix-time-and-random-counter)]
+        (let [result   (check clock/monotonic-unix-time-and-random-counter)]
           (is (= (count result) (count (set result)))))))))
 
 (deftest check-multi-threaded-monotonic-time
@@ -22,13 +22,13 @@
           agents    (mapv agent (repeat concur nil))
           working   (mapv #(send-off %
                             (fn [state]
-                              (repeatedly extent monotonic-time)))
+                              (repeatedly extent clock/monotonic-time)))
                       agents)
           _         (apply await working)
           answers   (mapv deref working)]
       (testing (str "concurrent timestamp uniqueness (" concur " threads)...")
         (is (= (* concur extent)
-               (count (apply clojure.set/union (map set answers))))))
+               (count (apply set/union (map set answers))))))
       (testing (str "concurrent monotonic increasing (" concur " threads)...")
         (is (every? identity
                     (map #(apply < %) answers)))))))
@@ -40,14 +40,14 @@
           working (mapv #(send-off %
                            (fn [state]
                              (repeatedly extent
-                                         monotonic-unix-time-and-random-counter)))
+                                         clock/monotonic-unix-time-and-random-counter)))
                          agents)
           _       (apply await working)
           answers (mapv deref working)]
       (testing (str "concurrent timestamp uniqueness (" concur " threads)...")
         (is (=
               (* concur extent)
-              (count (apply clojure.set/union (map set answers))))))
+              (count (apply set/union (map set answers))))))
       (testing (str "concurrent monotonic increasing (" concur " threads)...")
         (doseq [answer answers]
           (let [[time counter] (first answer)]
