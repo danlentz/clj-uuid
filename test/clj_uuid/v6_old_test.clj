@@ -1,8 +1,8 @@
-(ns clj-uuid.v6-uuid2-test
-  "Time based UUIDs tests (clj-uuid2)"
+(ns clj-uuid.v6-old-test
+  "Time based UUIDs tests"
   (:require [clojure.test   :refer :all]
             [clojure.set]
-            [clj-uuid2 :as uuid2 :refer [v6 get-timestamp]]
+            [clj-uuid-old :as uuid :refer [v6 get-timestamp]]
             [clj-uuid.clock :as clock]))
 
 (deftest check-v6-single-threaded
@@ -27,11 +27,11 @@
         (is (= (* concur extent)
                (count (apply clojure.set/union (map set answers))))))
       (testing (str "concurrent v6 monotonic increasing (" concur " threads)...")
-        (is (every? identity (map (partial apply uuid2/<) answers)))))))
+        (is (every? identity (map (partial apply uuid/<) answers)))))))
 
 (deftest check-get-timestamp
   (dotimes [_ 1000000]
     (let [time (clock/monotonic-time)]
       (with-redefs [clock/monotonic-time (constantly time)]
-        (is (= time (uuid2/get-timestamp (v6)))
+        (is (= time (uuid/get-timestamp (v6)))
             "Timestamp should be retrievable from v6 UUID")))))

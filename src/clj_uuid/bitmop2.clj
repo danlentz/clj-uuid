@@ -177,13 +177,14 @@
 
 (defn assemble-bytes
   "Assemble a sequence of 8 bytes (big-endian) into a long."
-  [v]
-  (let [arr (byte-array 8)]
-    (loop [i 0 bytes (seq v)]
-      (when (and bytes (< i 8))
-        (aset-byte arr (int i) (unchecked-byte (first bytes)))
-        (recur (inc i) (next bytes))))
-    (.getLong (ByteBuffer/wrap arr) 0)))
+  ^long [v]
+  (loop [tot (long 0) bytes v c (int 8)]
+    (if (zero? c)
+      tot
+      (recur
+        (bit-or (bit-shift-left tot 8) (bit-and (long (first bytes)) 0xFF))
+        (next bytes)
+        (dec c)))))
 
 
 (defn bytes->long
@@ -217,7 +218,7 @@
   For a long, produces a 16-character zero-padded hex string."
   [thing]
   (if (number? thing)
-    (let [arr (long->bytes (clojure.core/long thing))
+    (let [^bytes arr (long->bytes (clojure.core/long thing))
           sb  (StringBuilder. 16)]
       (dotimes [i 8]
         (let [b (Byte/toUnsignedLong (aget arr (int i)))]

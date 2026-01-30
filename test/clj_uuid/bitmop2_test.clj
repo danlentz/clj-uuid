@@ -181,31 +181,31 @@
 (deftest check-cross-validation-ldb-dpb
   (testing "ldb: bitmop vs bitmop2 produce identical results..."
     (let [test-values [0 1 -1 0x0F 0xFF 0xFFFF 0xFFFFFFFF
-                       0x7FFFFFFFFFFFFFFF -2 0xDEADBEEFCAFEBABE]]
+                       0x7FFFFFFFFFFFFFFF -2 (unchecked-long 0xDEADBEEFCAFEBABE)]]
       (doseq [m [(b2/mask 4 0) (b2/mask 8 8) (b2/mask 16 16) (b2/mask 32 0)
                  (b2/mask 32 32) (b2/mask 48 0) (b2/mask 12 48) (b2/mask 4 60)
                  (b2/mask 64 0) (b2/mask 63 1) (b2/mask 2 62)]
               v test-values]
         (is (= (b1/ldb m v) (b2/ldb m v))
-          (format "ldb(mask, 0x%X)" v)))))
+          (format "ldb(mask, 0x%016X)" v)))))
   (testing "dpb: bitmop vs bitmop2 produce identical results..."
-    (let [test-values [0 1 -1 0xFF 0xFFFF 0xDEADBEEFCAFEBABE]]
+    (let [test-values [0 1 -1 0xFF 0xFFFF (unchecked-long 0xDEADBEEFCAFEBABE)]]
       (doseq [m [(b2/mask 4 0) (b2/mask 4 12) (b2/mask 8 48) (b2/mask 2 62)
                  (b2/mask 16 16) (b2/mask 32 32) (b2/mask 64 0)]
               v test-values
               deposit [0 1 0x3 0x7 0xF 0xFF]]
         (is (= (b1/dpb m v deposit) (b2/dpb m v deposit))
-          (format "dpb(mask, 0x%X, 0x%X)" v deposit))))))
+          (format "dpb(mask, 0x%016X, 0x%016X)" v deposit))))))
 
 
 (deftest check-cross-validation-long-bytes
   (testing "long->bytes: bitmop vs bitmop2 produce identical byte arrays..."
     (let [test-values [0 1 -1 0xFF 0xFFFF 0xFFFFFFFF
                        0x7FFFFFFFFFFFFFFF Long/MIN_VALUE
-                       0xDEADBEEFCAFEBABE 0x0123456789ABCDEF]]
+                       (unchecked-long 0xDEADBEEFCAFEBABE) 0x0123456789ABCDEF]]
       (doseq [v test-values]
         (is (= (seq (b1/long->bytes v)) (seq (b2/long->bytes v)))
-          (format "long->bytes(0x%X)" v)))))
+          (format "long->bytes(0x%016X)" v)))))
   (testing "bytes->long: bitmop vs bitmop2 produce identical longs..."
     (dotimes [_ 100]
       (let [arr (byte-array (repeatedly 16 #(unchecked-byte (rand-int 256))))]
@@ -246,20 +246,22 @@
   (testing "buffer 2-arity stores MSB and LSB..."
     (let [msb 0x0123456789ABCDEF
           lsb (unchecked-long 0xFEDCBA9876543210)
-          buf (buffer msb lsb)]
+          ^ByteBuffer buf (buffer msb lsb)]
       (is (= msb (.getLong buf 0)))
       (is (= lsb (.getLong buf 8)))))
   (testing "buffer-from-bytes copies byte array contents..."
-    (let [arr (byte-array 16)]
+    (let [arr (byte-array 16)
+          msb (unchecked-long 0xDEADBEEF01020304)
+          lsb 0x0506070809101112]
       (doto (ByteBuffer/wrap arr)
-        (.putLong 0 0xDEADBEEF01020304)
-        (.putLong 8 0x0506070809101112))
+        (.putLong 0 msb)
+        (.putLong 8 lsb))
       (let [buf (buffer-from-bytes arr)]
-        (is (= 0xDEADBEEF01020304 (.getLong buf 0)))
-        (is (= 0x0506070809101112 (.getLong buf 8)))
+        (is (= msb (.getLong buf 0)))
+        (is (= lsb (.getLong buf 8)))
         ;; verify it's independent (not sharing backing)
         (aset-byte arr 0 0)
-        (is (= 0xDEADBEEF01020304 (.getLong buf 0)))))))
+        (is (= msb (.getLong buf 0)))))))
 
 
 (deftest check-buffer-typed-access
@@ -312,13 +314,13 @@
       (is (= lsb (get-lsb buf)))))
   (testing "set-msb / set-lsb..."
     (let [buf (buffer)]
-      (set-msb buf 0xAAAAAAAAAAAAAAAA)
+      (set-msb buf (unchecked-long 0xAAAAAAAAAAAAAAAA))
       (set-lsb buf 0x5555555555555555)
       (is (= (unchecked-long 0xAAAAAAAAAAAAAAAA) (get-msb buf)))
       (is (= 0x5555555555555555 (get-lsb buf)))))
   (testing "set-msb / set-lsb are independent..."
     (let [buf (buffer 0x1111111111111111 0x2222222222222222)]
-      (set-msb buf 0xFFFFFFFFFFFFFFFF)
+      (set-msb buf (unchecked-long 0xFFFFFFFFFFFFFFFF))
       (is (= -1 (get-msb buf)))
       (is (= 0x2222222222222222 (get-lsb buf)))
       (set-lsb buf 0)
@@ -390,7 +392,7 @@
       (let [uuid (UUID/randomUUID)]
         (is (= uuid (buf->uuid (uuid->buf uuid)))))))
   (testing "duplicate creates an independent copy..."
-    (let [buf  (buffer 0xAAAAAAAAAAAAAAAA 0x5555555555555555)
+    (let [buf  (buffer (unchecked-long 0xAAAAAAAAAAAAAAAA) 0x5555555555555555)
           copy (duplicate buf)]
       (is (= (get-msb buf) (get-msb copy)))
       (is (= (get-lsb buf) (get-lsb copy)))
@@ -518,7 +520,7 @@
   (testing "long->bytes / bytes->long roundtrip performance..."
     (println)
     (println "--- Performance: long<->bytes ---")
-    (let [test-val 0xDEADBEEFCAFEBABE]
+    (let [test-val (unchecked-long 0xDEADBEEFCAFEBABE)]
       (compare-perf "long->bytes"
         +bench-iterations+
         #(b1/long->bytes test-val)
@@ -554,7 +556,7 @@
   (testing "hex conversion performance..."
     (println)
     (println "--- Performance: hex ---")
-    (let [test-val 0xDEADBEEFCAFEBABE]
+    (let [test-val (unchecked-long 0xDEADBEEFCAFEBABE)]
       (compare-perf "hex (long)"
         +bench-iterations+
         #(b1/hex test-val)
@@ -618,7 +620,7 @@
     (println)
     (println "=== Performance Summary ===")
     (println)
-    (let [test-val   0xDEADBEEFCAFEBABE
+    (let [test-val   (unchecked-long 0xDEADBEEFCAFEBABE)
           test-bytes (list (byte 1) (byte 2) (byte 3) (byte 4)
                            (byte 5) (byte 6) (byte 7) (byte 8))
           test-arr   (b2/long->bytes test-val)

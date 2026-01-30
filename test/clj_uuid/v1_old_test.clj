@@ -1,8 +1,8 @@
-(ns clj-uuid.v1-uuid2-test
-  "Time based UUIDs tests (clj-uuid2)"
+(ns clj-uuid.v1-old-test
+  "Time based UUIDs tests"
   (:require [clojure.test   :refer :all]
             [clojure.set]
-            [clj-uuid2 :as uuid2 :refer [v1 get-timestamp]]
+            [clj-uuid-old :as uuid :refer [v1 get-timestamp]]
             [clj-uuid.clock :as clock]))
 
 (deftest check-v1-single-threaded
@@ -33,5 +33,5 @@
 (deftest check-get-timestamp
   (let [time (clock/monotonic-time)]
     (with-redefs [clock/monotonic-time (constantly time)]
-      (is (= time (uuid2/get-timestamp (v1)))
+      (is (= time (uuid/get-timestamp (v1)))
           "Timestamp should be retrievable from v1 UUID"))))

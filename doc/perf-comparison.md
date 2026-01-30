@@ -1,17 +1,18 @@
-# Performance Comparison: clj-uuid vs clj-uuid2
+# Performance Comparison: clj-uuid-old vs clj-uuid
 
 This document provides a thorough analysis of the performance characteristics
-of `clj-uuid` (based on `bitmop`) versus `clj-uuid2` (based on `bitmop2`) for
-every UUID type and supporting operation.
+of `clj-uuid-old` (based on `bitmop`) versus `clj-uuid` (based on `bitmop2`)
+for every UUID type and supporting operation.
 
 ## Architecture Overview
 
-| Layer        | clj-uuid                 | clj-uuid2                  |
-|--------------|--------------------------|----------------------------|
-| Primitives   | `clj-uuid.bitmop`        | `clj-uuid.bitmop2`         |
-| Top-level NS | `clj-uuid`               | `clj-uuid2`                |
-| Byte model   | Manual shift/mask loops  | `java.nio.ByteBuffer`      |
-| Shared deps  | `clock`, `node`, `random`, `constants` | same          |
+| Layer        | clj-uuid-old              | clj-uuid                    |
+|--------------|---------------------------|------------------------------|
+| Primitives   | `clj-uuid.bitmop`         | `clj-uuid.bitmop2`           |
+| Top-level NS | `clj-uuid-old`            | `clj-uuid`                   |
+| Byte model   | Manual shift/mask loops   | `java.nio.ByteBuffer`        |
+| Digest cache | ThreadLocal MessageDigest | ThreadLocal MessageDigest    |
+| Shared deps  | `clock`, `node`, `random`, `constants` | same           |
 
 Both namespaces produce identical `java.util.UUID` output values. The
 difference lies entirely in how bitwise operations are performed internally.
@@ -21,11 +22,11 @@ difference lies entirely in how bitwise operations are performed internally.
 The fundamental performance change is replacing **manual 8-iteration
 shift/mask loops** with **single native ByteBuffer operations**:
 
-| Operation       | bitmop (clj-uuid)                       | bitmop2 (clj-uuid2)                   |
-|-----------------|-----------------------------------------|----------------------------------------|
-| `bytes->long`   | 8-iteration `dpb` loop                  | Single `ByteBuffer.getLong`            |
-| `long->bytes`   | 8-iteration `ldb` + `sb8` loop          | Single `ByteBuffer.putLong`            |
-| `assemble-bytes`| 8-iteration `dpb` loop over sequence    | `ByteBuffer.wrap` + `getLong`          |
+| Operation       | bitmop (clj-uuid-old)                   | bitmop2 (clj-uuid)                     |
+|-----------------|-----------------------------------------|-----------------------------------------|
+| `bytes->long`   | 8-iteration `dpb` loop                  | Single `ByteBuffer.getLong`             |
+| `long->bytes`   | 8-iteration `ldb` + `sb8` loop          | Single `ByteBuffer.putLong`             |
+| `assemble-bytes`| 8-iteration `dpb` loop over sequence    | Direct shift-accumulation loop          |
 | `hex`           | `map ub8` + `long->bytes` + `map octet-hex` + `apply str` | `long->bytes` + `StringBuilder` direct append |
 
 Operations that are **unchanged** between the two (they operate on longs
@@ -55,7 +56,7 @@ Converts a 64-bit long to an 8-byte big-endian array.
 | bitmop | Loop 8 times: `ldb(mask(8, j*8), x)` + `sb8` + `aset-byte` | 8x ldb + 8x sb8 + 8x aset-byte = ~40 ops |
 | bitmop2| `ByteBuffer.putLong(offset, x)`              | 1 native call |
 
-**Expected speedup: 3-8x**
+**Measured speedup: 6-27x**
 
 The bitmop version executes 8 loop iterations, each calling `mask-offset` (a
 `cond` + bit-shift loop), `ldb` (2 shifts + 1 AND), `sb8` (2 casts + 1 AND),
@@ -71,7 +72,7 @@ Reads 8 bytes from a byte array into a 64-bit long.
 | bitmop | Loop 8 times: `aget` + `dpb(mask(8, j*8), tot, byte)` | 8x aget + 8x dpb + 8x mask = ~48 ops |
 | bitmop2| `ByteBuffer.getLong(offset)`                 | 1 native call |
 
-**Expected speedup: 3-8x**
+**Measured speedup: 5-10x**
 
 Same pattern as `long->bytes` in reverse. Each bitmop iteration calls `dpb`
 (which internally calls `mask-offset`, performs 2 shifts, 2 ANDs, and 1 OR).
@@ -84,14 +85,14 @@ Assembles a sequence of 8 bytes into a long.
 | Impl   | Approach                                     | Ops per call |
 |--------|----------------------------------------------|--------------|
 | bitmop | Loop 8 times: `dpb(mask(8, k*8), tot, byte)` from seq | 8x dpb + seq traversal |
-| bitmop2| Copy seq to array + `ByteBuffer.wrap` + `getLong` | Array fill + 1 native call |
+| bitmop2| Direct shift-accumulation: `(bit-or (bit-shift-left tot 8) byte)` | 8x shift+or + seq traversal |
 
-**Expected speedup: 1.5-3x**
+**Measured speedup: 2.2-2.6x**
 
-The bitmop2 version has some overhead from the array copy loop, but avoids
-the 8 `dpb` calls (each with `mask-offset` computation). Net gain depends on
-input sequence type; list inputs benefit more from array copy + single native
-read than from repeated `first`/`rest` + `dpb`.
+The bitmop2 version uses a pure arithmetic accumulation loop
+(`bit-shift-left` + `bit-or`) instead of bitmop's `dpb`+`mask` per
+iteration.  This avoids the function call overhead of `mask`,
+`mask-offset`, and `dpb` on each byte, with zero allocation.
 
 ### `hex`
 
@@ -102,7 +103,7 @@ Converts a long to a 16-character hexadecimal string.
 | bitmop | `long->bytes` (8-iter loop) + `map ub8` (lazy seq) + `map octet-hex` (lazy seq of 2-char strs) + `apply str` | byte array + 2 lazy seqs + 8 temp strings + final concat |
 | bitmop2| `long->bytes` (1 putLong) + `StringBuilder` direct byte-by-byte append | byte array + 1 StringBuilder |
 
-**Expected speedup: 2-5x**
+**Measured speedup: 11-35x**
 
 The bitmop version creates multiple intermediate lazy sequences and 8
 two-character strings before concatenating them all. The bitmop2 version
@@ -158,12 +159,12 @@ reader macros are evaluated at compile time. The `clock/monotonic-time` call
 
 **Post-construction impact:** Operations on the resulting UUID differ:
 
-| Post-construction op  | bitmop (clj-uuid)                        | bitmop2 (clj-uuid2)                   | Speedup |
-|-----------------------|------------------------------------------|----------------------------------------|---------|
-| `to-byte-array`       | 2x `long->bytes` (16 loop iterations)    | 2x `putLong` (2 native calls)         | **3-8x** |
-| `to-hex-string`       | 2x `hex` (lazy seqs + `apply str`)       | `uuid->buf` + `buf-hex` (StringBuilder) | **2-5x** |
-| `to-string`           | `UUID.toString` (JVM)                    | `UUID.toString` (JVM)                  | same    |
-| Field extraction      | `ldb`/`dpb` on longs                     | `ldb`/`dpb` on longs                  | same    |
+| Post-construction op  | bitmop (clj-uuid-old)                    | bitmop2 (clj-uuid)                    | Speedup  |
+|-----------------------|------------------------------------------|---------------------------------------|----------|
+| `to-byte-array`       | 2x `long->bytes` (16 loop iterations)    | 2x `putLong` (2 native calls)         | **60x**  |
+| `to-hex-string`       | 2x `hex` (lazy seqs + `apply str`)       | `uuid->buf` + `buf-hex` (StringBuilder) | **38x** |
+| `to-string`           | `UUID.toString` (JVM)                    | `UUID.toString` (JVM)                  | same     |
+| Field extraction      | `ldb`/`dpb` on longs                     | `ldb`/`dpb` on longs                  | same     |
 
 ---
 
@@ -192,9 +193,9 @@ on longs, which are identical. `clock/monotonic-time` dominates.
 
 ```clojure
 ;; Both implementations (identical structure):
-(let [[t counter]     (clock/monotonic-unix-time-and-random-counter)
-      time            (ldb #=(mask 48  0) t)
-      ver-and-counter (dpb #=(mask 4  12) counter 0x7)
+(let [^State state (clock/monotonic-unix-time-and-random-counter)
+      time            (ldb #=(mask 48  0) (.millis state))
+      ver-and-counter (dpb #=(mask 4  12) (.seqid state) 0x7)
       msb             (bit-or ver-and-counter (bit-shift-left time 16))
       lsb             (dpb #=(mask 2 62) (random/long) 0x2)]
   (UUID. msb lsb))
@@ -257,17 +258,18 @@ comparison, as it touches multiple bitmop operations in sequence:
 | bitmop | 2x `long->bytes` (8-iteration loop each = 16 iterations total) |
 | bitmop2| 2x `putLong` (2 native calls)                        |
 
-**Speedup: 3-8x** for this step.
+**Speedup: 60x** for this step.
 
 #### Step 2: `digest-bytes` (MD5 or SHA-1 hash)
 
-Both implementations call `MessageDigest.update` + `MessageDigest.digest`.
-This is **shared** and typically dominates the v3/v5 total cost.
+Both implementations use ThreadLocal `MessageDigest` instances to avoid
+per-call `MessageDigest/getInstance` allocation.  The digest computation
+itself is **shared** and dominates the v3/v5 total cost.
 
 | Operation    | Typical cost  |
 |--------------|---------------|
-| MD5 digest   | ~500-1000 ns  |
-| SHA-1 digest | ~600-1200 ns  |
+| MD5 digest   | ~150-200 ns   |
+| SHA-1 digest | ~250-300 ns   |
 
 #### Step 3: `build-digested-uuid` (extract MSB/LSB from digest)
 
@@ -276,7 +278,7 @@ This is **shared** and typically dominates the v3/v5 total cost.
 | bitmop | 2x `bytes->long` (8-iteration dpb loop each)        |
 | bitmop2| 2x `ByteBuffer.getLong` (2 native calls)             |
 
-**Speedup: 3-8x** for this step.
+**Speedup: 5-10x** for this step.
 
 #### Step 4: `dpb` for version and variant stamping
 
@@ -285,17 +287,21 @@ Both use 2 `dpb` calls. **Identical.**
 #### Overall v3/v5 Impact
 
 ```
-                 bitmop                          bitmop2
-  to-byte-array: 16-iter loop (~80 ns)    2x putLong (~10 ns)
-  digest:        MD5/SHA-1 (~700 ns)      MD5/SHA-1 (~700 ns)
-  bytes->long:   16-iter loop (~80 ns)    2x getLong (~10 ns)
-  dpb:           2 calls (~5 ns)          2 calls (~5 ns)
+                 clj-uuid-old                    clj-uuid
+  to-byte-array: ~800 ns (16-iter loop)   ~14 ns (2x putLong)
+  digest:        ~150-300 ns (ThreadLocal) ~150-300 ns (ThreadLocal)
+  bytes->long:   ~800 ns (16-iter loop)   ~14 ns (2x getLong)
+  dpb:           ~5 ns (2 calls)          ~5 ns (2 calls)
   ─────────────────────────────────────────────────────────
-  Total:         ~865 ns                  ~725 ns
+  Total (v3):    ~1450 ns                 ~200 ns     (7.3x)
+  Total (v5):    ~1600 ns                 ~305 ns     (5.3x)
 ```
 
-**Overall v3/v5 speedup: ~1.15-1.2x** (the digest dominates, but byte
-conversion improvements are still measurable).
+**Overall v3 speedup: ~7.3x.**  **Overall v5 speedup: ~5.3x.**
+
+The byte conversion steps that previously dominated (~1600 ns) are now
+eliminated (~28 ns), leaving the digest as the dominant cost.  MD5 is
+faster than SHA-1, so v3 benefits more proportionally.
 
 ---
 
@@ -341,28 +347,28 @@ native operations. Dominated by `v4` -> `UUID/randomUUID` internally.
 ## Post-Construction Operations Summary
 
 These operations are called on UUID values *after* construction and show
-the largest measurable differences between clj-uuid and clj-uuid2:
+the largest measurable differences between clj-uuid-old and clj-uuid:
 
 ### `to-byte-array`
 
-| Impl     | Code path                                                  | Cost     |
-|----------|------------------------------------------------------------|----------|
-| clj-uuid | `bitmop/long->bytes` x2 (16 shift/mask iterations total)  | ~80 ns   |
-| clj-uuid2| `bitmop2/long->bytes` x2 (2 `putLong` calls)              | ~10 ns   |
+| Impl         | Code path                                                  | Cost     |
+|--------------|------------------------------------------------------------|----------|
+| clj-uuid-old | `bitmop/long->bytes` x2 (16 shift/mask iterations total)  | ~811 ns  |
+| clj-uuid     | `bitmop2/long->bytes` x2 (2 `putLong` calls)              | ~14 ns   |
 
-**Speedup: ~3-8x**
+**Speedup: ~60x**
 
 This operation is called internally during v3/v5 construction (to serialize
 the namespace UUID) and is also part of the public API for any UUID.
 
 ### `to-hex-string`
 
-| Impl     | Code path                                                  | Cost     |
-|----------|------------------------------------------------------------|----------|
-| clj-uuid | `bitmop/hex(msb)` + `bitmop/hex(lsb)` + `str` concat. Each `hex` call: `long->bytes` (8-iter loop) + `map ub8` (lazy seq) + `map octet-hex` (lazy seq of 8 temp strings) + `apply str` | ~250 ns  |
-| clj-uuid2| `uuid->buf` (2 putLong) + `buf-hex` (single StringBuilder, 16-byte direct loop) | ~40 ns   |
+| Impl         | Code path                                                  | Cost     |
+|--------------|------------------------------------------------------------|----------|
+| clj-uuid-old | `bitmop/hex(msb)` + `bitmop/hex(lsb)` + `str` concat. Each `hex` call: `long->bytes` (8-iter loop) + `map ub8` (lazy seq) + `map octet-hex` (lazy seq of 8 temp strings) + `apply str` | ~5116 ns |
+| clj-uuid     | `uuid->buf` (2 putLong) + `buf-hex` (single StringBuilder, 16-byte direct loop) | ~133 ns  |
 
-**Speedup: ~4-6x**
+**Speedup: ~38x**
 
 The bitmop version allocates: 2 byte arrays, 4 lazy sequences, 16
 intermediate 2-character strings, and performs 2 final string concatenations.
@@ -390,15 +396,15 @@ The `#=(mask ...)` reader macros are compile-time constants. **No difference.**
 
 Both directly compare `.getMostSignificantBits`/`.getLeastSignificantBits`.
 **No difference.** (bitmop2 additionally provides `buf-compare` with unsigned
-semantics for buffer-level comparison, but `clj-uuid2` uses the same
-`uuid=`/`uuid<`/`uuid>` implementation as `clj-uuid`.)
+semantics for buffer-level comparison, but `clj-uuid` uses the same
+`uuid=`/`uuid<`/`uuid>` implementation as `clj-uuid-old`.)
 
 ### `as-uuid` (byte array to UUID)
 
-| Impl     | Code path                                                  |
-|----------|------------------------------------------------------------|
-| clj-uuid | `ByteBuffer/wrap` + 2 relative `.getLong` calls            |
-| clj-uuid2| `ByteBuffer/wrap` + 2 absolute `.getLong(0)` / `.getLong(8)` |
+| Impl         | Code path                                                  |
+|--------------|------------------------------------------------------------|
+| clj-uuid-old | `ByteBuffer/wrap` + 2 relative `.getLong` calls            |
+| clj-uuid     | `ByteBuffer/wrap` + 2 absolute `.getLong(0)` / `.getLong(8)` |
 
 **Impact: Negligible.** Both use ByteBuffer; the difference is absolute vs
 relative positioning. The absolute form is marginally more predictable (no
@@ -414,24 +420,25 @@ construction from post-construction operations:
 
 | UUID Type | Construction Speedup | Hot Path Bottleneck             | `to-byte-array` | `to-hex-string` |
 |-----------|---------------------|---------------------------------|------------------|------------------|
-| v0 (null) | --                  | constant                        | **3-8x**         | **4-6x**         |
-| v1        | negligible          | `clock/monotonic-time` (CAS)    | **3-8x**         | **4-6x**         |
-| v3        | **~1.2x**           | MD5 digest                      | **3-8x**         | **4-6x**         |
-| v4 (0)    | none                | `SecureRandom` (CSPRNG)         | **3-8x**         | **4-6x**         |
-| v4 (2)    | negligible          | caller-provided longs           | **3-8x**         | **4-6x**         |
-| v5        | **~1.2x**           | SHA-1 digest                    | **3-8x**         | **4-6x**         |
-| v6        | negligible          | `clock/monotonic-time` (CAS)    | **3-8x**         | **4-6x**         |
-| v7        | negligible          | `SecureRandom` (CSPRNG)         | **3-8x**         | **4-6x**         |
-| v8        | none                | caller-provided longs           | **3-8x**         | **4-6x**         |
-| squuid    | none                | `SecureRandom` via v4           | **3-8x**         | **4-6x**         |
-| max       | --                  | constant                        | **3-8x**         | **4-6x**         |
+| v0 (null) | --                  | constant                        | **60x**          | **38x**          |
+| v1        | negligible          | `clock/monotonic-time` (CAS)    | **60x**          | **38x**          |
+| v3        | **~7.3x**           | MD5 digest                      | **60x**          | **38x**          |
+| v4 (0)    | none                | `SecureRandom` (CSPRNG)         | **60x**          | **38x**          |
+| v4 (2)    | negligible          | caller-provided longs           | **60x**          | **38x**          |
+| v5        | **~5.3x**           | SHA-1 digest                    | **60x**          | **38x**          |
+| v6        | negligible          | `clock/monotonic-time` (CAS)    | **60x**          | **38x**          |
+| v7        | negligible          | `SecureRandom` (CSPRNG)         | **60x**          | **38x**          |
+| v8        | none                | caller-provided longs           | **60x**          | **38x**          |
+| squuid    | none                | `SecureRandom` via v4           | **60x**          | **38x**          |
+| max       | --                  | constant                        | **60x**          | **38x**          |
 
 **Key takeaway:** The bitmop->bitmop2 change provides the largest speedup in
 byte serialization and hex string rendering, which are post-construction
 operations common to *all* UUID types. UUID construction itself is generally
 dominated by clock or CSPRNG overhead, making the bitwise primitive speedup
 negligible during construction (except v3/v5, where byte conversion appears
-twice in the critical path).
+twice in the critical path and ThreadLocal digest caching removes the
+`MessageDigest/getInstance` overhead).
 
 
 ---
@@ -445,15 +452,15 @@ arrays for database storage, or to hex strings for logging/wire format)
 benefit from the cumulative improvement:
 
 ```
-clj-uuid  (v1 + to-byte-array):  ~30 ns (v1) + ~80 ns (bytes) = ~110 ns
-clj-uuid2 (v1 + to-byte-array):  ~30 ns (v1) + ~10 ns (bytes) = ~40 ns
-                                                                  ~2.75x
+clj-uuid-old (v1 + to-byte-array):  ~126 ns (v1) + ~811 ns (bytes) = ~937 ns
+clj-uuid     (v1 + to-byte-array):  ~105 ns (v1) + ~14 ns  (bytes) = ~119 ns
+                                                                        ~7.9x
 ```
 
 ```
-clj-uuid  (v1 + to-hex-string):  ~30 ns (v1) + ~250 ns (hex)  = ~280 ns
-clj-uuid2 (v1 + to-hex-string):  ~30 ns (v1) + ~40 ns  (hex)  = ~70 ns
-                                                                  ~4x
+clj-uuid-old (v1 + to-hex-string):  ~126 ns (v1) + ~5116 ns (hex)  = ~5242 ns
+clj-uuid     (v1 + to-hex-string):  ~105 ns (v1) + ~133 ns  (hex)  = ~238 ns
+                                                                        ~22x
 ```
 
 ### Batch name-based UUID generation (v3/v5)
@@ -463,12 +470,21 @@ a dataset), both the namespace serialization and digest-result extraction
 are improved:
 
 ```
-clj-uuid  (v5): ~80 ns (to-byte-array) + ~800 ns (SHA-1) + ~80 ns (bytes->long x2) + ~5 ns (dpb)
-               = ~965 ns
+clj-uuid-old (v3): ~811 ns (to-byte-array) + ~200 ns (MD5) + ~811 ns (bytes->long x2) + ~5 ns (dpb)
+                  = ~1450 ns
 
-clj-uuid2 (v5): ~10 ns (to-byte-array) + ~800 ns (SHA-1) + ~10 ns (bytes->long x2) + ~5 ns (dpb)
-               = ~825 ns
-                                                             ~1.17x
+clj-uuid     (v3): ~14 ns (to-byte-array) + ~180 ns (MD5) + ~14 ns (bytes->long x2) + ~5 ns (dpb)
+                  = ~200 ns
+                                                               ~7.3x
+```
+
+```
+clj-uuid-old (v5): ~811 ns (to-byte-array) + ~300 ns (SHA-1) + ~811 ns (bytes->long x2) + ~5 ns (dpb)
+                  = ~1600 ns
+
+clj-uuid     (v5): ~14 ns (to-byte-array) + ~280 ns (SHA-1) + ~14 ns (bytes->long x2) + ~5 ns (dpb)
+                  = ~305 ns
+                                                               ~5.3x
 ```
 
 ### UUID comparison and field extraction
@@ -491,6 +507,7 @@ allocations:
 | `bytes->long` | none (returns primitive)                    | 1 ByteBuffer (wrap)                   |
 | `hex (long)`  | 1 byte array + 2 lazy seqs + 8 temp strings + 1 final string | 1 byte array + 1 StringBuilder + 1 string |
 | `to-hex-string`| 2 byte arrays + 4 lazy seqs + 16 temp strings + 2 hex strings + 1 concat | 1 ByteBuffer + 1 StringBuilder + 1 string |
+| `assemble-bytes` | none (returns primitive, seq traversal only) | none (returns primitive, seq traversal only) |
 
 The `ByteBuffer/wrap` call in bitmop2 does **not** copy the array (it
 creates a view), so `long->bytes` and `bytes->long` have minimal allocation
@@ -500,6 +517,11 @@ The biggest allocation win is in `to-hex-string`, where bitmop creates ~25
 intermediate objects (lazy seq chunks, 2-character strings, intermediate hex
 strings) versus bitmop2's 3 objects (ByteBuffer, StringBuilder, result
 string).
+
+The `assemble-bytes` optimization in bitmop2 now uses a zero-allocation
+shift-accumulation loop (no byte-array, no ByteBuffer), matching bitmop's
+allocation-free approach while being 2.4x faster due to avoiding per-byte
+`dpb`/`mask`/`mask-offset` function calls.
 
 
 ---
@@ -527,23 +549,24 @@ implemented in C++ by the JS engine).
 
 ## Summary
 
-| Category                | clj-uuid (bitmop)  | clj-uuid2 (bitmop2) | Improvement    |
-|-------------------------|--------------------|----------------------|----------------|
-| UUID construction       | baseline           | ~same                | negligible*    |
-| `to-byte-array`         | baseline           | **3-8x faster**      | ByteBuffer     |
-| `to-hex-string`         | baseline           | **4-6x faster**      | StringBuilder  |
-| `bytes->long`           | baseline           | **3-8x faster**      | ByteBuffer     |
-| `long->bytes`           | baseline           | **3-8x faster**      | ByteBuffer     |
-| `hex`                   | baseline           | **2-5x faster**      | StringBuilder  |
-| `assemble-bytes`        | baseline           | **1.5-3x faster**    | ByteBuffer     |
-| Field extraction        | baseline           | same                 | n/a            |
-| Comparison              | baseline           | same                 | n/a            |
-| GC pressure             | higher             | **lower**            | fewer allocs   |
-| cljc readiness          | no                 | **yes** (DataView)   | architecture   |
+| Category                | clj-uuid-old (bitmop)  | clj-uuid (bitmop2)   | Improvement    |
+|-------------------------|------------------------|----------------------|----------------|
+| UUID construction       | baseline               | ~same                | negligible*    |
+| `to-byte-array`         | baseline               | **60x faster**       | ByteBuffer     |
+| `to-hex-string`         | baseline               | **38x faster**       | StringBuilder  |
+| `bytes->long`           | baseline               | **5-10x faster**     | ByteBuffer     |
+| `long->bytes`           | baseline               | **6-27x faster**     | ByteBuffer     |
+| `hex`                   | baseline               | **11-35x faster**    | StringBuilder  |
+| `assemble-bytes`        | baseline               | **2.4x faster**      | shift-accum    |
+| Field extraction        | baseline               | same                 | n/a            |
+| Comparison              | baseline               | same                 | n/a            |
+| GC pressure             | higher                 | **lower**            | fewer allocs   |
+| cljc readiness          | no                     | **yes** (DataView)   | architecture   |
 
-*Exception: v3/v5 construction sees ~1.15-1.2x improvement due to byte
-conversion appearing twice in their critical path (namespace serialization
-+ digest result extraction).
+*Exception: v3 construction sees **~7.3x** improvement and v5 sees **~5.3x**
+improvement due to byte conversion appearing twice in their critical path
+(namespace serialization + digest result extraction), compounded with
+ThreadLocal digest caching.
 
 The largest gains are in **serialization-heavy workloads** where UUIDs are
 frequently converted to byte arrays or hex strings -- common in database

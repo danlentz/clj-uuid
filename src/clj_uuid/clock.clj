@@ -120,7 +120,7 @@
                        (if (<= tt +random-counter-resolution+)
                          (->State tt time-now)
                          (recur))))))))]
-       [(.millis new-state) (.seqid new-state)])))
+       new-state)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Time Utilities

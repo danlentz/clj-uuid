@@ -1,8 +1,9 @@
-(ns clj-uuid.v7-uuid2-test
+(ns clj-uuid.v7-old-test
   (:require [clojure.test   :refer :all]
             [clojure.set]
-            [clj-uuid2 :as uuid2 :refer [v7]]
-            [clj-uuid.clock :as clock]))
+            [clj-uuid-old :as uuid :refer [v7]]
+            [clj-uuid.clock :as clock])
+  (:import [clj_uuid.clock State]))
 
 (deftest check-v7-single-threaded
   (let [iterations 1000000
@@ -28,11 +29,11 @@
 
       (testing (str "concurrent v7 monotonic increasing (" concur " threads)...")
         (is (every? identity
-                    (map (partial apply uuid2/<) answers)))))))
+                    (map (partial apply uuid/<) answers)))))))
 
 (deftest check-get-timestamp
   (dotimes [_ 1000000]
-    (let [time (first (clock/monotonic-unix-time-and-random-counter))]
-      (with-redefs [clock/monotonic-unix-time-and-random-counter (constantly [time (rand-int 4095)])]
-        (is (= time (uuid2/get-timestamp (v7)))
+    (let [time (.millis ^State (clock/monotonic-unix-time-and-random-counter))]
+      (with-redefs [clock/monotonic-unix-time-and-random-counter (fn [] (clock/->State (rand-int 4095) time))]
+        (is (= time (uuid/get-timestamp (v7)))
             "Timestamp should be retrievable from v7 UUID")))))

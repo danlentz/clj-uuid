@@ -1,7 +1,8 @@
 (ns clj-uuid.clock-test
   (:require [clojure.test   :refer :all]
             [clojure.set]
-            [clj-uuid.clock :refer :all]))
+            [clj-uuid.clock :refer :all])
+  (:import [clj_uuid.clock State]))
 
 (deftest check-single-threaded
   (let [iterations 1000000
@@ -13,8 +14,9 @@
           (is (= (count result) (count (set result)))))))
     (testing "monotonic-unix-time-and-random-counter..."
       (dotimes [_ groups]
-        (let [result   (check monotonic-unix-time-and-random-counter)]
-          (is (= (count result) (count (set result)))))))))
+        (let [result   (check monotonic-unix-time-and-random-counter)
+              pairs    (mapv #(vector (.millis ^State %) (.seqid ^State %)) result)]
+          (is (= (count pairs) (count (set pairs)))))))))
 
 (deftest check-multi-threaded-monotonic-time
   (doseq [concur (range 0 9)]
@@ -47,20 +49,24 @@
       (testing (str "concurrent timestamp uniqueness (" concur " threads)...")
         (is (=
               (* concur extent)
-              (count (apply clojure.set/union (map set answers))))))
+              (count (apply clojure.set/union
+                       (map #(set (map (fn [^State s] [(.millis s) (.seqid s)]) %))
+                            answers))))))
       (testing (str "concurrent monotonic increasing (" concur " threads)...")
         (doseq [answer answers]
-          (let [[time counter] (first answer)]
-            (loop [time    time
-                   counter counter
+          (let [^State first-state (first answer)]
+            (loop [time    (.millis first-state)
+                   counter (.seqid first-state)
                    more    (rest answer)]
-              (when-let [[next-time next-counter] (first more)]
-                (cond
-                  (< next-time time)
-                  (is false "time must be increasing")
+              (when-let [^State next-state (first more)]
+                (let [next-time    (.millis next-state)
+                      next-counter (.seqid next-state)]
+                  (cond
+                    (< next-time time)
+                    (is false "time must be increasing")
 
-                  (and (= next-time time) (<= next-counter counter))
-                  (is false "counter must be increasing")
+                    (and (= next-time time) (<= next-counter counter))
+                    (is false "counter must be increasing")
 
-                  :else
-                  (recur next-time next-counter (rest more)))))))))))
+                    :else
+                    (recur next-time next-counter (rest more))))))))))))

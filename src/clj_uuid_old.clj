@@ -1,10 +1,10 @@
-(ns clj-uuid2
+(ns clj-uuid-old
   (:refer-clojure :exclude [== uuid? max < > =])
   (:require [clojure.core :as clojure]
             [clj-uuid
              [constants :refer :all]
              [util      :as util]
-             [bitmop2   :as bitmop2]
+             [bitmop    :as bitmop]
              [clock     :as clock]
              [node      :as node]
              [random    :as random]])
@@ -182,32 +182,161 @@
   those bits.  This is a protocol for  _variant 2_ (*Leach-Salz*)
   UUID's."
 
-  (hash-code                     [uuid])
-  (null?                         [uuid])
-  (max?                         [uuid])
-  (uuid?                         [x])
-  (uuid=                         [x y])
-  (uuid<                         [x y])
-  (uuid>                         [x y])
-  (get-word-high                 [uuid])
-  (get-word-low                  [uuid])
-  (get-version                   [uuid])
-  (get-variant                   [uuid])
-  (get-time-low                  [uuid])
-  (get-time-mid                  [uuid])
-  (get-time-high                 [uuid])
-  (get-clk-high                  [uuid])
-  (get-clk-low                   [uuid])
-  (get-clk-seq                   [uuid])
-  (get-node-id                   [uuid])
-  (get-timestamp                 [uuid])
-  (get-instant   ^java.util.Date [uuid])
-  (get-unix-time                 [uuid])
-  (to-byte-array                 [uuid])
-  (to-string     ^String         [uuid])
-  (to-hex-string ^String         [uuid])
-  (to-urn-string ^String         [uuid])
-  (to-uri        ^java.net.URI   [uuid]))
+  (hash-code                     [uuid]
+    "Return a suitable 64-bit hash value for `uuid`.  Extend with
+    specialized hash computation.")
+
+  (null?                         [uuid]
+    "Return `true` only if `uuid` has all 128 bits set to zero and is
+    therefore equal to the null UUID, 00000000-0000-0000-0000-000000000000.")
+
+  (max?                         [uuid]
+    "Return `true` only if `uuid` has all 128 bits set and is
+    therefore equal to the maximum UUID, ffffffff-ffff-ffff-ffff-ffffffffffff.")
+
+  (uuid?                         [x]
+    "Return `true` if `x` implements an RFC9562 unique identifier.")
+
+  (uuid=                         [x y]
+    "Directly compare two UUID's for = relation based on the equality
+    semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].
+    See: `clj-uuid/=`")
+
+  (uuid<                         [x y]
+    "Directly compare two UUID's for < relation based on the ordinality
+    semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].
+    See: `clj-uuid/<`")
+
+  (uuid>                         [x y]
+    "Directly compare two UUID's for > relation based on the ordinality
+    semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].
+    See: `clj-uuid/>`")
+
+  (get-word-high                 [uuid]
+    "Return the most significant 64 bits of UUID's 128 bit value.")
+
+  (get-word-low                  [uuid]
+    "Return the least significant 64 bits of UUID's 128 bit value.")
+
+  (get-version                   [uuid]
+    "Return the version number associated with this UUID.  The version
+    field contains a value which describes the nature of the UUID.  There
+    are five versions of Leach-Salz UUID, plus the null and max UUIDs:
+
+    0x0   Null
+    0x1   Time based
+    0x2   DCE security with POSIX UID
+    0x3   Namespaced, deterministic (MD5 Digest)
+    0x4   Cryptographic random
+    0x5   Namespaced, deterministic (SHA1 Digest)
+    0x6   Time based, lexically ordered
+    0x7   POSIX Time based, lexically ordered, cryptographically secure
+    0x8   User Customizable
+    0xF   Max
+
+    In the canonical representation, xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx,
+    the four bits of M indicate the UUID version (i.e., the hexadecimal M
+    will be either 1, 2, 3, 4, 5, 6, 7, or 8).")
+
+  (get-variant                   [uuid]
+    "Return the variant number associated with this UUID.  The variant field
+    contains a value which identifies the layout of the UUID.  The bit-layout
+    implemented by this protocol supports UUID's with a variant value of 0x2,
+    which indicates Leach-Salz layout.  Defined UUID variant values are:
+
+    0x0   Null
+    0x2   Leach-Salz
+    0x6   Microsoft
+    0x7   Max
+
+    In the canonical representation, xxxxxxxx-xxxx-xxxx-Nxxx-xxxxxxxxxxxx,
+    the most significant bits of N indicate the variant (depending on the
+    variant one, two, or three bits are used). The variant covered by RFC9562
+    is indicated by the two most significant bits of N being 1 0 (i.e., the
+    hexadecimal N will always be 8, 9, A, or B).")
+
+  (get-time-low                  [uuid]
+    "Return the 32 bit unsigned value that represents the `time-low` field
+    of the `timestamp` associated with this UUID.")
+
+  (get-time-mid                  [uuid]
+    "Return the 16 bit unsigned value that represents the `time-mid` field
+    of the `timestamp` assocaited with this UUID.")
+
+  (get-time-high                 [uuid]
+    "Return the 16 bit unsigned value that represents the `time-high` field
+    of the `timestamp` multiplexed with the `version` of this UUID.")
+
+  (get-clk-high                  [uuid]
+    "Return the 8 bit unsigned value that represents the most significant
+    byte of the `clk-seq` multiplexed with the `variant` of this UUID.")
+
+  (get-clk-low                   [uuid]
+    "Return the 8 bit unsigned value that represents the least significant
+    byte of the `clk-seq` associated with this UUID.")
+
+  (get-clk-seq                   [uuid]
+    "Return the clock-sequence number associated with this UUID. For time-based
+    (v1, v6) UUID's the 'clock-sequence' value is a somewhat counter-intuitively
+    named seed-value that is used to reduce the potential that duplicate UUID's
+    might be generated under unusual situations, such as if the system hardware
+    clock is set backward in time or if, despite all efforts otherwise, a
+    duplicate node-id happens to be generated. This value is initialized to
+    a random 16-bit number once per lifetime of the system.  For
+    non-gregorian-time-based (v3, v4, v5, v7, v8, squuid) UUID's, always
+    returns `nil`.")
+
+  (get-node-id                   [uuid]
+    "Return the 48 bit unsigned value that represents the spatially unique
+    node identifier associated with this UUID.")
+
+  (get-timestamp                 [uuid]
+    "Return the time of UUID creation.  For Gregorian time-based (v1,
+    v6) UUID's, this is 60 bit unsigned value that represents a
+    temporally unique timestamp associated with this UUID.  The result
+    encodes the number of 100 nanosecond intervals since the adoption of
+    the Gregorian calendar.  For v7 UUID's this encodes the more common
+    unix time in milliseconds since midnight, January 1, 1970 UTC.  For
+    non-time-based (v3, v4, v5, v8, squuid) UUID's, always returns
+    `nil`.")
+
+  (get-instant   ^java.util.Date [uuid]
+    "For time-based (v1, v6, v7) UUID's, return a java.util.Date
+    object that represents the system time at which this UUID was
+    generated. NOTE: the returned value may not necessarily be
+    temporally unique. For non-time-based
+    (v3, v4, v5, v8, squuid) UUID's, always returns `nil`.")
+
+  (get-unix-time                 [uuid]
+    "For time-based (v1, v6, v7) UUIDs return the timestamp portion in
+    aproximately milliseconds since the Unix epoch 1970-01-01T00:00:00.000Z.
+    For non-time-based (v3, v4, v5, v8, squuid) UUID's, always returns `nil`.")
+
+  (to-byte-array                 [uuid]
+    "Return an array of 16 bytes that represents `uuid` as a decomposed
+    octet serialization encoded in most-significant-byte first order.")
+
+  (to-string     ^String         [uuid]
+    "Return a String object that represents `uuid` in the canonical
+    36 character hex-string format:
+
+        xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+
+  (to-hex-string ^String         [uuid]
+    "Return a String object that represents `uuid` as the 32 hexadecimal
+    characters directly encodong the UUID's 128 bit value:
+
+        xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+
+  (to-urn-string ^String         [uuid]
+    "Return a String object that represents `uuid` as a the string
+    serialization of the URN URI based on the canonical 36 character
+    hex-string representation:
+
+        urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+
+  (to-uri        ^java.net.URI   [uuid]
+    "Return the unique URN URI associated with this UUID."))
 
 ;; For backwards compatibility
 
@@ -257,12 +386,10 @@
   (max? ^boolean [uuid]
     (uuid= uuid +max+))
 
-  ;; bitmop2: two putLong calls (one per word) instead of bitmop's
-  ;; 16-iteration loop of ldb+sb8 per byte.
   (to-byte-array ^bytes [uuid]
     (let [arr (byte-array 16)]
-      (bitmop2/long->bytes (.getMostSignificantBits  uuid) arr 0)
-      (bitmop2/long->bytes (.getLeastSignificantBits uuid) arr 8)
+      (bitmop/long->bytes (.getMostSignificantBits  uuid) arr 0)
+      (bitmop/long->bytes (.getLeastSignificantBits uuid) arr 8)
       arr))
 
   (hash-code ^long [uuid]
@@ -280,10 +407,8 @@
   (to-urn-string [uuid]
     (str "urn:uuid:" (.toString uuid)))
 
-  ;; bitmop2: buf-hex renders all 32 hex chars via a single StringBuilder
-  ;; from a ByteBuffer, instead of two separate hex() calls + string concat.
   (to-hex-string [uuid]
-    (bitmop2/buf-hex (bitmop2/uuid->buf uuid)))
+    (str (bitmop/hex (get-word-high uuid)) (bitmop/hex (get-word-low uuid))))
 
   (to-uri [uuid]
     (URI/create (to-urn-string uuid)))
@@ -291,25 +416,25 @@
   (get-time-low ^long [uuid]
     (let [msb (.getMostSignificantBits uuid)]
       (if (clojure/= 6 (get-version uuid))
-        (bitmop2/ldb #=(bitmop2/mask 16 0) msb)
-        (bitmop2/ldb #=(bitmop2/mask 32 0) (bit-shift-right msb 32)))))
+        (bitmop/ldb #=(bitmop/mask 16 0) msb)
+        (bitmop/ldb #=(bitmop/mask 32 0) (bit-shift-right msb 32)))))
 
   (get-time-mid ^long [uuid]
-    (bitmop2/ldb #=(bitmop2/mask 16 16)
+    (bitmop/ldb #=(bitmop/mask 16 16)
       (.getMostSignificantBits uuid)))
 
   (get-time-high ^long [uuid]
     (let [msb (.getMostSignificantBits uuid)]
       (if (clojure/= 6 (get-version uuid))
-        (bitmop2/ldb #=(bitmop2/mask 32 0) (bit-shift-right msb 32))
-        (bitmop2/ldb #=(bitmop2/mask 16 0) msb))))
+        (bitmop/ldb #=(bitmop/mask 32 0) (bit-shift-right msb 32))
+        (bitmop/ldb #=(bitmop/mask 16 0) msb))))
 
   (get-clk-low ^long [uuid]
-    (bitmop2/ldb #=(bitmop2/mask 8 0)
+    (bitmop/ldb #=(bitmop/mask 8 0)
       (bit-shift-right (.getLeastSignificantBits uuid) 56)))
 
   (get-clk-high ^long [uuid]
-    (bitmop2/ldb #=(bitmop2/mask 8 48)
+    (bitmop/ldb #=(bitmop/mask 8 48)
       (.getLeastSignificantBits uuid)))
 
   (get-clk-seq ^short [uuid]
@@ -317,17 +442,17 @@
       (.clockSequence uuid)))
 
   (get-node-id ^long [uuid]
-    (bitmop2/ldb #=(bitmop2/mask 48 0)
+    (bitmop/ldb #=(bitmop/mask 48 0)
       (.getLeastSignificantBits uuid)))
 
   (get-timestamp ^long [uuid]
     (case (.version uuid)
       1 (.timestamp uuid)
-      6 (bit-or (bitmop2/ldb #=(bitmop2/mask 12 0)
+      6 (bit-or (bitmop/ldb #=(bitmop/mask 12 0)
                             (.getMostSignificantBits uuid))
                 (bit-shift-left (get-time-mid uuid) 12)
                 (bit-shift-left (get-time-high uuid) 28))
-      7 (bitmop2/ldb #=(bitmop2/mask 48 16) (.getMostSignificantBits uuid))
+      7 (bitmop/ldb #=(bitmop/mask 48 16) (.getMostSignificantBits uuid))
       nil))
 
   (get-unix-time ^long [uuid]
@@ -395,10 +520,10 @@
   ^java.util.UUID
   []
   (let [ts        (clock/monotonic-time)
-        time-low  (bitmop2/ldb #=(bitmop2/mask 32  0)  ts)
-        time-mid  (bitmop2/ldb #=(bitmop2/mask 16 32)  ts)
-        time-high (bitmop2/dpb #=(bitmop2/mask 4  12)
-                    (bitmop2/ldb #=(bitmop2/mask 12 48) ts) 0x1)
+        time-low  (bitmop/ldb #=(bitmop/mask 32  0)  ts)
+        time-mid  (bitmop/ldb #=(bitmop/mask 16 32)  ts)
+        time-high (bitmop/dpb #=(bitmop/mask 4  12)
+                    (bitmop/ldb #=(bitmop/mask 12 48) ts) 0x1)
         msb       (bit-or time-high
                    (bit-shift-left time-low 32)
                    (bit-shift-left time-mid 16))]
@@ -415,10 +540,10 @@
   ^java.util.UUID
   []
   (let [ts        (clock/monotonic-time)
-        time-high (bitmop2/ldb #=(bitmop2/mask 32 28) ts)
-        time-mid  (bitmop2/ldb #=(bitmop2/mask 16 12) ts)
-        time-low  (bitmop2/dpb #=(bitmop2/mask 4  12)
-                    (bitmop2/ldb #=(bitmop2/mask 12 0) ts) 0x6)
+        time-high (bitmop/ldb #=(bitmop/mask 32 28) ts)
+        time-mid  (bitmop/ldb #=(bitmop/mask 16 12) ts)
+        time-low  (bitmop/dpb #=(bitmop/mask 4  12)
+                    (bitmop/ldb #=(bitmop/mask 12 0) ts) 0x6)
         msb       (bit-or time-low
                    (bit-shift-left time-mid  16)
                    (bit-shift-left time-high 32))]
@@ -457,11 +582,11 @@
   entropy chararacteristics compared to v1 or v6 UUIDs."
   ^java.util.UUID
   []
-  (let [[t counter]     (clock/monotonic-unix-time-and-random-counter)
-        time            (bitmop2/ldb #=(bitmop2/mask 48  0) t)
-        ver-and-counter (bitmop2/dpb #=(bitmop2/mask 4  12) counter 0x7)
+  (let [^clj_uuid.clock.State state (clock/monotonic-unix-time-and-random-counter)
+        time            (bitmop/ldb #=(bitmop/mask 48  0) (.millis state))
+        ver-and-counter (bitmop/dpb #=(bitmop/mask 4  12) (.seqid state) 0x7)
         msb             (bit-or ver-and-counter (bit-shift-left time 16))
-        lsb             (bitmop2/dpb #=(bitmop2/mask 2 62) (random/long) 0x2)]
+        lsb             (bitmop/dpb #=(bitmop/mask 2 62) (random/long) 0x2)]
     (UUID. msb lsb)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -487,8 +612,8 @@
     (UUID/randomUUID))
   (^java.util.UUID [msb lsb]
     (UUID.
-      (bitmop2/dpb #=(bitmop2/mask 4 12) msb 0x4)
-      (bitmop2/dpb #=(bitmop2/mask 2 62) lsb 0x2))))
+      (bitmop/dpb #=(bitmop/mask 4 12) msb 0x4)
+      (bitmop/dpb #=(bitmop/mask 2 62) lsb 0x2))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; v8 (custom) UUID Constructor                  [RFC9562:5.8: UUID Version 8];;
@@ -499,8 +624,8 @@
   ^java.util.UUID
   [^long msb ^long lsb]
   (UUID.
-   (bitmop2/dpb #=(bitmop2/mask 4 12) msb 0x8)
-   (bitmop2/dpb #=(bitmop2/mask 2 62) lsb 0x2)))
+   (bitmop/dpb #=(bitmop/mask 4 12) msb 0x8)
+   (bitmop/dpb #=(bitmop/mask 2 62) lsb 0x2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SQUUID (sequential) UUID Constructor
@@ -550,7 +675,7 @@
 
   java.lang.String
   (as-byte-array ^bytes [this]
-    (util/compile-if (util/java6?)
+    (util/compile-if (java6?)
       (.getBytes this)
       (.getBytes this java.nio.charset.StandardCharsets/UTF_8)))
 
@@ -566,10 +691,26 @@
 ;; Digest Instance
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(def ^:private -md5-
+  (ThreadLocal/withInitial
+    (reify java.util.function.Supplier
+      (get [_] (MessageDigest/getInstance "MD5")))))
+
+(def ^:private -sha1-
+  (ThreadLocal/withInitial
+    (reify java.util.function.Supplier
+      (get [_] (MessageDigest/getInstance "SHA1")))))
+
 (defn- make-digest
   ^java.security.MessageDigest
   [^String designator]
-  (MessageDigest/getInstance designator))
+  (let [^MessageDigest md
+        (case designator
+          "MD5"  (.get ^ThreadLocal -md5-)
+          "SHA1" (.get ^ThreadLocal -sha1-)
+          (MessageDigest/getInstance designator))]
+    (.reset md)
+    md))
 
 (defn- digest-bytes
   ^bytes
@@ -578,17 +719,15 @@
     (.update m ns-bytes)
     (.digest m local-bytes)))
 
-;; bitmop2: bytes->long uses single ByteBuffer.getLong per word instead
-;; of bitmop's 8-iteration dpb loop per word.
 (defn- build-digested-uuid
   ^java.util.UUID
   [^long version ^bytes arr]
   {:pre [(or (clojure/= version 3) (clojure/= version 5))]}
-  (let [msb (bitmop2/bytes->long arr 0)
-        lsb (bitmop2/bytes->long arr 8)]
+  (let [msb (bitmop/bytes->long arr 0)
+        lsb (bitmop/bytes->long arr 8)]
     (UUID.
-     (bitmop2/dpb #=(bitmop2/mask 4 12) msb version)
-     (bitmop2/dpb #=(bitmop2/mask 2 62) lsb 0x2))))
+     (bitmop/dpb #=(bitmop/mask 4 12) msb version)
+     (bitmop/dpb #=(bitmop/mask 2 62) lsb 0x2))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Namespaced UUIDs                                        [RFC9562:5.3, 5.5] ;;
@@ -720,7 +859,7 @@
   (Class/forName "[B") ; byte array
   (as-uuid [^bytes ba]
     (let [bb (ByteBuffer/wrap ba)]
-      (UUID. (.getLong bb 0) (.getLong bb 8))))
+      (UUID. (.getLong bb) (.getLong bb))))
   (uuidable? [^bytes ba]
     (clojure/= 16 (alength ^bytes ba)))
 
