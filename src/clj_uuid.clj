@@ -4,7 +4,7 @@
             [clj-uuid
              [constants :refer :all]
              [util      :as util]
-             [bitmop2   :as bitmop2]
+             [bitmop    :as bitmop]
              [clock     :as clock]
              [node      :as node]
              [random    :as random]])
@@ -257,12 +257,12 @@
   (max? ^boolean [uuid]
     (uuid= uuid +max+))
 
-  ;; bitmop2: two putLong calls (one per word) instead of bitmop's
+  ;; two putLong calls (one per word) instead of bitmop's
   ;; 16-iteration loop of ldb+sb8 per byte.
   (to-byte-array ^bytes [uuid]
     (let [arr (byte-array 16)]
-      (bitmop2/long->bytes (.getMostSignificantBits  uuid) arr 0)
-      (bitmop2/long->bytes (.getLeastSignificantBits uuid) arr 8)
+      (bitmop/long->bytes (.getMostSignificantBits  uuid) arr 0)
+      (bitmop/long->bytes (.getLeastSignificantBits uuid) arr 8)
       arr))
 
   (hash-code ^long [uuid]
@@ -280,10 +280,10 @@
   (to-urn-string [uuid]
     (str "urn:uuid:" (.toString uuid)))
 
-  ;; bitmop2: buf-hex renders all 32 hex chars via a single StringBuilder
+  ;; buf-hex renders all 32 hex chars via a single StringBuilder
   ;; from a ByteBuffer, instead of two separate hex() calls + string concat.
   (to-hex-string [uuid]
-    (bitmop2/buf-hex (bitmop2/uuid->buf uuid)))
+    (bitmop/buf-hex (bitmop/uuid->buf uuid)))
 
   (to-uri [uuid]
     (URI/create (to-urn-string uuid)))
@@ -291,25 +291,25 @@
   (get-time-low ^long [uuid]
     (let [msb (.getMostSignificantBits uuid)]
       (if (clojure/= 6 (get-version uuid))
-        (bitmop2/ldb #=(bitmop2/mask 16 0) msb)
-        (bitmop2/ldb #=(bitmop2/mask 32 0) (bit-shift-right msb 32)))))
+        (bitmop/ldb #=(bitmop/mask 16 0) msb)
+        (bitmop/ldb #=(bitmop/mask 32 0) (bit-shift-right msb 32)))))
 
   (get-time-mid ^long [uuid]
-    (bitmop2/ldb #=(bitmop2/mask 16 16)
+    (bitmop/ldb #=(bitmop/mask 16 16)
       (.getMostSignificantBits uuid)))
 
   (get-time-high ^long [uuid]
     (let [msb (.getMostSignificantBits uuid)]
       (if (clojure/= 6 (get-version uuid))
-        (bitmop2/ldb #=(bitmop2/mask 32 0) (bit-shift-right msb 32))
-        (bitmop2/ldb #=(bitmop2/mask 16 0) msb))))
+        (bitmop/ldb #=(bitmop/mask 32 0) (bit-shift-right msb 32))
+        (bitmop/ldb #=(bitmop/mask 16 0) msb))))
 
   (get-clk-low ^long [uuid]
-    (bitmop2/ldb #=(bitmop2/mask 8 0)
+    (bitmop/ldb #=(bitmop/mask 8 0)
       (bit-shift-right (.getLeastSignificantBits uuid) 56)))
 
   (get-clk-high ^long [uuid]
-    (bitmop2/ldb #=(bitmop2/mask 8 48)
+    (bitmop/ldb #=(bitmop/mask 8 48)
       (.getLeastSignificantBits uuid)))
 
   (get-clk-seq ^short [uuid]
@@ -317,17 +317,17 @@
       (.clockSequence uuid)))
 
   (get-node-id ^long [uuid]
-    (bitmop2/ldb #=(bitmop2/mask 48 0)
+    (bitmop/ldb #=(bitmop/mask 48 0)
       (.getLeastSignificantBits uuid)))
 
   (get-timestamp ^long [uuid]
     (case (.version uuid)
       1 (.timestamp uuid)
-      6 (bit-or (bitmop2/ldb #=(bitmop2/mask 12 0)
+      6 (bit-or (bitmop/ldb #=(bitmop/mask 12 0)
                             (.getMostSignificantBits uuid))
                 (bit-shift-left (get-time-mid uuid) 12)
                 (bit-shift-left (get-time-high uuid) 28))
-      7 (bitmop2/ldb #=(bitmop2/mask 48 16) (.getMostSignificantBits uuid))
+      7 (bitmop/ldb #=(bitmop/mask 48 16) (.getMostSignificantBits uuid))
       nil))
 
   (get-unix-time ^long [uuid]
@@ -395,10 +395,10 @@
   ^java.util.UUID
   []
   (let [ts        (clock/monotonic-time)
-        time-low  (bitmop2/ldb #=(bitmop2/mask 32  0)  ts)
-        time-mid  (bitmop2/ldb #=(bitmop2/mask 16 32)  ts)
-        time-high (bitmop2/dpb #=(bitmop2/mask 4  12)
-                    (bitmop2/ldb #=(bitmop2/mask 12 48) ts) 0x1)
+        time-low  (bitmop/ldb #=(bitmop/mask 32  0)  ts)
+        time-mid  (bitmop/ldb #=(bitmop/mask 16 32)  ts)
+        time-high (bitmop/dpb #=(bitmop/mask 4  12)
+                    (bitmop/ldb #=(bitmop/mask 12 48) ts) 0x1)
         msb       (bit-or time-high
                    (bit-shift-left time-low 32)
                    (bit-shift-left time-mid 16))]
@@ -415,10 +415,10 @@
   ^java.util.UUID
   []
   (let [ts        (clock/monotonic-time)
-        time-high (bitmop2/ldb #=(bitmop2/mask 32 28) ts)
-        time-mid  (bitmop2/ldb #=(bitmop2/mask 16 12) ts)
-        time-low  (bitmop2/dpb #=(bitmop2/mask 4  12)
-                    (bitmop2/ldb #=(bitmop2/mask 12 0) ts) 0x6)
+        time-high (bitmop/ldb #=(bitmop/mask 32 28) ts)
+        time-mid  (bitmop/ldb #=(bitmop/mask 16 12) ts)
+        time-low  (bitmop/dpb #=(bitmop/mask 4  12)
+                    (bitmop/ldb #=(bitmop/mask 12 0) ts) 0x6)
         msb       (bit-or time-low
                    (bit-shift-left time-mid  16)
                    (bit-shift-left time-high 32))]
@@ -458,10 +458,10 @@
   ^java.util.UUID
   []
   (let [^clj_uuid.clock.State state (clock/monotonic-unix-time-and-random-counter)
-        time            (bitmop2/ldb #=(bitmop2/mask 48  0) (.millis state))
-        ver-and-counter (bitmop2/dpb #=(bitmop2/mask 4  12) (.seqid state) 0x7)
+        time            (bitmop/ldb #=(bitmop/mask 48  0) (.millis state))
+        ver-and-counter (bitmop/dpb #=(bitmop/mask 4  12) (.seqid state) 0x7)
         msb             (bit-or ver-and-counter (bit-shift-left time 16))
-        lsb             (bitmop2/dpb #=(bitmop2/mask 2 62) (random/long) 0x2)]
+        lsb             (bitmop/dpb #=(bitmop/mask 2 62) (random/long) 0x2)]
     (UUID. msb lsb)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -487,8 +487,8 @@
     (UUID/randomUUID))
   (^java.util.UUID [msb lsb]
     (UUID.
-      (bitmop2/dpb #=(bitmop2/mask 4 12) msb 0x4)
-      (bitmop2/dpb #=(bitmop2/mask 2 62) lsb 0x2))))
+      (bitmop/dpb #=(bitmop/mask 4 12) msb 0x4)
+      (bitmop/dpb #=(bitmop/mask 2 62) lsb 0x2))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; v8 (custom) UUID Constructor                  [RFC9562:5.8: UUID Version 8];;
@@ -499,8 +499,8 @@
   ^java.util.UUID
   [^long msb ^long lsb]
   (UUID.
-   (bitmop2/dpb #=(bitmop2/mask 4 12) msb 0x8)
-   (bitmop2/dpb #=(bitmop2/mask 2 62) lsb 0x2)))
+   (bitmop/dpb #=(bitmop/mask 4 12) msb 0x8)
+   (bitmop/dpb #=(bitmop/mask 2 62) lsb 0x2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SQUUID (sequential) UUID Constructor
@@ -594,17 +594,17 @@
     (.update m ns-bytes)
     (.digest m local-bytes)))
 
-;; bitmop2: bytes->long uses single ByteBuffer.getLong per word instead
+;; bytes->long uses single ByteBuffer.getLong per word instead
 ;; of bitmop's 8-iteration dpb loop per word.
 (defn- build-digested-uuid
   ^java.util.UUID
   [^long version ^bytes arr]
   {:pre [(or (clojure/= version 3) (clojure/= version 5))]}
-  (let [msb (bitmop2/bytes->long arr 0)
-        lsb (bitmop2/bytes->long arr 8)]
+  (let [msb (bitmop/bytes->long arr 0)
+        lsb (bitmop/bytes->long arr 8)]
     (UUID.
-     (bitmop2/dpb #=(bitmop2/mask 4 12) msb version)
-     (bitmop2/dpb #=(bitmop2/mask 2 62) lsb 0x2))))
+     (bitmop/dpb #=(bitmop/mask 4 12) msb version)
+     (bitmop/dpb #=(bitmop/mask 2 62) lsb 0x2))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Namespaced UUIDs                                        [RFC9562:5.3, 5.5] ;;

@@ -16,4 +16,3 @@ test/new.clj
 /.lein-failures
 /.lein-repl-history
 .DS_Store
-/.github
