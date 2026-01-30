@@ -13,25 +13,10 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-    # - name: Setup Java
-    #   uses: actions/setup-java@v3
-    #   with:
-    #     # see: https://github.com/marketplace/actions/setup-java
-    #     distribution: 'corretto'
-    #     java-version: '8'
-    # - name: Install clojure tools
-    #   uses: DeLaGuardo/setup-clojure@12.1
-    #   with:
-    #     # see: https://github.com/marketplace/actions/setup-clojure
-    #     cli: 1.11.1.1429
-
     - name: Setup Java and Leiningen
-        uses: DeLaGuardo/setup-clojure@v12 # Use the latest version
-        with:
+      uses: DeLaGuardo/setup-clojure@v12 # Use the latest version
+      with:
           java-version: 17 # Specify the desired Java version
           lein: 2.11.2 # Specify the desired Leiningen version
-
-
-
-- name: Run tests
+    - name: Run tests
       run: lein test
