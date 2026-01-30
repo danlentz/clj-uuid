@@ -69,31 +69,23 @@
       (bit-and-not -1 (dec x)))))
 
 
-(declare mask-offset mask-width)
-
 (defn mask-offset
-  "Return the bit offset (position of least significant set bit) of a mask."
+  "Return the bit offset (position of least significant set bit) of a mask.
+  Uses Long/numberOfTrailingZeros which compiles to a single TZCNT/BSF
+  instruction via JVM intrinsic.  O(1) vs the previous O(offset) loop."
   ^long
   [^long m]
-  (cond
-    (zero? m) 0
-    (neg?  m) (- 64 ^long (mask-width m))
-    :else     (loop [c 0]
-                (if (pos? (bit-and 1 (bit-shift-right m c)))
-                  c
-                  (recur (inc c))))))
+  (if (zero? m)
+    0
+    (Long/numberOfTrailingZeros m)))
 
 (defn mask-width
-  "Return the number of contiguous set bits in a mask."
+  "Return the number of set bits in a contiguous bitmask.
+  Uses Long/bitCount which compiles to a single POPCNT instruction
+  via JVM intrinsic.  O(1) vs the previous O(width) loop."
   ^long
   [^long m]
-  (if (neg? m)
-    (let [x (mask-width (- (inc m)))]
-      (- 64 x))
-    (loop [m (bit-shift-right m (mask-offset m)) c 0]
-      (if (zero? (bit-and 1 (bit-shift-right m c)))
-        c
-        (recur m (inc c))))))
+  (Long/bitCount m))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -118,14 +110,12 @@
       (bit-shift-left value (mask-offset bitmask)))))
 
 (defn bit-count
-  "Count the number of set bits in `x`."
+  "Count the number of set bits in `x`.
+  Uses Long/bitCount which compiles to a single POPCNT instruction
+  via JVM intrinsic.  O(1) vs the previous O(64) loop."
   ^long
   [^long x]
-  (let [n (ldb #=(mask 63 0) x) s (if (neg? x) 1 0)]
-    (loop [c s i 0]
-      (if (zero? (bit-shift-right n i))
-        c
-        (recur (+ c (bit-and 1 (bit-shift-right n i))) (inc i))))))
+  (Long/bitCount x))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
