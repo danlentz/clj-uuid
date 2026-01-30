@@ -36,7 +36,36 @@ With Leiningen:
 [![Clojars Project](https://img.shields.io/clojars/v/danlentz/clj-uuid.svg)](https://clojars.org/danlentz/clj-uuid)
 
 
-### How is it better?
+### What's new?
+
+The latest release focuses on performance.  There are no external
+changes to the API.
+
+clj-uuid 0.2.5 now uses ByteBuffer-based primitives and JVM intrinsics
+to deliver significant performance gains over traditional shift/mask
+loop approach.
+
+| Category                      | Speedup     |
+|-------------------------------|-------------|
+| `to-byte-array`               | **57x**     |
+| `to-hex-string`               | **29x**     |
+| v3 (MD5) generation           | **9.0x**    |
+| v5 (SHA1) generation          | **6.0x**    |
+| v8 (custom) generation        | **4.2x**    |
+| v7 (unix time) generation     | **1.2x**    |
+| v1/v6 (time-based) generation | **1.1-1.2x**|
+
+Combined generate + serialize operations see **3-19x** end-to-end
+improvement depending on UUID version and serialization format.
+
+For detailed benchmarks and further analysis, see:
+
+* [Performance Analysis](doc/perf-analysis.md) -- architectural analysis
+  of bitmop (old) vs bitmop2 (new) primitives
+* [Benchmarks](doc/uuid-generation-benchmarks.md) -- per-version timings, throughput, and combined operation benchmarks
+
+
+### Why is this library useful??
 
 The JVM version only provides an automatic generator for random (v4)
 and (non-namespaced) pseudo-v3 UUID's.  Where appropriate, this library
@@ -1026,32 +1055,6 @@ _(protocol)_    `UUIDRfc9526`
 > _(member)_    `to-uri [self]`
 >
 >>  Return the unique URN URI associated with this UUID.
-
-
-
-### Performance
-
-clj-uuid uses ByteBuffer-based primitives and JVM intrinsics
-(`Long/numberOfTrailingZeros`, `Long/bitCount`) to deliver significant
-performance gains over traditional shift/mask loop implementations:
-
-| Category                      | Speedup     |
-|-------------------------------|-------------|
-| `to-byte-array`               | **57x**     |
-| `to-hex-string`               | **29x**     |
-| v3 (MD5) generation           | **9.0x**    |
-| v5 (SHA1) generation          | **6.0x**    |
-| v8 (custom) generation        | **4.2x**    |
-| v7 (unix time) generation     | **1.2x**    |
-| v1/v6 (time-based) generation | **1.1-1.2x**|
-
-Combined generate + serialize operations see **3-19x** end-to-end
-improvement depending on UUID version and serialization format.
-
-For detailed benchmarks and analysis, see:
-
-* [UUID Generation Benchmarks](doc/uuid-generation-benchmarks.md) -- per-version timings, throughput, and combined operation benchmarks
-* [Performance Comparison](doc/perf-comparison.md) -- architectural analysis of bitmop vs bitmop2 primitives
 
 
 ### References

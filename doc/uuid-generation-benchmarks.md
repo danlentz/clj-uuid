@@ -7,13 +7,26 @@ ThreadLocal MessageDigest).
 
 ## Test Environment
 
-- **JVM:** OpenJDK 64-Bit Server VM, Java 25.0.1
+### Hardware
+
+- **CPU:** Intel Core i9-9880H @ 2.30 GHz (8 cores / 16 threads)
+- **RAM:** 32 GB
+- **Architecture:** x86_64
+
+### Software
+
+- **OS:** macOS 26.2 (Darwin 25.2.0)
+- **JVM:** OpenJDK 64-Bit Server VM 25.0.1 (Homebrew, mixed mode, sharing)
+- **Clojure:** 1.12.0
+- **Leiningen:** 2.12.0
+
+### Benchmark Parameters
+
 - **Iterations:** 500,000 per benchmark
 - **Warmup:** 50,000 iterations (JIT compilation)
-- **Platform:** macOS (Darwin 25.2.0), Apple Silicon
 - **Reflection warnings:** none (verified via `lein check` and
   `*warn-on-reflection*`)
-- **Benchmark source:** `test/clj_uuid/bench.clj`
+- **Source:** `test/clj_uuid/bench.clj`
 
 ## 1. UUID Generation (Pure Construction)
 
