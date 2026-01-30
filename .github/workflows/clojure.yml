@@ -14,7 +14,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     - name: Setup Java and Leiningen
-      uses: DeLaGuardo/setup-clojure@v12 # Use the latest version
+      uses: DeLaGuardo/setup-clojure@v12.1 # Use the latest version
       with:
           java-version: 17 # Specify the desired Java version
           lein: 2.11.2 # Specify the desired Leiningen version
