@@ -13,10 +13,21 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-    - name: Setup Java and Leiningen
-      uses: DeLaGuardo/setup-clojure@v12.1 # Use the latest version
+
+    - name: Prepare java
+      uses: actions/setup-java@v3
       with:
-          java-version: 17 # Specify the desired Java version
-          lein: 2.11.2 # Specify the desired Leiningen version
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Install clojure tools
+      uses: DeLaGuardo/setup-clojure@13.4
+      with:
+        # Install just one or all simultaneously
+        # The value must indicate a particular version of the tool, or use 'latest'
+        # to always provision the latest version
+        #        cli: 1.10.1.693              # Clojure CLI based on tools.deps
+        lein: 2.11.2                  # Leiningen
+
     - name: Run tests
       run: lein test
