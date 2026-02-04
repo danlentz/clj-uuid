@@ -94,6 +94,7 @@
 ;;   of unguessability provided by the underlying entropy. The increment
 ;;   value MAY be 1 when the number of UUIDs generated in a particular
 ;;   period of time is important"
+;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def ^:const +random-counter-resolution+ 0xfff)

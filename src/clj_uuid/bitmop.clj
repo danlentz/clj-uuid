@@ -25,7 +25,6 @@
 ;; double          | 64 bits |  IEEE754  |     IEEE754    |  Double
 ;; void            |    ?    |     ?     |        ?       |  Void
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Simple Arithmetic Utils
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -44,7 +43,6 @@
       (format "%1$016X" x)
       (Long/toBinaryString x))))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Bit-masking
 ;;
@@ -62,7 +60,6 @@
 ;; This bitmop library is dead useful for working with unsigned binary
 ;; values on the JVM.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defn mask
   ^long
@@ -115,7 +112,6 @@
 ;;       (ctz 5 mask-low 0))))
 ;;;
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; LDB, DPB: Fundamental Bitwise Operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -144,7 +140,6 @@
       (if (zero? (bit-shift-right n i))
         c
         (recur (+ c (bit-and 1 (bit-shift-right n i))) (inc i))))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Byte Casting
@@ -183,11 +178,9 @@
 (defn sb64 [num]
   (unchecked-long num))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Byte (dis)Assembly
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defn assemble-bytes [v]
   (loop [tot 0 bytes v c 8]
@@ -197,7 +190,6 @@
         (long (dpb (mask 8 (* 8 (dec c))) tot ^long (first bytes)))
         (rest bytes)
         (dec c)))))
-
 
 (defn bytes->long [^bytes arr ^long i]
   (loop [tot 0 j i c 8]
@@ -218,7 +210,6 @@
        (do
          (aset-byte arr (+ i k) (sb8 (ldb (mask 8 (* 8 j)) x)))
          (recur (dec j) (inc k)))))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Hexadecimal String Representation
