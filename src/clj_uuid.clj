@@ -174,6 +174,41 @@
   (uuidable?                 [x]
     "Return 'true' if 'x' can be coerced to UUID."))
 
+;; (defprotocol UUIDRfc9562
+;;   "A protocol that abstracts an unique identifier as described by
+;;   IETF RFC9562 <http://www.ietf.org/rfc/rfc9562.txt>. A UUID
+;;   represents a 128-bit value, however there are variant encoding
+;;   layouts used to assign and interpret information encoded in
+;;   those bits.  This is a protocol for  _variant 2_ (*Leach-Salz*)
+;;   UUID's."
+
+;;   (hash-code                     [uuid])
+;;   (null?                         [uuid])
+;;   (max?                         [uuid])
+;;   (uuid?                         [x])
+;;   (uuid=                         [x y])
+;;   (uuid<                         [x y])
+;;   (uuid>                         [x y])
+;;   (get-word-high                 [uuid])
+;;   (get-word-low                  [uuid])
+;;   (get-version                   [uuid])
+;;   (get-variant                   [uuid])
+;;   (get-time-low                  [uuid])
+;;   (get-time-mid                  [uuid])
+;;   (get-time-high                 [uuid])
+;;   (get-clk-high                  [uuid])
+;;   (get-clk-low                   [uuid])
+;;   (get-clk-seq                   [uuid])
+;;   (get-node-id                   [uuid])
+;;   (get-timestamp                 [uuid])
+;;   (get-instant   ^java.util.Date [uuid])
+;;   (get-unix-time                 [uuid])
+;;   (to-byte-array                 [uuid])
+;;   (to-string     ^String         [uuid])
+;;   (to-hex-string ^String         [uuid])
+;;   (to-urn-string ^String         [uuid])
+;;   (to-uri        ^java.net.URI   [uuid]))
+
 (defprotocol UUIDRfc9562
   "A protocol that abstracts an unique identifier as described by
   IETF RFC9562 <http://www.ietf.org/rfc/rfc9562.txt>. A UUID
@@ -182,32 +217,161 @@
   those bits.  This is a protocol for  _variant 2_ (*Leach-Salz*)
   UUID's."
 
-  (hash-code                     [uuid])
-  (null?                         [uuid])
-  (max?                         [uuid])
-  (uuid?                         [x])
-  (uuid=                         [x y])
-  (uuid<                         [x y])
-  (uuid>                         [x y])
-  (get-word-high                 [uuid])
-  (get-word-low                  [uuid])
-  (get-version                   [uuid])
-  (get-variant                   [uuid])
-  (get-time-low                  [uuid])
-  (get-time-mid                  [uuid])
-  (get-time-high                 [uuid])
-  (get-clk-high                  [uuid])
-  (get-clk-low                   [uuid])
-  (get-clk-seq                   [uuid])
-  (get-node-id                   [uuid])
-  (get-timestamp                 [uuid])
-  (get-instant   ^java.util.Date [uuid])
-  (get-unix-time                 [uuid])
-  (to-byte-array                 [uuid])
-  (to-string     ^String         [uuid])
-  (to-hex-string ^String         [uuid])
-  (to-urn-string ^String         [uuid])
-  (to-uri        ^java.net.URI   [uuid]))
+  (hash-code                     [uuid]
+    "Return a suitable 64-bit hash value for `uuid`.  Extend with
+    specialized hash computation.")
+
+  (null?                         [uuid]
+    "Return `true` only if `uuid` has all 128 bits set to zero and is
+    therefore equal to the null UUID, 00000000-0000-0000-0000-000000000000.")
+
+  (max?                         [uuid]
+    "Return `true` only if `uuid` has all 128 bits set and is
+    therefore equal to the maximum UUID, ffffffff-ffff-ffff-ffff-ffffffffffff.")
+
+  (uuid?                         [x]
+    "Return `true` if `x` implements an RFC9562 unique identifier.")
+
+  (uuid=                         [x y]
+    "Directly compare two UUID's for = relation based on the equality
+    semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].
+    See: `clj-uuid/=`")
+
+  (uuid<                         [x y]
+    "Directly compare two UUID's for < relation based on the ordinality
+    semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].
+    See: `clj-uuid/<`")
+
+  (uuid>                         [x y]
+    "Directly compare two UUID's for > relation based on the ordinality
+    semantics defined by [RFC4122:3 RULES FOR LEXICAL EQUIVALENCE].
+    See: `clj-uuid/>`")
+
+  (get-word-high                 [uuid]
+    "Return the most significant 64 bits of UUID's 128 bit value.")
+
+  (get-word-low                  [uuid]
+    "Return the least significant 64 bits of UUID's 128 bit value.")
+
+  (get-version                   [uuid]
+    "Return the version number associated with this UUID.  The version
+    field contains a value which describes the nature of the UUID.  There
+    are five versions of Leach-Salz UUID, plus the null and max UUIDs:
+
+    0x0   Null
+    0x1   Time based
+    0x2   DCE security with POSIX UID
+    0x3   Namespaced, deterministic (MD5 Digest)
+    0x4   Cryptographic random
+    0x5   Namespaced, deterministic (SHA1 Digest)
+    0x6   Time based, lexically ordered
+    0x7   POSIX Time based, lexically ordered, cryptographically secure
+    0x8   User Customizable
+    0xF   Max
+
+    In the canonical representation, xxxxxxxx-xxxx-Mxxx-xxxx-xxxxxxxxxxxx,
+    the four bits of M indicate the UUID version (i.e., the hexadecimal M
+    will be either 1, 2, 3, 4, 5, 6, 7, or 8).")
+
+  (get-variant                   [uuid]
+    "Return the variant number associated with this UUID.  The variant field
+    contains a value which identifies the layout of the UUID.  The bit-layout
+    implemented by this protocol supports UUID's with a variant value of 0x2,
+    which indicates Leach-Salz layout.  Defined UUID variant values are:
+
+    0x0   Null
+    0x2   Leach-Salz
+    0x6   Microsoft
+    0x7   Max
+
+    In the canonical representation, xxxxxxxx-xxxx-xxxx-Nxxx-xxxxxxxxxxxx,
+    the most significant bits of N indicate the variant (depending on the
+    variant one, two, or three bits are used). The variant covered by RFC9562
+    is indicated by the two most significant bits of N being 1 0 (i.e., the
+    hexadecimal N will always be 8, 9, A, or B).")
+
+  (get-time-low                  [uuid]
+    "Return the 32 bit unsigned value that represents the `time-low` field
+    of the `timestamp` associated with this UUID.")
+
+  (get-time-mid                  [uuid]
+    "Return the 16 bit unsigned value that represents the `time-mid` field
+    of the `timestamp` assocaited with this UUID.")
+
+  (get-time-high                 [uuid]
+    "Return the 16 bit unsigned value that represents the `time-high` field
+    of the `timestamp` multiplexed with the `version` of this UUID.")
+
+  (get-clk-high                  [uuid]
+    "Return the 8 bit unsigned value that represents the most significant
+    byte of the `clk-seq` multiplexed with the `variant` of this UUID.")
+
+  (get-clk-low                   [uuid]
+    "Return the 8 bit unsigned value that represents the least significant
+    byte of the `clk-seq` associated with this UUID.")
+
+  (get-clk-seq                   [uuid]
+    "Return the clock-sequence number associated with this UUID. For time-based
+    (v1, v6) UUID's the 'clock-sequence' value is a somewhat counter-intuitively
+    named seed-value that is used to reduce the potential that duplicate UUID's
+    might be generated under unusual situations, such as if the system hardware
+    clock is set backward in time or if, despite all efforts otherwise, a
+    duplicate node-id happens to be generated. This value is initialized to
+    a random 16-bit number once per lifetime of the system.  For
+    non-gregorian-time-based (v3, v4, v5, v7, v8, squuid) UUID's, always
+    returns `nil`.")
+
+  (get-node-id                   [uuid]
+    "Return the 48 bit unsigned value that represents the spatially unique
+    node identifier associated with this UUID.")
+
+  (get-timestamp                 [uuid]
+    "Return the time of UUID creation.  For Gregorian time-based (v1,
+    v6) UUID's, this is 60 bit unsigned value that represents a
+    temporally unique timestamp associated with this UUID.  The result
+    encodes the number of 100 nanosecond intervals since the adoption of
+    the Gregorian calendar.  For v7 UUID's this encodes the more common
+    unix time in milliseconds since midnight, January 1, 1970 UTC.  For
+    non-time-based (v3, v4, v5, v8, squuid) UUID's, always returns
+    `nil`.")
+
+  (get-instant   ^java.util.Date [uuid]
+    "For time-based (v1, v6, v7) UUID's, return a java.util.Date
+    object that represents the system time at which this UUID was
+    generated. NOTE: the returned value may not necessarily be
+    temporally unique. For non-time-based
+    (v3, v4, v5, v8, squuid) UUID's, always returns `nil`.")
+
+  (get-unix-time                 [uuid]
+    "For time-based (v1, v6, v7) UUIDs return the timestamp portion in
+    aproximately milliseconds since the Unix epoch 1970-01-01T00:00:00.000Z.
+    For non-time-based (v3, v4, v5, v8, squuid) UUID's, always returns `nil`.")
+
+  (to-byte-array                 [uuid]
+    "Return an array of 16 bytes that represents `uuid` as a decomposed
+    octet serialization encoded in most-significant-byte first order.")
+
+  (to-string     ^String         [uuid]
+    "Return a String object that represents `uuid` in the canonical
+    36 character hex-string format:
+
+        xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+
+  (to-hex-string ^String         [uuid]
+    "Return a String object that represents `uuid` as the 32 hexadecimal
+    characters directly encodong the UUID's 128 bit value:
+
+        xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+
+  (to-urn-string ^String         [uuid]
+    "Return a String object that represents `uuid` as a the string
+    serialization of the URN URI based on the canonical 36 character
+    hex-string representation:
+
+        urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+
+  (to-uri        ^java.net.URI   [uuid]
+    "Return the unique URN URI associated with this UUID."))
 
 ;; For backwards compatibility
 
@@ -282,6 +446,7 @@
 
   ;; buf-hex renders all 32 hex chars via a single StringBuilder
   ;; from a ByteBuffer, instead of two separate hex() calls + string concat.
+
   (to-hex-string [uuid]
     (bitmop/buf-hex (bitmop/uuid->buf uuid)))
 
@@ -594,8 +759,6 @@
     (.update m ns-bytes)
     (.digest m local-bytes)))
 
-;; bytes->long uses single ByteBuffer.getLong per word instead
-;; of bitmop's 8-iteration dpb loop per word.
 (defn- build-digested-uuid
   ^java.util.UUID
   [^long version ^bytes arr]
