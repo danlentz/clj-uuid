@@ -28,7 +28,8 @@
     (.nextBytes secure-random bs) bs))
 
 (defn long
-  "Generate a long value that is hard to guess. limited to the number of bytes."
+  "Generate a long value that is hard to guess. Randomness limited to the
+  number of bytes."
   ([]
    (.nextLong secure-random))
   ([n-bytes]
@@ -38,3 +39,18 @@
   "Generate a hard-to-guess long value between 0 and 255"
   []
   (bit-and (.nextLong secure-random) 0xff))
+
+(defn ten-bits
+  "Generate a hard-to-guess long value between 0 and 1023"
+  []
+  (bit-and (.nextLong secure-random) 0x3ff))
+
+(defn eleven-bits
+  "Generate a hard-to-guess long value between 0 and 2047"
+  []
+  (bit-and (.nextLong secure-random) 0x7ff))
+
+(defn twelve-bits
+  "Generate a hard-to-guess long value between 0 and 4095"
+  []
+  (bit-and (.nextLong secure-random) 0xfff))

@@ -16,7 +16,7 @@
 ;; intuitively named value that is used to reduce the potential that duplicate
 ;; UUID's might be generated under unusual situations, such as if the system
 ;; hardware clock is set backward in time or if, despite all efforts otherwise,
-;; a duplecate +node-id+ (see below) happens to be generated. This value is
+;; a duplicate +node-id+ (see below) happens to be generated. This value is
 ;; initialized to a random 16-bit number once per lifetime of the system.
 
 (defonce +clock-sequence+ (inc (rand-int 0xffff)))
@@ -25,7 +25,7 @@
 ;; NodeID Representation                               [RFC4122:4.1.6 "NODE"] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; The representation of NodeID used for consutruction of time-based (v1) UUIDs
+;; The representation of NodeID used for construction of time-based (v1) UUIDs
 ;; is a list with the following encoding semantics:
 ;;
 ;;               SIZE    TYPE      REPRESENTATION

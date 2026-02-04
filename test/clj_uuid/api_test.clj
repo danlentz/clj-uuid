@@ -291,12 +291,11 @@
       (is (some? cs))
       (is (integer? cs))))
 
-  (testing "v6 delegates to .clockSequence which throws for non-v1"
-    ;; get-clk-seq dispatches on version #{1 6} but Java's
-    ;; UUID.clockSequence() only supports version 1. v6 UUIDs
-    ;; trigger UnsupportedOperationException from Java.
-    (is (thrown? java.lang.UnsupportedOperationException
-          (get-clk-seq (v6)))))
+  (testing "v6 returns a clock sequence"
+    (let [cs (get-clk-seq (v6))]
+      (is (some? cs))
+      (is (integer? cs))
+      (is (<= 0 cs 0x3FFF) "clock sequence is 14 bits")))
 
   (testing "non-gregorian-time versions return nil"
     (is (nil? (get-clk-seq (v3 +namespace-dns+ "x"))))

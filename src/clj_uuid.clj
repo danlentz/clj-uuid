@@ -296,7 +296,7 @@
 
   (get-time-mid                  [uuid]
     "Return the 16 bit unsigned value that represents the `time-mid` field
-    of the `timestamp` assocaited with this UUID.")
+    of the `timestamp` associated with this UUID.")
 
   (get-time-high                 [uuid]
     "Return the 16 bit unsigned value that represents the `time-high` field
@@ -344,7 +344,7 @@
 
   (get-unix-time                 [uuid]
     "For time-based (v1, v6, v7) UUIDs return the timestamp portion in
-    aproximately milliseconds since the Unix epoch 1970-01-01T00:00:00.000Z.
+    approximately milliseconds since the Unix epoch 1970-01-01T00:00:00.000Z.
     For non-time-based (v3, v4, v5, v8, squuid) UUID's, always returns `nil`.")
 
   (to-byte-array                 [uuid]
@@ -479,7 +479,7 @@
 
   (get-clk-seq ^short [uuid]
     (when (#{1 6} (.version uuid))
-      (.clockSequence uuid)))
+      (bitmop/ldb #=(bitmop/mask 14 48) (.getLeastSignificantBits uuid))))
 
   (get-node-id ^long [uuid]
     (bitmop/ldb #=(bitmop/mask 48 0)
@@ -778,7 +778,7 @@
   v3 identifiers are intended for generating UUID's from names that are
   drawn from, and unique within, some namespace.  The concept of name and
   namespace should be broadly construed, and not limited to textual names.
-  The requiremens for a v3 UUID are as follows:
+  The requirements for a v3 UUID are as follows:
 
   * v3 UUID's generated at different times from the same name in the same
     namespace MUST be equal.
@@ -804,7 +804,7 @@
   v5 identifiers are intended for generating UUID's from names that are
   drawn from, and unique within, some namespace.  The concept of name and
   namespace should be broadly construed, and not limited to textual names.
-  The requiremens for a v5 UUID are as follows:
+  The requirements for a v5 UUID are as follows:
 
   * v5 UUID's generated at different times from the same name in the same
     namespace MUST be equal.
