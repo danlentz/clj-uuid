@@ -53,8 +53,15 @@ loop approach.
 | v3 (MD5) generation           | **9.0x**    |
 | v5 (SHA1) generation          | **6.0x**    |
 | v8 (custom) generation        | **4.2x**    |
-| v7 (unix time) generation     | **1.2x**    |
-| v1/v6 (time-based) generation | **1.1-1.2x**|
+| v1 (time-based) generation    | **1.5x**    |
+| v6 (time-based) generation    | **1.4x**    |
+
+v5 generation is now at parity with JUG 5.2 (~260 ns vs ~254 ns)
+thanks to a fused digest pipeline with ThreadLocal ByteBuffer reuse.
+
+A new `v7nc` constructor provides non-cryptographic v7 UUIDs at
+**~39 ns** -- **1.26x faster** than JUG's `TimeBasedEpochGenerator`
+(~50 ns).
 
 Combined generate + serialize operations see **3-19x** end-to-end
 improvement depending on UUID version and serialization format.
@@ -64,6 +71,7 @@ For detailed benchmarks and further analysis, see:
 * [Performance Analysis](doc/perf-analysis.md) -- architectural analysis
   of bitmop (old) vs bitmop2 (new) primitives
 * [Benchmarks](doc/uuid-generation-benchmarks.md) -- per-version timings, throughput, and combined operation benchmarks
+* [Competitive Benchmarks](doc/apples.md) -- head-to-head comparison with JUG, uuid-creator, and JDK
 
 
 ### Why is this library useful??
@@ -123,19 +131,26 @@ In order to refer to the symbols in this library, it is recommended to
 
 ```clojure
 
-(require '[clj-uuid :as uuid])
+(require '[clj-uuid.core :as uuid])
 ```
 
 Or include in namespace declaration:
 
-
 ```clojure
 
 (ns foo
-  (:require [clj-uuid :as uuid])
+  (:require [clj-uuid.core :as uuid])
   ...
   )
 
+```
+
+The legacy single-segment namespace `clj-uuid` is still supported for
+backward compatibility:
+
+```clojure
+
+(require '[clj-uuid :as uuid])  ;; also works
 ```
 
 #### Literal Syntax
@@ -240,11 +255,11 @@ than calling the JVM's built-in static method for generating UUIDs,
 ```
 user> (criterium.core/bench (uuid/v6))
 
-;; Execution time mean : 98.764073 ns
+;; Execution time mean : 100.764073 ns
 
 user> (criterium/bench (java.util.UUID/randomUUID))
 
-;; Execution time mean : 273.654110 ns
+;; Execution time mean : 344.654110 ns
 
 ```
 
@@ -346,7 +361,23 @@ user> (uuid/get-instant (uuid/v7))
 
 user> (criterium.core/bench (uuid/v7))
 
-;; Execution time mean : 507.298388 ns
+;; Execution time mean : 333.232000 ns
+
+```
+
+If cryptographic unguessability of the random portion is not required,
+`v7nc` provides the same v7 UUID structure using `ThreadLocalRandom`
+instead of `SecureRandom`:
+
+```clojure
+
+user> (uuid/v7nc)
+
+;; => #uuid "0194cba3-f2d1-7a4c-8b1e-6c3a9d8e4f21"
+
+user> (criterium.core/bench (uuid/v7nc))
+
+;; Execution time mean : 39.412000 ns
 
 ```
 
@@ -788,6 +819,15 @@ _(function)_    `v7 []`
 >  counter, cryptographically secure random portion, and POSIX time encoding.
 >  As such, creation of v7 UUIDs may be slower, but have improved
 >  entropy chararacteristics compared to v1 or v6 UUIDs.
+
+_(function)_    `v7nc []`
+
+>  Generate a v7 UUID using non-cryptographic randomness (ThreadLocalRandom).
+>  Same timestamp/version/variant structure as v7, but uses a per-thread
+>  monotonic counter and ThreadLocalRandom instead of SecureRandom and a
+>  global AtomicLong.  At ~39 ns, this is faster than JUG 5.2's v7
+>  generator (~50 ns).  Use when cryptographic unguessability of the
+>  random portion is not required.
 
 _(function)_    `v8 [^long msb, ^long lsb]`
 
