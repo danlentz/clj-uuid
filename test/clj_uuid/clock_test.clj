@@ -70,3 +70,35 @@
 
                     :else
                     (recur next-time next-counter (rest more))))))))))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Time Conversion Functions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest check-posix-time-zero-arity
+  (testing "posix-time with no args returns a number"
+    (is (number? (posix-time)))))
+
+(deftest check-posix-time-with-arg
+  (testing "posix-time converts gregorian to POSIX"
+    (let [greg 131059232331511828
+          pt   (posix-time greg)]
+      (is (number? pt))
+      (is (= (- (quot 131059232331511828 10000) 12219292800000) pt)))))
+
+(deftest check-universal-time-zero-arity
+  (testing "universal-time returns a number"
+    (is (number? (universal-time)))))
+
+(deftest check-universal-time-with-arg
+  (testing "universal-time converts gregorian to universal time"
+    (let [greg 131059232331511828
+          ut   (universal-time greg)
+          pt   (posix-time greg)]
+      (is (= (+ pt 2208988800) ut)))))
+
+(deftest check-time-conversion-consistency
+  (testing "posix-time and universal-time differ by epoch offset"
+    (let [greg (monotonic-time)]
+      (is (= 2208988800 (- (universal-time greg) (posix-time greg)))))))
