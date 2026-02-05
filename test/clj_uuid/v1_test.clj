@@ -31,7 +31,9 @@
               (map #(apply < (map get-timestamp %)) answers)))))))
 
 (deftest check-get-timestamp
-  (let [time (clock/monotonic-time)]
-    (with-redefs [clock/monotonic-time (constantly time)]
-      (is (= time (uuid/get-timestamp (v1)))
-          "Timestamp should be retrievable from v1 UUID"))))
+  (testing "timestamp round-trip through v1 UUID"
+    (dotimes [_ 100000]
+      (let [before (clock/monotonic-time)
+            u      (v1)
+            after  (clock/monotonic-time)]
+        (is (<= before (uuid/get-timestamp u) after))))))
