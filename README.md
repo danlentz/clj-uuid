@@ -89,9 +89,9 @@ Each version of UUID offers advantages in particular situations. Please
 read on to learn more, but, to help put you at ease, your decision on
 which is appropriate to use will usually be clear.
 
-v1 and v6 time-encoded UUIDs are useful because they can be generated
-much more quickly than any other form of UUID, as there is no need to to
-call a cryptographic random number generator.
+v1, v6, and v7nc time-encoded UUIDs are useful because they can be generated
+much more quickly than other forms of UUID, as there is no need to
+call a cryptographic random number generator.  v7nc is the fastest at ~39 ns.
 
 v3/v5 deternibistic UUID's are necessary because many of the interesting
 things that you can do with UUID's require stable, reproducable,
@@ -213,10 +213,9 @@ user> uuid/+max+
 #### v6/v1: Fast, Time Encoded Identifiers
 
 You can make your own v1 and v6 UUID's at home with the functions
-`uuid/v1` and `uuid/v6`.  Either of these types of UUID's will be the
-fastest kind to produce and guarantee to be unique and thread-safe
-regardless of clock precision or degree of concurrency, but each with
-slightly different characteristics:
+`uuid/v1` and `uuid/v6`.  These are fast to produce (~100 ns) and guarantee
+to be unique and thread-safe regardless of clock precision or degree of
+concurrency, but each with slightly different characteristics:
 
 A v6 UUID encodes both the time and a random node identifier that is
 reset each time the library is loaded.  They are fast, lexically
@@ -247,12 +246,15 @@ index-friendliness.
 ;; => #uuid "018a0a60-b3d4-11e4-a03e-3af93c3de9ae"
 ```
 
-Either v6 or v1 identifiers are several times faster to generate
-than calling the JVM's built-in static method for generating UUIDs,
-`java.util.UUID/randomUUID`.
+v7nc is the fastest UUID generator at ~39 ns, followed by v1 and v6 at ~100 ns,
+all significantly faster than the JVM's `java.util.UUID/randomUUID` (~345 ns):
 
 
 ```
+user> (criterium.core/bench (uuid/v7nc))
+
+;; Execution time mean : 39.412000 ns
+
 user> (criterium.core/bench (uuid/v6))
 
 ;; Execution time mean : 100.764073 ns
