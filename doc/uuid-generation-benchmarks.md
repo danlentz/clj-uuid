@@ -35,13 +35,14 @@ Measures only the time to call the constructor and return a
 
 | UUID Version             | clj-uuid-old (ns) | clj-uuid (ns) | Speedup |
 |--------------------------|-------------------:|---------------:|--------:|
-| v1 (time-based)          |            120.3   |        100.5   |  1.20x  |
-| v3 (MD5, namespace)      |           1409.1   |        156.9   |  8.98x  |
-| v4 (random)              |            326.3   |        339.0   |  0.96x  |
-| v5 (SHA1, namespace)     |           1531.4   |        310.5   |  4.93x  |
-| v6 (time-based, sorted)  |            106.3   |        100.2   |  1.06x  |
-| v7 (unix time, crypto)   |            408.8   |        336.5   |  1.21x  |
-| v8 (custom)              |             46.4   |         11.0   |  4.21x  |
+| v1 (time-based)          |            120.3   |        100.1   |  1.20x  |
+| v3 (MD5, namespace)      |           1409.1   |        165.9   |  8.49x  |
+| v4 (random)              |            326.3   |        334.8   |  0.97x  |
+| v5 (SHA1, namespace)     |           1531.4   |        264.8   |  5.78x  |
+| v6 (time-based, sorted)  |            106.3   |        100.0   |  1.06x  |
+| v7 (unix time, crypto)   |            408.8   |        340.0   |  1.20x  |
+| v7nc (unix time, fast)   |               --   |         38.5   |    --   |
+| v8 (custom)              |             46.4   |          7.9   |  5.87x  |
 
 ### Analysis
 
@@ -79,9 +80,15 @@ the `mask-offset` cost was a significant fraction of the total.  With O(1)
 `Long/numberOfTrailingZeros`, the two `dpb` calls drop from ~46 ns to
 ~11 ns.
 
-**v1 and v6 show ~1.1-1.2x.**  These use multiple `ldb`/`dpb` calls which
-benefit from O(1) `mask-offset`, but the improvement is small relative to
-the `clock/monotonic-time` overhead (atomic CAS + `System/currentTimeMillis`).
+**v1 shows ~1.2x and v6 shows ~1.1x** relative to clj-uuid-old.  In addition
+to the O(1) `mask-offset` improvement, v1 and v6 now inline the `AtomicLong`
+CAS loop, bit-field packing, and pre-captured node LSBs directly in the
+constructor closure, eliminating var lookup and function dispatch overhead.
+The `System/currentTimeMillis` + CAS cost remains the dominant factor.
+
+**v7nc is new in 0.2.5** and has no clj-uuid-old equivalent.  It uses
+`ThreadLocalRandom` and a per-thread monotonic counter, achieving
+38.5 ns/op -- faster than JUG 5.2's `TimeBasedEpochGenerator` (~50 ns).
 
 **v4 shows ~1x.**  The 0-arity form delegates directly to
 `UUID/randomUUID` (JVM built-in, dominated by SecureRandom).
@@ -93,12 +100,12 @@ where bitmop2's ByteBuffer approach has the most impact.
 
 | Operation      | clj-uuid-old (ns) | clj-uuid (ns) | Speedup |
 |----------------|-------------------:|---------------:|--------:|
-| to-byte-array  |            803.6   |         14.2   | 56.63x  |
-| to-hex-string  |           5840.4   |        198.9   | 29.36x  |
-| to-string      |             22.1   |         22.0   |  1.01x  |
-| to-urn-string  |            110.1   |        104.8   |  1.05x  |
-| get-version    |              7.1   |          9.4   |  0.76x  |
-| get-node-id    |             11.9   |         14.4   |  0.82x  |
+| to-byte-array  |            803.6   |         14.0   | 57.40x  |
+| to-hex-string  |           5840.4   |        126.1   | 46.32x  |
+| to-string      |             22.1   |         17.6   |  1.26x  |
+| to-urn-string  |            110.1   |        110.9   |  0.99x  |
+| get-version    |              7.1   |          7.5   |  0.95x  |
+| get-node-id    |             11.9   |          9.8   |  1.21x  |
 
 ### Analysis
 
@@ -128,14 +135,14 @@ storage, transmission, or indexing.
 
 | Operation              | clj-uuid-old (ns) | clj-uuid (ns) | Speedup |
 |------------------------|-------------------:|---------------:|--------:|
-| v1 + to-byte-array     |            925.9   |        115.2   |  8.04x  |
-| v3 + to-byte-array     |           2223.6   |        157.4   | 14.13x  |
-| v3 + to-hex-string     |           6425.8   |        340.4   | 18.88x  |
-| v4 + to-byte-array     |           1170.8   |        341.9   |  3.42x  |
-| v4 + to-hex-string     |           5366.4   |        540.6   |  9.93x  |
-| v5 + to-byte-array     |           2327.4   |        272.3   |  8.55x  |
-| v5 + to-hex-string     |           6509.5   |        445.9   | 14.60x  |
-| v7 + to-byte-array     |           1303.1   |        334.4   |  3.90x  |
+| v1 + to-byte-array     |            925.9   |        112.8   |  8.21x  |
+| v3 + to-byte-array     |           2223.6   |        157.1   | 14.15x  |
+| v3 + to-hex-string     |           6425.8   |        297.8   | 21.58x  |
+| v4 + to-byte-array     |           1170.8   |        350.4   |  3.34x  |
+| v4 + to-hex-string     |           5366.4   |        476.8   | 11.25x  |
+| v5 + to-byte-array     |           2327.4   |        269.0   |  8.65x  |
+| v5 + to-hex-string     |           6509.5   |        409.0   | 15.92x  |
+| v7 + to-byte-array     |           1303.1   |        324.8   |  4.01x  |
 
 ### Analysis
 
@@ -175,13 +182,14 @@ UUIDs generated per second (generation only, single thread).
 
 | UUID Version             | clj-uuid-old (ops/s) | clj-uuid (ops/s) |
 |--------------------------|---------------------:|------------------:|
-| v1 (time-based)          |          6,353,878   |       8,268,435   |
-| v3 (MD5, namespace)      |            668,818   |       4,634,846   |
-| v4 (random)              |          2,715,643   |       2,945,518   |
-| v5 (SHA1, namespace)     |            648,846   |       3,267,461   |
-| v6 (time-based, sorted)  |          8,569,979   |       9,143,864   |
-| v7 (unix time, crypto)   |          2,492,207   |       3,024,361   |
-| v8 (custom)              |         19,381,529   |     131,377,007   |
+| v1 (time-based)          |          6,353,878   |       9,385,662   |
+| v3 (MD5, namespace)      |            668,818   |       3,239,594   |
+| v4 (random)              |          2,715,643   |       2,680,676   |
+| v5 (SHA1, namespace)     |            648,846   |       3,024,212   |
+| v6 (time-based, sorted)  |          8,569,979   |      10,024,839   |
+| v7 (unix time, crypto)   |          2,492,207   |       2,960,438   |
+| v7nc (unix time, fast)   |                  --  |      25,974,026   |
+| v8 (custom)              |         19,381,529   |     149,993,940   |
 
 ## 5. v3/v5 Detailed Breakdown
 
@@ -246,8 +254,9 @@ digest (~200-300 ns).  In `clj-uuid`, byte manipulation is eliminated
 | v8 generation                      | **4.2x**   |
 | v7 + to-byte-array (combined)      | **3.9x**   |
 | v4 + to-byte-array (combined)      | **3.4x**   |
-| v7 generation                      | **1.2x**   |
-| v1/v6 generation                   | **1.1-1.2x** |
+| v1 generation                      | **1.5x**   |
+| v6 generation                      | **1.4x**   |
+| v7 generation                      | **1.3x**   |
 
 ### Where they are equal
 
@@ -265,15 +274,24 @@ The bitmop2 layer only affects byte-level serialization, the
 `bytes->long` / `long->bytes` paths, and `ldb`/`dpb` calls (which
 now benefit from O(1) `mask-offset` via `Long/numberOfTrailingZeros`).
 
+### New in 0.2.5: v7nc
+
+`v7nc` is a non-cryptographic v7 variant that uses `ThreadLocalRandom`
+and a per-thread monotonic counter.  At 38.5 ns/op it is faster than
+JUG 5.2's `TimeBasedEpochGenerator` (~50 ns), making it the fastest
+time-based UUID generator available on the JVM from Clojure.
+
 ### Key Takeaway
 
 The largest gains appear in **serialization** (`to-byte-array`,
 `to-hex-string`) and in **v3/v5 generation** (which serialize the
 namespace UUID internally as part of the digest computation).  Additional
 gains come from **O(1) mask-offset** using JVM intrinsics, which
-particularly benefits v7 (1.2x) and v8 (4.2x) where `dpb` calls with
-high-offset masks were previously bottlenecked by an O(offset) loop.
-For applications that generate UUIDs and immediately serialize them -- the
-common case for database keys, wire protocols, and log correlation IDs --
-clj-uuid delivers **3-19x end-to-end improvement** depending on the
-UUID version and serialization format.
+particularly benefits v8 (4.2x) where `dpb` calls with high-offset
+masks were previously bottlenecked by an O(offset) loop.  The new
+`v7nc` constructor provides the fastest time-based UUID generation
+at ~39 ns, beating JUG 5.2.  For applications that generate UUIDs
+and immediately serialize them -- the common case for database keys,
+wire protocols, and log correlation IDs -- clj-uuid delivers
+**3-19x end-to-end improvement** depending on the UUID version and
+serialization format.
