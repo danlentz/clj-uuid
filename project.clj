@@ -16,6 +16,12 @@
                  :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.12.0" :scope "provided"]
                  [org.clj-commons/primitive-math "1.0.1"]]
+  :plugins  [[lein-cloverage "1.2.4"]
+             [lein-codox "0.10.8"]]
+  :cloverage {:test-ns-regex [#"clj-uuid\.(?!bench|compare-bench).*"]}
+  :profiles {:test {:dependencies
+                    [[com.fasterxml.uuid/java-uuid-generator "5.2.0"]
+                     [com.github.f4b6a3/uuid-creator "6.1.1"]]}}
   :codox    {:output-path  "doc/api"
              :src-dir-uri  "https://github.com/danlentz/clj-uuid/blob/master/"
              :doc-files []
