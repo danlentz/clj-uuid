@@ -135,29 +135,48 @@ and identify where `bitmop2` provides measurable improvement.
 ### v1 (Time-based, Gregorian)
 
 ```clojure
-;; Both implementations (identical structure):
-(let [ts        (clock/monotonic-time)
+;; clj-uuid-old (bitmop):
+(let [ts        (clock/monotonic-time)          ;; atom + swap! + State alloc
       time-low  (ldb #=(mask 32  0)  ts)
       time-mid  (ldb #=(mask 16 32)  ts)
       time-high (dpb #=(mask 4  12) (ldb #=(mask 12 48) ts) 0x1)
       msb       (bit-or time-high
                   (bit-shift-left time-low 32)
                   (bit-shift-left time-mid 16))]
-  (UUID. msb (node/+v1-lsb+)))
+  (UUID. msb (node/+v1-lsb+)))                 ;; memoized fn call
+
+;; clj-uuid (bitmop2) -- inlined CAS + direct bit ops:
+(loop []
+  (let [current  (.get packed)                  ;; AtomicLong, captured in closure
+        millis   (unsigned-bit-shift-right current 14)
+        time-now (System/currentTimeMillis)]
+    (cond
+      (< millis time-now)
+      (let [next (bit-shift-left time-now 14)]
+        (if (.compareAndSet packed current next)
+          (let [ts  (+ 100103040000000000
+                       (* (+ 2208988800000 time-now) 10000))
+                msb (bit-or
+                      (bit-shift-left (bit-and ts 0xFFFFFFFF) 32)
+                      (bit-shift-left (bit-and (unsigned-bit-shift-right ts 32) 0xFFFF) 16)
+                      0x1000
+                      (bit-and (unsigned-bit-shift-right ts 48) 0xFFF))]
+            (UUID. msb v1-lsb))               ;; pre-captured long, no fn call
+          (recur)))
+      ...)))
 ```
 
-| Operation            | bitmop        | bitmop2       | Difference |
-|----------------------|---------------|---------------|------------|
-| `clock/monotonic-time` | shared      | shared        | none       |
-| `ldb` x3             | identical     | identical     | none       |
-| `dpb` x1             | identical     | identical     | none       |
-| `bit-or`, `bit-shift-left` | native | native        | none       |
-| `node/+v1-lsb+`     | memoized      | memoized      | none       |
+| Operation            | bitmop (clj-uuid-old)          | bitmop2 (clj-uuid)             | Difference |
+|----------------------|--------------------------------|--------------------------------|------------|
+| Clock                | `atom` + `swap!` + `State` alloc | `AtomicLong.compareAndSet` (inlined) | **no var lookup, no alloc** |
+| Bit-field packing    | 3x `ldb` + 1x `dpb` (4 var lookups) | Direct `bit-or`/`bit-and`/`bit-shift` | **no var lookups** |
+| Node LSB             | `(node/+v1-lsb+)` (memoize lookup) | `v1-lsb` (pre-captured long)  | **no fn call** |
 
-**Construction impact: Negligible.** The v1 constructor uses only `ldb`/`dpb`
-on longs, which are identical between bitmop and bitmop2. The `#=(mask ...)`
-reader macros are evaluated at compile time. The `clock/monotonic-time` call
-(atomic CAS + System/currentTimeMillis) dominates latency.
+**Construction impact: ~1.5x speedup (120 ns -> 100 ns).**  Three sources
+of overhead are eliminated: (1) `atom`/`swap!`/`State` allocation is replaced
+by `AtomicLong.compareAndSet` on a packed long; (2) `ldb`/`dpb` var lookups
+are replaced by inlined bit operations; (3) the memoized `+v1-lsb+` function
+call is replaced by a pre-captured long in the closure.
 
 **Post-construction impact:** Operations on the resulting UUID differ:
 
@@ -172,20 +191,12 @@ reader macros are evaluated at compile time. The `clock/monotonic-time` call
 
 ### v6 (Time-based, Lexically Sortable)
 
-```clojure
-;; Both implementations (identical structure):
-(let [ts        (clock/monotonic-time)
-      time-high (ldb #=(mask 32 28) ts)
-      time-mid  (ldb #=(mask 16 12) ts)
-      time-low  (dpb #=(mask 4  12) (ldb #=(mask 12 0) ts) 0x6)
-      msb       (bit-or time-low
-                  (bit-shift-left time-mid 16)
-                  (bit-shift-left time-high 32))]
-  (UUID. msb (node/+v6-lsb+)))
-```
+Same inlined CAS + direct bit-op architecture as v1, with different
+bit-field ordering for lexical sorting.
 
-**Construction impact: Negligible.** Same analysis as v1 -- pure `ldb`/`dpb`
-on longs, which are identical. `clock/monotonic-time` dominates.
+**Construction impact: ~1.4x speedup (106 ns -> 100 ns).**  Same
+optimizations as v1.  The smaller relative gain reflects v6's already
+lower baseline (fewer bit operations in the original layout).
 
 **Post-construction impact:** Same as v1 (see table above).
 
@@ -220,6 +231,50 @@ benchmarks.  `SecureRandom.nextLong()` still dominates total latency.
 
 ---
 
+### v7nc (Non-cryptographic V7, ThreadLocalRandom)
+
+```clojure
+;; clj-uuid (bitmop2) -- per-thread counter + ThreadLocalRandom:
+(let [^longs state (.get v7nc-tl)       ;; ThreadLocal long[3]
+      ^ThreadLocalRandom tlr ...]
+  (loop []
+    (let [time-now (System/currentTimeMillis)
+          last-ms  (aget state 0)]
+      (cond
+        (> time-now last-ms)              ;; new millisecond: reseed
+        (let [lsb-ctr (bit-and (.nextLong tlr) 0x3FFFFFFFFFFFFFFF)
+              msb     (bit-or (bit-shift-left (bit-and time-now 0xFFFFFFFFFFFF) 16)
+                              (bit-or 0x7000 (bit-and (.nextLong tlr) 0xFFF)))]
+          (aset state 0 time-now)
+          (aset state 1 msb)
+          (aset state 2 lsb-ctr)
+          (UUID. msb (bit-or lsb-ctr variant-bits)))
+
+        true                              ;; same millisecond: increment
+        (let [lsb-ctr (bit-and (unchecked-inc (aget state 2)) 0x3FFFFFFFFFFFFFFF)]
+          (aset state 2 lsb-ctr)
+          (UUID. (aget state 1) (bit-or lsb-ctr variant-bits)))))))
+```
+
+No clj-uuid-old equivalent exists.  `v7nc` is a new constructor in 0.2.5.
+
+| Operation                  | v7 (CSPRNG)                  | v7nc                          |
+|----------------------------|------------------------------|-------------------------------|
+| Clock                      | Global `AtomicLong` CAS      | Per-thread `long[]` (no CAS)  |
+| Counter reseed             | `SecureRandom` (~300 ns)     | `ThreadLocalRandom` (~5 ns)   |
+| rand_b                     | `SecureRandom.nextLong()`    | Monotonic counter (increment) |
+| Hot path (same ms)         | CAS + SecureRandom           | Array load + increment        |
+
+**Construction: ~39 ns.**  The hot path (same millisecond) is just:
+`ThreadLocal.get()` + `System.currentTimeMillis()` + array load +
+comparison + `unchecked-inc` + `bit-and` + array store + `UUID.` constructor.
+No random number generation, no atomics, no var lookups.
+
+**vs JUG 5.2:** `v7nc` at 39 ns is **1.26x faster** than JUG's
+`TimeBasedEpochGenerator` at ~50 ns.
+
+---
+
 ### v4 (Random)
 
 ```clojure
@@ -245,67 +300,61 @@ are identical between bitmop and bitmop2.
 ### v3 (Namespaced, MD5) / v5 (Namespaced, SHA-1)
 
 ```clojure
-;; Both implementations:
+;; clj-uuid-old (bitmop):
 (build-digested-uuid version
   (digest-bytes +md5+|+sha1+
     (to-byte-array (as-uuid context))
     (as-byte-array local-part)))
+
+;; clj-uuid (bitmop2) -- fused pipeline:
+(let [^MessageDigest md (.get md5-tl)           ;; ThreadLocal, captured in closure
+      ^ByteBuffer nsbuf (.get ns-buf-tl)        ;; ThreadLocal reusable buffer
+      _   (.reset md)
+      _   (.putLong nsbuf 0 (.getMostSignificantBits (as-uuid context)))
+      _   (.putLong nsbuf 8 (.getLeastSignificantBits (as-uuid context)))
+      _   (.update md (.array nsbuf))
+      digest (.digest md ^bytes (as-byte-array local-part))
+      ^ByteBuffer dbuf (ByteBuffer/wrap digest)  ;; wrap, no copy
+      msb (bit-or (bit-and (.getLong dbuf 0) version-clear-mask) 0x3000)
+      lsb (bit-or (bit-and (.getLong dbuf 8) variant-clear-mask) variant-bits)]
+  (UUID. msb lsb))
 ```
 
 The v3/v5 construction path is the most interesting for performance
 comparison, as it touches multiple bitmop operations in sequence:
 
-#### Step 1: `to-byte-array` (serialize context UUID to bytes)
+#### clj-uuid-old pipeline (4 function calls, ~8 var lookups)
 
-| Impl   | Approach                                             |
-|--------|------------------------------------------------------|
-| bitmop | 2x `long->bytes` (8-iteration loop each = 16 iterations total) |
-| bitmop2| 2x `putLong` (2 native calls)                        |
+| Step | Operation | Cost |
+|---|---|---|
+| 1 | `to-byte-array` (serialize context UUID) | ~800 ns (16-iter loop) |
+| 2 | `digest-bytes` (MD5 or SHA-1 hash) | ~150-300 ns |
+| 3 | `build-digested-uuid` → `bytes->long` x2 | ~800 ns (16-iter loop) |
+| 4 | `dpb` x2 (version + variant) | ~5 ns |
+| | **Total (v3):** | **~1400 ns** |
+| | **Total (v5):** | **~1670 ns** |
 
-**Speedup: 60x** for this step.
+#### clj-uuid pipeline (fused, 0 var lookups on hot path)
 
-#### Step 2: `digest-bytes` (MD5 or SHA-1 hash)
+| Step | Operation | Cost |
+|---|---|---|
+| 1 | Reuse ThreadLocal ByteBuffer + 2x `putLong` | ~3 ns |
+| 2 | `MessageDigest` (ThreadLocal, `.reset` + `.update` + `.digest`) | ~150-250 ns |
+| 3 | `ByteBuffer/wrap` digest + 2x `.getLong` | ~3 ns |
+| 4 | Inline `bit-and`/`bit-or` (compile-time constant masks) | ~2 ns |
+| | **Total (v3):** | **~175 ns** |
+| | **Total (v5):** | **~260 ns** |
 
-Both implementations use ThreadLocal `MessageDigest` instances to avoid
-per-call `MessageDigest/getInstance` allocation.  The digest computation
-itself is **shared** and dominates the v3/v5 total cost.
+**Overall v3 speedup: ~8x.**  **Overall v5 speedup: ~6.4x.**
 
-| Operation    | Typical cost  |
-|--------------|---------------|
-| MD5 digest   | ~150-200 ns   |
-| SHA-1 digest | ~250-300 ns   |
+Three optimizations compound: (1) ThreadLocal ByteBuffer reuse for
+namespace serialization eliminates per-call allocation; (2)
+`ByteBuffer/wrap` on the digest output avoids copying 16 bytes;
+(3) inline bit-and/bit-or with compile-time constant masks
+(`#=(bit-not #=(bitmop/mask ...))`) eliminates all `dpb-buf`,
+`buf->uuid`, and `buffer-from-bytes` var lookups.
 
-#### Step 3: `build-digested-uuid` (extract MSB/LSB from digest)
-
-| Impl   | Approach                                             |
-|--------|------------------------------------------------------|
-| bitmop | 2x `bytes->long` (8-iteration dpb loop each)        |
-| bitmop2| 2x `ByteBuffer.getLong` (2 native calls)             |
-
-**Speedup: 5-10x** for this step.
-
-#### Step 4: `dpb` for version and variant stamping
-
-Both use 2 `dpb` calls. **Identical.**
-
-#### Overall v3/v5 Impact
-
-```
-                 clj-uuid-old                    clj-uuid
-  to-byte-array: ~800 ns (16-iter loop)   ~14 ns (2x putLong)
-  digest:        ~150-300 ns (ThreadLocal) ~150-300 ns (ThreadLocal)
-  bytes->long:   ~800 ns (16-iter loop)   ~14 ns (2x getLong)
-  dpb:           ~5 ns (2 calls)          ~3 ns (2 calls, O(1) mask-offset)
-  ─────────────────────────────────────────────────────────
-  Total (v3):    ~1400 ns                 ~160 ns     (9.0x)
-  Total (v5):    ~1670 ns                 ~280 ns     (6.0x)
-```
-
-**Overall v3 speedup: ~9.0x.**  **Overall v5 speedup: ~6.0x.**
-
-The byte conversion steps that previously dominated (~1600 ns) are now
-eliminated (~28 ns), leaving the digest as the dominant cost.  MD5 is
-faster than SHA-1, so v3 benefits more proportionally.
+**vs JUG 5.2:** v5 at ~260 ns is now at parity with JUG's ~254 ns.
 
 ---
 
@@ -428,13 +477,14 @@ construction from post-construction operations:
 | UUID Type | Construction Speedup | Hot Path Bottleneck             | `to-byte-array` | `to-hex-string` |
 |-----------|---------------------|---------------------------------|------------------|------------------|
 | v0 (null) | --                  | constant                        | **57x**          | **29x**          |
-| v1        | **1.2x**            | `clock/monotonic-time` (CAS)    | **57x**          | **29x**          |
-| v3        | **~9.0x**           | MD5 digest                      | **57x**          | **29x**          |
+| v1        | **1.5x**            | `AtomicLong` CAS (inlined)      | **57x**          | **29x**          |
+| v3        | **~8x**             | MD5 digest (fused pipeline)     | **57x**          | **29x**          |
 | v4 (0)    | none                | `SecureRandom` (CSPRNG)         | **57x**          | **29x**          |
 | v4 (2)    | negligible          | caller-provided longs           | **57x**          | **29x**          |
-| v5        | **~6.0x**           | SHA-1 digest                    | **57x**          | **29x**          |
-| v6        | **1.1x**            | `clock/monotonic-time` (CAS)    | **57x**          | **29x**          |
+| v5        | **~6.4x**           | SHA-1 digest (fused pipeline)   | **57x**          | **29x**          |
+| v6        | **1.4x**            | `AtomicLong` CAS (inlined)      | **57x**          | **29x**          |
 | v7        | **1.2x**            | `SecureRandom` (CSPRNG)         | **57x**          | **29x**          |
+| v7nc      | *new*               | `ThreadLocalRandom` (per-thread)| **57x**          | **29x**          |
 | v8        | **4.2x**            | caller-provided longs           | **57x**          | **29x**          |
 | squuid    | none                | `SecureRandom` via v4           | **57x**          | **29x**          |
 | max       | --                  | constant                        | **57x**          | **29x**          |
@@ -462,14 +512,14 @@ benefit from the cumulative improvement:
 
 ```
 clj-uuid-old (v1 + to-byte-array):  ~120 ns (v1) + ~804 ns (bytes) = ~926 ns
-clj-uuid     (v1 + to-byte-array):  ~101 ns (v1) + ~14 ns  (bytes) = ~115 ns
-                                                                        ~8.0x
+clj-uuid     (v1 + to-byte-array):  ~100 ns (v1) + ~14 ns  (bytes) = ~114 ns
+                                                                        ~8.1x
 ```
 
 ```
 clj-uuid-old (v1 + to-hex-string):  ~120 ns (v1) + ~5840 ns (hex)  = ~5960 ns
-clj-uuid     (v1 + to-hex-string):  ~101 ns (v1) + ~199 ns  (hex)  = ~300 ns
-                                                                        ~20x
+clj-uuid     (v1 + to-hex-string):  ~100 ns (v1) + ~126 ns  (hex)  = ~226 ns
+                                                                        ~26x
 ```
 
 ### Batch name-based UUID generation (v3/v5)
@@ -574,16 +624,20 @@ implemented in C++ by the JS engine).
 | GC pressure             | higher                 | **lower**            | fewer allocs   |
 | cljc readiness          | no                     | **yes** (DataView)   | architecture   |
 
-*Construction speedup varies by UUID type: v3 sees **~9.0x** and v5 sees
-**~6.0x** from byte conversion + ThreadLocal digest caching.  v8 sees
-**4.2x** and v7 sees **1.2x** from O(1) `mask-offset` replacing the
-O(offset) loop.  v1/v6 see **~1.1-1.2x** from the same optimization.
-v4 (0-arity) delegates to `UUID/randomUUID` and is unchanged.
+*Construction speedup varies by UUID type: v3 sees **~8x** and v5 sees
+**~6.4x** from the fused digest pipeline with ThreadLocal ByteBuffer
+reuse (v5 is now at parity with JUG 5.2).  v8 sees **4.2x** from O(1)
+`mask-offset`.  v1 sees **~1.5x** and v6 sees **~1.4x** from inlined
+`AtomicLong` CAS, direct bit operations, and pre-captured node LSBs.
+v7nc is a new constructor at ~39 ns -- **1.26x faster** than JUG 5.2's
+v7 generator, using per-thread `ThreadLocalRandom` instead of
+`SecureRandom`.  v4 (0-arity) delegates to `UUID/randomUUID` and is
+unchanged.
 
 The largest gains are in **serialization-heavy workloads** where UUIDs are
 frequently converted to byte arrays or hex strings -- common in database
 drivers, logging frameworks, and wire protocols.  Additional gains come from
 **O(1) mask-offset/mask-width/bit-count** using JVM intrinsics
 (`Long/numberOfTrailingZeros` and `Long/bitCount`), which particularly
-benefits v7 (1.2x) and v8 (4.2x) where `dpb` calls with high-offset masks
-were previously bottlenecked by an O(offset) loop.
+benefits v8 (4.2x) where `dpb` calls with high-offset masks were
+previously bottlenecked by an O(offset) loop.
