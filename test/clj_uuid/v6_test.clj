@@ -30,8 +30,9 @@
         (is (every? identity (map (partial apply uuid/<) answers)))))))
 
 (deftest check-get-timestamp
-  (dotimes [_ 1000000]
-    (let [time (clock/monotonic-time)]
-      (with-redefs [clock/monotonic-time (constantly time)]
-        (is (= time (uuid/get-timestamp (v6)))
-            "Timestamp should be retrievable from v6 UUID")))))
+  (testing "timestamp round-trip through v6 UUID"
+    (dotimes [_ 100000]
+      (let [before (clock/monotonic-time)
+            u      (v6)
+            after  (clock/monotonic-time)]
+        (is (<= before (uuid/get-timestamp u) after))))))

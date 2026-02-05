@@ -16,7 +16,7 @@
 ;; intuitively named value that is used to reduce the potential that duplicate
 ;; UUID's might be generated under unusual situations, such as if the system
 ;; hardware clock is set backward in time or if, despite all efforts otherwise,
-;; a duplecate +node-id+ (see below) happens to be generated. This value is
+;; a duplicate +node-id+ (see below) happens to be generated. This value is
 ;; initialized to a random 16-bit number once per lifetime of the system.
 
 (defonce +clock-sequence+ (inc (rand-int 0xffff)))
@@ -25,7 +25,7 @@
 ;; NodeID Representation                               [RFC4122:4.1.6 "NODE"] ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; The representation of NodeID used for consutruction of time-based (v1) UUIDs
+;; The representation of NodeID used for construction of time-based (v1) UUIDs
 ;; is a list with the following encoding semantics:
 ;;
 ;;               SIZE    TYPE      REPRESENTATION
@@ -143,21 +143,15 @@
 
 (def +node-id+ (delay (assemble-bytes (cons 0 (cons 0 (node-id))))))
 
-(defn- +v1-lsb+'
-  []
+(defonce +v1-lsb+
   (let [clk-high  (dpb (mask 2 6) (ldb (mask 6 8) +clock-sequence+) 0x2)
         clk-low   (ldb (mask 8 0) +clock-sequence+)]
     (dpb (mask 8 56) (dpb (mask 8 48) @+node-id+ clk-low) clk-high)))
 
-(def +v1-lsb+ (memoize +v1-lsb+'))
-
 ;; v6 lsb uses a cryptographically secure random node identifier that is
 ;; initialized at runtime.
 
-(defn- +v6-lsb+'
-  []
+(defonce +v6-lsb+
   (let [clk-high  (dpb (mask 2 6) (ldb (mask 6 8) +clock-sequence+) 0x2)
         clk-low   (ldb (mask 8 0) +clock-sequence+)]
     (dpb (mask 8 56) (dpb (mask 8 48) (random/long) clk-low) clk-high)))
-
-(def +v6-lsb+ (memoize +v6-lsb+'))

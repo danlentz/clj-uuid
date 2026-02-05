@@ -1,6 +1,7 @@
 (ns clj-uuid.clock
   "Lock-Free, Thread-safe Monotonic Clocks"
-  (:require [clj-uuid.random :as random]))
+  (:require [clj-uuid.random :as random])
+  (:import [java.util.concurrent.atomic AtomicLong]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Timestamp Epochs                       [RFC4122:4.1.4 "TIMESTAMP"] ;;
@@ -10,7 +11,7 @@
 ;;   elapsed since 00:00 January 1, 1900 GMT.
 ;;
 ;;   POSIX time is represented as the number of seconds that have
-;;   elaspsed since 00:00 January 1, 1970 UTC
+;;   elapsed since 00:00 January 1, 1970 UTC
 ;;
 ;;   Java time is represented as the difference, measured in milliseconds,
 ;;   between the current time and midnight, January 1, 1970 UTC
@@ -54,30 +55,37 @@
 
 (def ^:const +subcounter-resolution+     9999)
 
-(let [-state- (atom (->State 0 0))]
-  (defn monotonic-time
-    "Generate a guaranteed monotonically increasing timestamp based on
-     Gregorian time and a stateful subcounter"
-    []
-     (let [^State new-state
-           (swap! -state-
-             (fn [^State current-state]
-               (loop []
-                 (let [time-now (System/currentTimeMillis)]
-                   (cond
-                     (< (.millis current-state) time-now)
-                     (->State 0 time-now)
+(def ^AtomicLong -gregorian-packed- (AtomicLong. 0))
 
-                     (> (.millis current-state) time-now)
-                     (recur)
+(defn monotonic-time
+  "Generate a guaranteed monotonically increasing timestamp based on
+   Gregorian time and a stateful subcounter"
+  []
+  (loop []
+    (let [current  (.get -gregorian-packed-)
+          millis   (unsigned-bit-shift-right current 14)
+          time-now (System/currentTimeMillis)]
+      (cond
+        (< millis time-now)
+        (let [next (bit-shift-left time-now 14)]
+          (if (.compareAndSet -gregorian-packed- current next)
+            (+ 100103040000000000
+               (* (+ 2208988800000 time-now) 10000))
+            (recur)))
 
-                     true
-                     (let [tt (inc (.seqid current-state))]
-                       (if (<= tt +subcounter-resolution+)
-                         (->State tt time-now)
-                         (recur))))))))]
-       (+ (.seqid new-state) 100103040000000000
-          (* (+ 2208988800000 (.millis new-state)) 10000)))))
+        (> millis time-now)
+        (recur)
+
+        true
+        (let [seqid (bit-and current 0x3FFF)
+              tt    (inc seqid)]
+          (if (<= tt +subcounter-resolution+)
+            (let [next (bit-or (bit-shift-left time-now 14) tt)]
+              (if (.compareAndSet -gregorian-packed- current next)
+                (+ tt 100103040000000000
+                   (* (+ 2208988800000 time-now) 10000))
+                (recur)))
+            (recur)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Monotonicity and Counters       [RFC9562:6.2.2 "Monotonic Random"] ;;
@@ -98,29 +106,35 @@
 
 (def ^:const +random-counter-resolution+ 0xfff)
 
-(let [-state- (atom (->State 0 0))]
+(let [^AtomicLong -packed- (AtomicLong. 0)]
   (defn monotonic-unix-time-and-random-counter
     "Generate guaranteed monotonically increasing number pairs based on
      POSIX time and a randomly seeded subcounter"
     []
-     (let [^State new-state
-           (swap! -state-
-             (fn [^State current-state]
-               (loop []
-                 (let [time-now (System/currentTimeMillis)]
-                   (cond
-                     (< (.millis current-state) time-now)
-                     (->State (random/eight-bits) time-now)
+    (loop []
+      (let [current  (.get -packed-)
+            millis   (unsigned-bit-shift-right current 14)
+            time-now (System/currentTimeMillis)]
+        (cond
+          (< millis time-now)
+          (let [new-seqid (random/ten-bits)
+                next      (bit-or (bit-shift-left time-now 14) new-seqid)]
+            (if (.compareAndSet -packed- current next)
+              (->State new-seqid time-now)
+              (recur)))
 
-                     (> (.millis current-state) time-now)
-                     (recur)
+          (> millis time-now)
+          (recur)
 
-                     true
-                     (let [tt (inc (.seqid current-state))]
-                       (if (<= tt +random-counter-resolution+)
-                         (->State tt time-now)
-                         (recur))))))))]
-       [(.millis new-state) (.seqid new-state)])))
+          true
+          (let [seqid (bit-and current 0x3FFF)
+                tt    (inc seqid)]
+            (if (<= tt +random-counter-resolution+)
+              (let [next (bit-or (bit-shift-left time-now 14) tt)]
+                (if (.compareAndSet -packed- current next)
+                  (->State tt time-now)
+                  (recur)))
+              (recur))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Time Utilities
@@ -128,7 +142,7 @@
 
 (defn posix-time
   "Generate the (Unix compatible) POSIX time -- the number of seconds
-  that have elaspsed since 00:00 January 1, 1970 UTC"
+  that have elapsed since 00:00 January 1, 1970 UTC"
   ([]
    (posix-time (System/currentTimeMillis)))
   ([^long gregorian]

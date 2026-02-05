@@ -11,22 +11,23 @@ clj-uuid
 UUIDs (Universally Unique Identifiers) as described by
 [**IETF RFC-9562**](http://www.ietf.org/rfc/rfc9562.txt).
 
-This library extends the standard Java UUID class to provide true
-time based and namespace based identifier generation.
-Additionally, a number of useful supporting utilities are provided to
-support serialization and manipulation of these UUIDs in a simple,
-efficient manner.
+This library extends the standard Java
+UUID class to provide true v1, v6, v7 (time based),
+v3/v5 (namespace based), and v8 (user customizable)
+identifier generation. Additionally, a number of useful
+utilities are provided to support serialization and
+manipulation of these UUIDs in a simple, efficient manner.
 
-The essential nature of the value RFC9562 UUIDs provide is that of an
+The essential nature of the value RFC-9562 UUIDs provide is that of an
 enormous namespace and a deterministic mathematical model by means of
 which one navigates it. UUIDs represent an extremely powerful and
 versatile computation technique that is often overlooked, and
 underutilized. In my opinion, this, in part, is due to the generally
 poor quality, performance, and capability of available libraries and,
-in part, due to a general misunderstanding in the popular consiousness
+in part, due to a general misunderstanding in the popular consciousness
 of their proper use and benefit. It is my hope that this library will
-serve to expand awareness, make available, and simplify use of RFC9562
-identifiers to a wider audience.
+serve to expand awareness, make available, and simplify the use of standards
+compliant UUIDs to a wider audience.
 
 ### The Most Recent Release
 
@@ -36,7 +37,44 @@ With Leiningen:
 [![Clojars Project](https://img.shields.io/clojars/v/danlentz/clj-uuid.svg)](https://clojars.org/danlentz/clj-uuid)
 
 
-### How is it better?
+### What's new?
+
+The latest release focuses on performance.  There are no external
+changes to the API.
+
+clj-uuid 0.2.5 now uses ByteBuffer-based primitives and JVM intrinsics
+to deliver significant performance gains over traditional shift/mask
+loop approach.
+
+| Category                      | Speedup     |
+|-------------------------------|-------------|
+| `to-byte-array`               | **57x**     |
+| `to-hex-string`               | **29x**     |
+| v3 (MD5) generation           | **9.0x**    |
+| v5 (SHA1) generation          | **6.0x**    |
+| v8 (custom) generation        | **4.2x**    |
+| v1 (time-based) generation    | **1.5x**    |
+| v6 (time-based) generation    | **1.4x**    |
+
+v5 generation is now at parity with JUG 5.2 (~260 ns vs ~254 ns)
+thanks to a fused digest pipeline with ThreadLocal ByteBuffer reuse.
+
+A new `v7nc` constructor provides non-cryptographic v7 UUIDs at
+**~39 ns** -- **1.26x faster** than JUG's `TimeBasedEpochGenerator`
+(~50 ns).
+
+Combined generate + serialize operations see **3-19x** end-to-end
+improvement depending on UUID version and serialization format.
+
+For detailed benchmarks and further analysis, see:
+
+* [Performance Analysis](doc/perf-analysis.md) -- architectural analysis
+  of bitmop (old) vs bitmop2 (new) primitives
+* [Benchmarks](doc/uuid-generation-benchmarks.md) -- per-version timings, throughput, and combined operation benchmarks
+* [Competitive Benchmarks](doc/apples.md) -- head-to-head comparison with JUG, uuid-creator, and JDK
+
+
+### Why is this library useful??
 
 The JVM version only provides an automatic generator for random (v4)
 and (non-namespaced) pseudo-v3 UUID's.  Where appropriate, this library
@@ -51,9 +89,9 @@ Each version of UUID offers advantages in particular situations. Please
 read on to learn more, but, to help put you at ease, your decision on
 which is appropriate to use will usually be clear.
 
-v1 and v6 time-encoded UUIDs are useful because they can be generated
-much more quickly than any other form of UUID, as there is no need to to
-call a cryptographic random number generator.
+v1, v6, and v7nc time-encoded UUIDs are useful because they can be generated
+much more quickly than other forms of UUID, as there is no need to
+call a cryptographic random number generator.  v7nc is the fastest at ~39 ns.
 
 v3/v5 deternibistic UUID's are necessary because many of the interesting
 things that you can do with UUID's require stable, reproducable,
@@ -93,26 +131,34 @@ In order to refer to the symbols in this library, it is recommended to
 
 ```clojure
 
-(require '[clj-uuid :as uuid])
+(require '[clj-uuid.core :as uuid])
 ```
 
 Or include in namespace declaration:
 
-
 ```clojure
 
 (ns foo
-  (:require [clj-uuid :as uuid])
+  (:require [clj-uuid.core :as uuid])
   ...
   )
 
+```
+
+The legacy single-segment namespace `clj-uuid` is still supported for
+backward compatibility:
+
+```clojure
+
+(require '[clj-uuid :as uuid])  ;; also works
 ```
 
 #### Literal Syntax
 
 UUID's have a convenient literal syntax supported by the clojure
 reader.  The tag `#uuid` denotes that the following string literal
-will be read as a UUID.  UUID's evaluate to themselves:
+will be read as a UUID.  UUID's evaluate to themselves, similarly to
+Clojure keywords.
 
 ```clojure
 
@@ -125,18 +171,11 @@ user> #uuid "e6ff478d-9492-48dd-886d-23ec4c6385ee"
 #### The NULL Identifier
 
 The special UUID, `#uuid "00000000-0000-0000-0000-000000000000"` is
-known as the _null UUID_ or _version 0 UUID_ and can be useful for
+known as the _**null** UUID_ or _version 0 UUID_ and can be useful for
 representing special values such as _nil_ or _null-context_. One may
 reference the null UUID declaratively or functionally, although it is
 best to pick one convention and remain consistant. When comparing UUID's
 the NULL UUID is considered the MININUM VALUE.
-
-
-#### The MAX Identifier
-
-The special UUID, `#uuid "ffffffff-ffff-ffff-ffff-ffffffffffff"` is
-known as the _max UUID_ and is used similarly to the _null UUID_.  When
-comparing UUID's the NULL UUID is considered the MAXIMUM VALUE.
 
 
 ```clojure
@@ -145,16 +184,25 @@ user> (uuid/null)
 
 ;;  => #uuid "00000000-0000-0000-0000-000000000000"
 
-
-user> (uuid/max)
-
-;;  => #uuid "ffffffff-ffff-ffff-ffff-ffffffffffff"
-
-
 user> uuid/+null+
 
 ;;  => #uuid "00000000-0000-0000-0000-000000000000"
 
+```
+
+
+#### The MAX Identifier
+
+The special UUID, `#uuid "ffffffff-ffff-ffff-ffff-ffffffffffff"` is
+known as the _**max** UUID_ and is used similarly to the _**null** UUID_.  When
+comparing UUID's the NULL UUID is considered the MAXIMUM VALUE.
+
+
+```clojure
+
+user> (uuid/max)
+
+;;  => #uuid "ffffffff-ffff-ffff-ffff-ffffffffffff"
 
 user> uuid/+max+
 
@@ -164,15 +212,14 @@ user> uuid/+max+
 
 #### v6/v1: Fast, Time Encoded Identifiers
 
-You can make your own v1 and v6 UUID's with the functions `#'uuid/v1`
-and `#'uuid/v6`.  Either of these types of UUID's will be the fastest to
-produce and guaranteed to be unique and thread-safe regardless of clock
-precision or degree of concurrency, but each with slightly different
-characteristics:
+You can make your own v1 and v6 UUID's at home with the functions
+`uuid/v1` and `uuid/v6`.  These are fast to produce (~100 ns) and guarantee
+to be unique and thread-safe regardless of clock precision or degree of
+concurrency, but each with slightly different characteristics:
 
 A v6 UUID encodes both the time and a random node identifier that is
 reset each time the library is loaded.  They are fast, lexically
-(aphabetically) ordered, and index friendly.
+(alphabetically) ordered, and index-friendly.
 
 A v1 UUID is similar, but may reveal both the identity of the computer
 that generated the UUID and the time at which it did so.  Its uniqueness
@@ -199,19 +246,22 @@ index-friendliness.
 ;; => #uuid "018a0a60-b3d4-11e4-a03e-3af93c3de9ae"
 ```
 
-Either v6 or v1 identifiers are -- _several times faster to generate
-than calling the JVM's built-in static method for generating UUIDs_,
-`#'java.util.UUID/randomUUID`.
+v7nc is the fastest UUID generator at ~39 ns, followed by v1 and v6 at ~100 ns,
+all significantly faster than the JVM's `java.util.UUID/randomUUID` (~345 ns):
 
 
 ```
+user> (criterium.core/bench (uuid/v7nc))
+
+;; Execution time mean : 39.412000 ns
+
 user> (criterium.core/bench (uuid/v6))
 
-;; Execution time mean : 98.764073 ns
+;; Execution time mean : 100.764073 ns
 
 user> (criterium/bench (java.util.UUID/randomUUID))
 
-;; Execution time mean : 273.654110 ns
+;; Execution time mean : 344.654110 ns
 
 ```
 
@@ -274,9 +324,8 @@ user> (map uuid/get-instant (repeatedly 10 uuid/v1))
 
 #### v4: Random Identifiers
 
-
 V4 identifiers are generated by directly invoking the static method
-`#'java.util.UUID/randomUUID` and are, in typical situations, slower to
+`java.util.UUID/randomUUID` and are, in typical situations, slower to
 generate in addition to being non-deterministically unique. It exists
 primarily because it is very simple to implement and because randomly
 generated UUID's are hard to guess.  They can be useful in that case,
@@ -292,9 +341,9 @@ user> (uuid/v4)
 
 #### v7: Time Encoded Cryptographically Random Identifiers
 
-Combining the best features of all of the above, v7 UUIDs provide time
-encoding, lexical ordering, and entropy-friendly randomness, at, of
-course, some additional cost to compute.
+Combining some of the best features of all of the above, v7 UUIDs
+provide time encoding, lexical ordering, and entropy-friendly
+randomness, at, of course, some additional cost to compute.
 
 
 ```clojure
@@ -314,16 +363,32 @@ user> (uuid/get-instant (uuid/v7))
 
 user> (criterium.core/bench (uuid/v7))
 
-;; Execution time mean : 507.298388 ns
+;; Execution time mean : 333.232000 ns
+
+```
+
+If cryptographic unguessability of the random portion is not required,
+`v7nc` provides the same v7 UUID structure using `ThreadLocalRandom`
+instead of `SecureRandom`:
+
+```clojure
+
+user> (uuid/v7nc)
+
+;; => #uuid "0194cba3-f2d1-7a4c-8b1e-6c3a9d8e4f21"
+
+user> (criterium.core/bench (uuid/v7nc))
+
+;; Execution time mean : 39.412000 ns
 
 ```
 
 #### Lexical Comparability
 
-Ok, you've heard me mention "lexical odering" a few times. What does
+Ok, you've heard me mention "lexical ordering" a few times. What does
 this mean?  v6 and v7 UUIDs offer identifiers that can be efficiently
-ordered alphabetically, requiring no decoding, based on order of their
-creation. Let's take an example:
+ordered alphabetically, requiring no decoding, based on the order of
+their creation. Let's take an example:
 
 ```clojure
 
@@ -686,7 +751,7 @@ _(function)_    `v3 [^UUID namespace ^Object local-name]`
 >  v3 identifiers are intended for generating UUID's from names that are
 >  drawn from, and unique within, some namespace.  The concept of name and
 >  namespace should be broadly construed, and not limited to textual names.
->  The requiremens for a v3 UUID are as follows:
+>  The requirements for a v3 UUID are as follows:
 >
 >  * v3 UUID's generated at different times from the same name in the same
 >    namespace MUST be equal.
@@ -726,7 +791,7 @@ _(function)_    `v5 [^UUID namespace ^Object local-name]`
 >  v5 identifiers are intended for generating UUID's from names that are
 >  drawn from, and unique within, some namespace.  The concept of name and
 >  namespace should be broadly construed, and not limited to textual names.
->  The requiremens for a v5 UUID are as follows:
+>  The requirements for a v5 UUID are as follows:
 >
 >  * v5 UUID's generated at different times from the same name in the same
 >    namespace MUST be equal.
@@ -756,6 +821,15 @@ _(function)_    `v7 []`
 >  counter, cryptographically secure random portion, and POSIX time encoding.
 >  As such, creation of v7 UUIDs may be slower, but have improved
 >  entropy chararacteristics compared to v1 or v6 UUIDs.
+
+_(function)_    `v7nc []`
+
+>  Generate a v7 UUID using non-cryptographic randomness (ThreadLocalRandom).
+>  Same timestamp/version/variant structure as v7, but uses a per-thread
+>  monotonic counter and ThreadLocalRandom instead of SecureRandom and a
+>  global AtomicLong.  At ~39 ns, this is faster than JUG 5.2's v7
+>  generator (~50 ns).  Use when cryptographic unguessability of the
+>  random portion is not required.
 
 _(function)_    `v8 [^long msb, ^long lsb]`
 
@@ -923,7 +997,7 @@ _(protocol)_    `UUIDRfc9526`
 >>  the four bits of M indicate the UUID version (i.e., the hexadecimal M
 >>  will be either 1, 2, 3, 4, 5, 6, 7, or 8).")
 >
-> _(member)_    `get-timetamp [self]`
+> _(member)_    `get-timestamp [self]`
 >
 >>  Return the time of UUID creation.  For Gregorian time-based (v1,
 >>  v6) UUID's, this is 60 bit unsigned value that represents a
@@ -945,7 +1019,7 @@ _(protocol)_    `UUIDRfc9526`
 > _(member)_    `get-unix-time [self]`
 >
 >>  For time-based (v1, v6, v7) UUIDs return the timestamp portion in
->>  aproximately milliseconds since the Unix epoch 1970-01-01T00:00:00.000Z.
+>>  approximately milliseconds since the Unix epoch 1970-01-01T00:00:00.000Z.
 >>  For non-time-based (v3, v4, v5, v8, squuid) UUID's, always returns
 >`nil`.
 >
@@ -957,7 +1031,7 @@ _(protocol)_    `UUIDRfc9526`
 > _(member)_    `get-time-mid [self]`
 >
 >>  Return the 16 bit unsigned value that represents the _time-mid_ field
->>  of the _timestamp_ assocaited with this UUID.
+>>  of the _timestamp_ associated with this UUID.
 >
 > _(member)_    `get-time-high [self]`
 >
@@ -1026,7 +1100,6 @@ _(protocol)_    `UUIDRfc9526`
 > _(member)_    `to-uri [self]`
 >
 >>  Return the unique URN URI associated with this UUID.
-
 
 
 ### References

@@ -80,3 +80,17 @@
     (java.io.BufferedReader.
       (java.io.InputStreamReader.
         (java.io.FileInputStream. file-name)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Namespace Re-export
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmacro import-vars
+  "Import public vars from src-ns into the current namespace."
+  [src-ns & var-syms]
+  `(do
+     ~@(map (fn [sym]
+              `(def ~(vary-meta sym assoc
+                       :doc (:doc (meta (resolve (symbol (name src-ns) (name sym))))))
+                 ~(symbol (name src-ns) (name sym))))
+            var-syms)))

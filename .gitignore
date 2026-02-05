@@ -12,3 +12,7 @@ lpr.sh
 test/new.clj
 /clj-uuid.iml
 /.idea
+/.claude
+/.lein-failures
+/.lein-repl-history
+.DS_Store
