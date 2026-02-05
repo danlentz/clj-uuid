@@ -56,6 +56,7 @@
            (bench-print "v5 (SHA1, namespace)"       #(uuid/v5 ns-uuid test-name))
            (bench-print "v6 (time-based, sorted)"    #(uuid/v6))
            (bench-print "v7 (unix time, crypto)"     #(uuid/v7))
+           (bench-print "v7nc (unix time, fast)"     #(uuid/v7nc))
            (bench-print "v8 (custom)"                #(uuid/v8 0x123456789ABCDEF -1))]]
       (println)
       (print-md-table "UUID Version" results)
@@ -67,6 +68,7 @@
       (is (= 5 (uuid/get-version (uuid/v5 ns-uuid test-name))))
       (is (= 6 (uuid/get-version (uuid/v6))))
       (is (= 7 (uuid/get-version (uuid/v7))))
+      (is (= 7 (uuid/get-version (uuid/v7nc))))
       (is (= 8 (uuid/get-version (uuid/v8 0x123456789ABCDEF -1))))
       ;; v3/v5 are deterministic
       (is (= (uuid/v3 ns-uuid test-name) (uuid/v3 ns-uuid test-name)))
